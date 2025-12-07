@@ -1,0 +1,20 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "MemberExpression[object.name='process'][property.name='env']",
+        "message": "Direct process.env access is not allowed. Use config/env.ts instead."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["config/env.ts", "config/env.js"],
+      "rules": {
+        "no-restricted-syntax": "off"
+      }
+    }
+  ]
+}
