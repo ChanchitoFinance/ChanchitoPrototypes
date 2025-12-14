@@ -31,6 +31,7 @@ export function Button({
   }
 
   return (
+    // @ts-ignore - Framer Motion props conflict with HTML button props
     <motion.button
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
