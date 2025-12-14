@@ -9,14 +9,13 @@ import { UI_LABELS } from '@/lib/constants/ui'
 import { Idea } from '@/lib/types/idea'
 import { useVideoPlayer } from '@/hooks/useVideoPlayer'
 
-interface IdeaCardProps {
+interface HomeIdeaCardProps {
   idea: Idea
 }
 
-export function IdeaCard({ idea }: IdeaCardProps) {
+export function HomeIdeaCard({ idea }: HomeIdeaCardProps) {
   const [voted, setVoted] = useState(false)
   const [voteCount, setVoteCount] = useState(idea.votes)
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
   // Use reusable video player hook with start time at 10 seconds
@@ -24,9 +23,6 @@ export function IdeaCard({ idea }: IdeaCardProps) {
     videoSrc: idea.video,
     containerRef: cardRef,
     startTime: 10,
-    threshold: 0.5,
-    onPlay: () => setIsVideoPlaying(true),
-    onPause: () => setIsVideoPlaying(false),
   })
 
   const handleVote = (e: React.MouseEvent) => {
@@ -57,15 +53,15 @@ export function IdeaCard({ idea }: IdeaCardProps) {
                   playsInline
                   preload="none"
                 />
-                      ) : idea.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={idea.image}
-                          alt={idea.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : null}
+              ) : idea.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={idea.image}
+                  alt={idea.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              ) : null}
             </div>
           )}
 

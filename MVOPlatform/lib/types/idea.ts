@@ -14,5 +14,9 @@ export interface Idea {
   createdAt: string
   image?: string
   video?: string
+  // Categorization for different sections
+  featured?: boolean // For carousel
+  trending?: boolean // For trending section
+  forYou?: boolean // For personalized "For You" section
 }
 

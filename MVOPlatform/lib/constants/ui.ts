@@ -49,7 +49,7 @@ export const UI_LABELS = {
   FOR_YOU_SUBTITLE: 'Ideas curated just for you',
   
   // Brand
-  BRAND_NAME: 'MVO Platform',
+  BRAND_NAME: 'MVO',
 } as const
 
 export const UI_MESSAGES = {

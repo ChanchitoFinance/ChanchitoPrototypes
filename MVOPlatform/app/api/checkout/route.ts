@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `MVO Platform - ${planId}`,
+              name: `MVO - ${planId}`,
               description: 'Business idea validation service',
             },
             unit_amount: getPlanPrice(planId),

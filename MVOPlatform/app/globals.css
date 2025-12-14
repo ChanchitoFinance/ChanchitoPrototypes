@@ -160,8 +160,8 @@ a {
   }
 
   .card-hover {
-    background-color: var(--gray-100);
-    border: 2px solid var(--border-color);
+    background-color: var(--background);
+    border: 2px solid var(--background);
     border-radius: var(--border-radius-md);
     padding: var(--spacing-lg);
     box-shadow: var(--shadow-card);

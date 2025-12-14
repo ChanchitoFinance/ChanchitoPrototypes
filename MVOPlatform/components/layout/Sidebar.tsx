@@ -12,7 +12,6 @@ import {
   Plus,
   User,
   MoreHorizontal,
-  Menu,
   X,
   LogIn,
 } from 'lucide-react'
@@ -22,8 +21,8 @@ import Image from 'next/image'
 import { UI_LABELS } from '@/lib/constants/ui'
 
 interface SidebarProps {
-  activeTab?: 'explore' | 'foryou'
-  onTabChange?: (tab: 'explore' | 'foryou') => void
+  activeTab?: 'home' | 'foryou'
+  onTabChange?: (tab: 'home' | 'foryou') => void
 }
 
 // Sidebar styling constants
@@ -90,8 +89,8 @@ const SIDEBAR_STYLES = {
   // Logo styles
   logo: {
     collapsed: {
-      size: 'w-8 h-8',
-      text: 'text-sm',
+      size: 'w-12 h-8', // Wider to fit "MVO"
+      text: 'text-sx font-bold',
     },
     expanded: {
       text: 'text-xl',
@@ -140,10 +139,10 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       href: '/',
       onClick: () => {
         if (isHomePage && onTabChange) {
-          onTabChange('foryou')
+          onTabChange('home')
         }
       },
-      active: isHomePage && activeTab === 'foryou',
+      active: isHomePage && activeTab === 'home',
     },
     {
       id: 'foryou',
@@ -152,10 +151,10 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       href: '/',
       onClick: () => {
         if (isHomePage && onTabChange) {
-          onTabChange('explore')
+          onTabChange('foryou')
         }
       },
-      active: isHomePage && activeTab === 'explore',
+      active: isHomePage && activeTab === 'foryou',
     },
     {
       id: 'activity',
@@ -220,7 +219,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           )}
           {!showExpanded && (
             <div className={`${SIDEBAR_STYLES.logo.collapsed.size} ${SIDEBAR_STYLES.button.borderRadius} bg-accent flex items-center justify-center mx-auto`}>
-              <span className={`text-text-primary font-bold ${SIDEBAR_STYLES.logo.collapsed.text}`}>M</span>
+              <span className={`text-text-primary ${SIDEBAR_STYLES.logo.collapsed.text}`}>MVO</span>
             </div>
           )}
         </div>
@@ -387,17 +386,6 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       >
         {sidebarContent}
       </aside>
-
-      {/* Mobile Toggle Button - Only show when sidebar is collapsed on mobile */}
-      {isMobile && !isMobileOpen && (
-        <button
-          onClick={() => setIsMobileOpen(true)}
-          className="fixed top-4 left-4 z-40 p-2 bg-background border border-border-color rounded-md shadow-sm interactive-hover"
-          aria-label="Open sidebar"
-        >
-          <Menu className="w-5 h-5 text-text-secondary" />
-        </button>
-      )}
     </>
   )
 }

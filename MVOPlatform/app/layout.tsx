@@ -3,7 +3,7 @@ import './globals.css'
 import { Providers } from '@/components/providers/Providers'
 
 export const metadata: Metadata = {
-  title: 'MVO Platform - Validate Your Business Idea',
+  title: 'MVO - Validate Your Business Idea',
   description: 'Validate your business idea in 48 hours with data-driven insights',
 }
 
