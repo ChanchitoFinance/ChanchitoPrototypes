@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowUp, MessageSquare, Share2, Heart } from 'lucide-react'
 import Image from 'next/image'
@@ -8,6 +8,8 @@ import { formatDate } from '@/lib/utils/date'
 import { UI_LABELS } from '@/lib/constants/ui'
 import { Idea } from '@/lib/types/idea'
 import { useVideoPlayer } from '@/hooks/useVideoPlayer'
+import { TikTokComments } from './TikTokComments'
+import { commentService } from '@/lib/services/commentService'
 
 interface ForYouIdeaCardProps {
   idea: Idea
@@ -18,7 +20,11 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
   const [voted, setVoted] = useState(false)
   const [voteCount, setVoteCount] = useState(idea.votes)
   const [liked, setLiked] = useState(false)
+  const [commentCount, setCommentCount] = useState(0)
+  const [commentsOpen, setCommentsOpen] = useState(false)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
+  const previousIdeaIdRef = useRef<string>(idea.id)
   
   // Use reusable video player hook with start time at 10 seconds
   const videoRef = useVideoPlayer({
@@ -26,6 +32,19 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
     isActive,
     startTime: 45,
   })
+
+  // Load comment count
+  useEffect(() => {
+    commentService.getCommentCount(idea.id).then(setCommentCount)
+  }, [idea.id])
+
+  // Close comments panel when idea changes (user scrolled to different idea)
+  useEffect(() => {
+    if (previousIdeaIdRef.current !== idea.id) {
+      setCommentsOpen(false)
+      previousIdeaIdRef.current = idea.id
+    }
+  }, [idea.id])
 
   const handleVote = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -38,6 +57,11 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation()
     setLiked(!liked)
+  }
+
+  const handleCommentClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setCommentsOpen((prev) => !prev)
   }
 
   return (
@@ -134,7 +158,7 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
             </div>
 
             {/* Right side - Action buttons */}
-            <div className="flex flex-col items-center gap-3 flex-shrink-0 pointer-events-auto pb-0">
+            <div className="flex flex-col items-center gap-3 flex-shrink-0 pointer-events-auto pb-4">
               <motion.button
                 onClick={handleVote}
                 whileTap={{ scale: 0.9 }}
@@ -160,10 +184,18 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
                 <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
               </motion.button>
 
-              <button className="flex flex-col items-center gap-1 p-2.5 rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors">
+              <motion.button
+                onClick={handleCommentClick}
+                whileTap={{ scale: 0.9 }}
+                className={`flex flex-col items-center gap-1 p-2.5 rounded-full transition-colors ${
+                  commentsOpen
+                    ? 'bg-accent text-text-primary'
+                    : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
+                }`}
+              >
                 <MessageSquare className="w-5 h-5" />
-                <span className="text-xs font-semibold">12</span>
-              </button>
+                <span className="text-xs font-semibold">{commentCount}</span>
+              </motion.button>
 
               <button className="flex flex-col items-center gap-1 p-2.5 rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors">
                 <Share2 className="w-5 h-5" />
@@ -217,10 +249,18 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
                 <Heart className={`w-6 h-6 ${liked ? 'fill-current' : ''}`} />
               </motion.button>
 
-              <button className="flex flex-col items-center gap-1 p-3 rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors">
+              <motion.button
+                onClick={handleCommentClick}
+                whileTap={{ scale: 0.9 }}
+                className={`flex flex-col items-center gap-1 p-3 rounded-full transition-colors ${
+                  commentsOpen
+                    ? 'bg-accent text-text-primary'
+                    : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
+                }`}
+              >
                 <MessageSquare className="w-6 h-6" />
-                <span className="text-xs font-semibold">12</span>
-              </button>
+                <span className="text-xs font-semibold">{commentCount}</span>
+              </motion.button>
 
               <button className="flex flex-col items-center gap-1 p-3 rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors">
                 <Share2 className="w-6 h-6" />
@@ -229,6 +269,14 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
           </div>
         </div>
       </div>
+
+      {/* Comments Panel */}
+      <TikTokComments
+        ideaId={idea.id}
+        isOpen={commentsOpen}
+        onClose={() => setCommentsOpen(false)}
+        onCommentCountChange={setCommentCount}
+      />
     </div>
   )
 }
