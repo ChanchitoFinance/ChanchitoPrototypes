@@ -32,13 +32,13 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 To sign in a user with Google OAuth, dispatch the `signInWithGoogle` action from the auth slice. This initiates the OAuth flow, redirecting the user to Google for authentication, and upon success, redirects back to the callback page where the session is established.
 
-See the implementation in [`signInWithGoogle()`](lib/slices/authSlice.ts:40).
+See the implementation in [`signInWithGoogle()`](../../lib/slices/authSlice.ts).
 
 ### Sign Out
 
 To sign out the current user, dispatch the `signOut` action. This clears the user's session with Supabase and resets the authentication state in the Redux store.
 
-See [`signOut()`](lib/slices/authSlice.ts:63).
+See [`signOut()`](../../lib/slices/authSlice.ts).
 
 ### Accessing Logged-In User Data
 
@@ -54,7 +54,7 @@ To use this data in your components, select the auth state and check the `isAuth
 
 For example, you can conditionally render content based on authentication status or display user-specific information like their name or email.
 
-See the [AuthState](types/auth.ts:12) type definition for the complete structure.
+See the [AuthState](../../types/auth.ts) type definition for the complete structure.
 
 ### Protected Routes
 
@@ -62,7 +62,7 @@ Certain routes in the application are protected and require authentication. The 
 
 Public routes remain accessible without authentication.
 
-See [AuthProvider](components/providers/AuthProvider.tsx) for the route protection logic.
+See [AuthProvider](../../components/providers/AuthProvider.tsx) for the route protection logic.
 
 ### Admin Access
 
@@ -72,10 +72,10 @@ To implement admin-only features, check `profile?.email === adminEmail` or `prof
 
 Set the `NEXT_PUBLIC_ADMIN_EMAIL` environment variable to specify the admin email.
 
-See how admin checks are performed in components like [AdminPanel](components/pages/AdminPanel.tsx).
+See how admin checks are performed in components like [AdminPanel](../../components/pages/AdminPanel.tsx).
 
 ### Redux Store
 
 The application uses Redux Toolkit for state management, including authentication state. The app is wrapped with both the Redux `Provider` and the `AuthProvider` in the `Providers` component to ensure the store and authentication context are available throughout the app.
 
-See [Providers](components/providers/Providers.tsx) for the provider setup.
+See [Providers](../../components/providers/Providers.tsx) for the provider setup.
