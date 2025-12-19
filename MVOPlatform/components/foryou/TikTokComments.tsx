@@ -2,11 +2,19 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Heart, ArrowUp, X, User, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react'
+import {
+  Heart,
+  ArrowUp,
+  X,
+  User,
+  ChevronDown,
+  ChevronUp,
+  MessageSquare,
+} from 'lucide-react'
 import Image from 'next/image'
 import { formatDate } from '@/lib/utils/date'
 import { Comment } from '@/lib/types/comment'
-import { useSession } from 'next-auth/react'
+import { useAppSelector } from '@/lib/hooks'
 import { commentService } from '@/lib/services/commentService'
 
 interface TikTokCommentsProps {
@@ -27,11 +35,13 @@ export function TikTokComments({
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [panelHeight, setPanelHeight] = useState<'half' | 'full'>('half') // 'half' = 50vh, 'full' = 100vh
-  const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null)
+  const [highlightedCommentId, setHighlightedCommentId] = useState<
+    string | null
+  >(null)
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set())
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState<Map<string, string>>(new Map())
-  const { data: session } = useSession()
+  const { user, profile } = useAppSelector(state => state.auth)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const commentsEndRef = useRef<HTMLDivElement>(null)
   const commentsListRef = useRef<HTMLDivElement>(null)
@@ -71,7 +81,10 @@ export function TikTokComments({
 
   const handleLikeComment = async (commentId: string) => {
     try {
-      const updatedComment = await commentService.toggleLikeComment(commentId, ideaId)
+      const updatedComment = await commentService.toggleLikeComment(
+        commentId,
+        ideaId
+      )
       updateCommentInState(commentId, updatedComment)
     } catch (error) {
       console.error('Error liking comment:', error)
@@ -80,7 +93,10 @@ export function TikTokComments({
 
   const handleUpvoteComment = async (commentId: string) => {
     try {
-      const updatedComment = await commentService.toggleUpvoteComment(commentId, ideaId)
+      const updatedComment = await commentService.toggleUpvoteComment(
+        commentId,
+        ideaId
+      )
       updateCommentInState(commentId, updatedComment)
     } catch (error) {
       console.error('Error upvoting comment:', error)
@@ -88,14 +104,14 @@ export function TikTokComments({
   }
 
   const updateCommentInState = (commentId: string, updatedComment: Comment) => {
-    setComments((prev) =>
-      prev.map((comment) => {
+    setComments(prev =>
+      prev.map(comment => {
         if (comment.id === commentId) {
           return updatedComment
         }
         // Check if it's a reply
         if (comment.replies) {
-          const updatedReplies = comment.replies.map((reply) =>
+          const updatedReplies = comment.replies.map(reply =>
             reply.id === commentId ? updatedComment : reply
           )
           return { ...comment, replies: updatedReplies }
@@ -106,7 +122,7 @@ export function TikTokComments({
   }
 
   const toggleReplies = (commentId: string) => {
-    setExpandedReplies((prev) => {
+    setExpandedReplies(prev => {
       const newSet = new Set(prev)
       if (newSet.has(commentId)) {
         newSet.delete(commentId)
@@ -124,25 +140,35 @@ export function TikTokComments({
 
     setSubmitting(true)
     try {
-      const authorName = session?.user?.name || session?.user?.email || 'Anonymous'
-      const authorImage = session?.user?.image || undefined
+      const authorName =
+        profile?.full_name ||
+        user?.user_metadata?.full_name ||
+        user?.email ||
+        'Anonymous'
+      const authorImage = user?.user_metadata?.avatar_url || undefined
 
-      await commentService.addComment(ideaId, replyContent, authorName, authorImage, parentId)
-      
+      await commentService.addComment(
+        ideaId,
+        replyContent,
+        authorName,
+        authorImage,
+        parentId
+      )
+
       const updatedComments = await commentService.getComments(ideaId)
       setComments(updatedComments)
       onCommentCountChange?.(updatedComments.length)
-      
+
       // Clear reply text
-      setReplyText((prev) => {
+      setReplyText(prev => {
         const newMap = new Map(prev)
         newMap.delete(parentId)
         return newMap
       })
-      
+
       // Expand replies if not already expanded
       if (!expandedReplies.has(parentId)) {
-        setExpandedReplies((prev) => new Set(prev).add(parentId))
+        setExpandedReplies(prev => new Set(prev).add(parentId))
       }
     } catch (error) {
       console.error('Error submitting reply:', error)
@@ -158,11 +184,15 @@ export function TikTokComments({
     const commentText = newComment.trim()
     setSubmitting(true)
     setNewComment('') // Clear input immediately for better UX
-    
+
     try {
       // Use session data if available, otherwise use anonymous
-      const authorName = session?.user?.name || session?.user?.email || 'Anonymous'
-      const authorImage = session?.user?.image || undefined
+      const authorName =
+        profile?.full_name ||
+        user?.user_metadata?.full_name ||
+        user?.email ||
+        'Anonymous'
+      const authorImage = user?.user_metadata?.avatar_url || undefined
 
       await commentService.addComment(
         ideaId,
@@ -171,17 +201,17 @@ export function TikTokComments({
         authorImage,
         replyingTo || undefined
       )
-      
+
       if (replyingTo) {
         setReplyingTo(null)
         setReplyText(new Map())
       }
-      
+
       // Reload comments to avoid duplicates and get the latest state
       const updatedComments = await commentService.getComments(ideaId)
       setComments(updatedComments)
       onCommentCountChange?.(updatedComments.length)
-      
+
       // Find the newly added comment (should be the first one)
       const newComment = updatedComments[0]
       if (newComment && commentsListRef.current) {
@@ -256,7 +286,7 @@ export function TikTokComments({
               onDrag={(event, info) => {
                 // Only change height when dragging, don't move the panel
                 const deltaY = info.point.y - dragStartYRef.current
-                
+
                 if (panelHeight === 'half') {
                   // If dragging up from half, extend to full
                   if (deltaY < -30) {
@@ -335,18 +365,19 @@ export function TikTokComments({
             <div
               ref={commentsListRef}
               className="flex-1 overflow-y-auto px-4 py-2 scrollbar-hide"
-              onTouchStart={(e) => {
+              onTouchStart={e => {
                 // Prevent drag when scrolling in comments list
                 e.stopPropagation()
               }}
-              onTouchMove={(e) => {
+              onTouchMove={e => {
                 // Allow scroll to take priority over drag
                 const element = commentsListRef.current
                 if (element) {
                   const { scrollTop, scrollHeight, clientHeight } = element
                   const isAtTop = scrollTop === 0
-                  const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1
-                  
+                  const isAtBottom =
+                    scrollTop + clientHeight >= scrollHeight - 1
+
                   // Only prevent drag if we're scrolling within the list
                   if (!isAtTop && !isAtBottom) {
                     e.stopPropagation()
@@ -367,10 +398,10 @@ export function TikTokComments({
                 </div>
               ) : (
                 <div className="space-y-4 pb-4">
-                  {comments.map((comment) => (
+                  {comments.map(comment => (
                     <motion.div
                       key={comment.id}
-                      ref={(el) => {
+                      ref={el => {
                         if (el) {
                           newCommentRefs.current.set(comment.id, el)
                         }
@@ -425,7 +456,7 @@ export function TikTokComments({
                         <p className="text-sm text-white/90 mb-2 whitespace-pre-wrap break-words">
                           {comment.content}
                         </p>
-                        
+
                         {/* Actions */}
                         <div className="flex items-center gap-3 flex-wrap">
                           <button
@@ -436,10 +467,12 @@ export function TikTokComments({
                                 : 'text-white/60 hover:text-accent'
                             }`}
                           >
-                            <ArrowUp className={`w-3.5 h-3.5 ${comment.upvoted ? 'fill-current' : ''}`} />
+                            <ArrowUp
+                              className={`w-3.5 h-3.5 ${comment.upvoted ? 'fill-current' : ''}`}
+                            />
                             <span>{comment.upvotes || 0}</span>
                           </button>
-                          
+
                           <button
                             onClick={() => handleLikeComment(comment.id)}
                             className={`flex items-center gap-1 text-xs transition-colors ${
@@ -448,15 +481,21 @@ export function TikTokComments({
                                 : 'text-white/60 hover:text-red-500'
                             }`}
                           >
-                            <Heart className={`w-3.5 h-3.5 ${comment.liked ? 'fill-current' : ''}`} />
+                            <Heart
+                              className={`w-3.5 h-3.5 ${comment.liked ? 'fill-current' : ''}`}
+                            />
                             <span>{comment.likes}</span>
                           </button>
 
                           <button
                             onClick={() => {
-                              setReplyingTo(replyingTo === comment.id ? null : comment.id)
+                              setReplyingTo(
+                                replyingTo === comment.id ? null : comment.id
+                              )
                               if (!replyText.has(comment.id)) {
-                                setReplyText((prev) => new Map(prev).set(comment.id, ''))
+                                setReplyText(prev =>
+                                  new Map(prev).set(comment.id, '')
+                                )
                               }
                             }}
                             className="flex items-center gap-1 text-xs text-white/60 hover:text-accent transition-colors"
@@ -483,14 +522,19 @@ export function TikTokComments({
                         {/* Reply Form */}
                         {replyingTo === comment.id && (
                           <form
-                            onSubmit={(e) => handleReplySubmit(comment.id, e)}
+                            onSubmit={e => handleReplySubmit(comment.id, e)}
                             className="mt-2 pt-2 border-t border-white/10"
                           >
                             <div className="flex gap-2">
                               <textarea
                                 value={replyText.get(comment.id) || ''}
-                                onChange={(e) => {
-                                  setReplyText((prev) => new Map(prev).set(comment.id, e.target.value))
+                                onChange={e => {
+                                  setReplyText(prev =>
+                                    new Map(prev).set(
+                                      comment.id,
+                                      e.target.value
+                                    )
+                                  )
                                   // Auto-resize
                                   if (e.target) {
                                     e.target.style.height = 'auto'
@@ -499,12 +543,19 @@ export function TikTokComments({
                                 }}
                                 placeholder="Write a reply..."
                                 className="flex-1 px-3 py-1.5 bg-white/10 placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent resize-none overflow-hidden text-sm"
-                                style={{ minHeight: '1.5rem', maxHeight: '8rem', color: '#000000' }}
+                                style={{
+                                  minHeight: '1.5rem',
+                                  maxHeight: '8rem',
+                                  color: '#000000',
+                                }}
                                 rows={1}
                               />
                               <button
                                 type="submit"
-                                disabled={!replyText.get(comment.id)?.trim() || submitting}
+                                disabled={
+                                  !replyText.get(comment.id)?.trim() ||
+                                  submitting
+                                }
                                 className="px-3 py-1.5 bg-accent text-text-primary rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                               >
                                 <ArrowUp className="w-3.5 h-3.5" />
@@ -514,68 +565,90 @@ export function TikTokComments({
                         )}
 
                         {/* Replies */}
-                        {expandedReplies.has(comment.id) && comment.replies && comment.replies.length > 0 && (
-                          <div className="mt-3 ml-4 space-y-3 border-l-2 border-white/10 pl-3">
-                            {comment.replies.map((reply) => (
-                              <div key={reply.id} className="flex items-start gap-2">
-                                <div className="flex-shrink-0">
-                                  {reply.authorImage ? (
-                                    <Image
-                                      src={reply.authorImage}
-                                      alt={reply.author}
-                                      width={28}
-                                      height={28}
-                                      className="rounded-full"
-                                    />
-                                  ) : (
-                                    <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center">
-                                      <User className="w-4 h-4 text-text-primary" />
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                                    <span className="text-xs font-semibold text-white">@{reply.author}</span>
-                                    <span className="text-xs text-white/50">{formatDate(reply.createdAt)}</span>
-                                    {reply.usefulnessScore > 0 && (
-                                      <>
-                                        <span className="text-xs text-white/50">•</span>
-                                        <span className="text-xs px-1 py-0.5 bg-accent/30 text-accent rounded-full">
-                                          ⭐ {reply.usefulnessScore.toFixed(1)}
-                                        </span>
-                                      </>
+                        {expandedReplies.has(comment.id) &&
+                          comment.replies &&
+                          comment.replies.length > 0 && (
+                            <div className="mt-3 ml-4 space-y-3 border-l-2 border-white/10 pl-3">
+                              {comment.replies.map(reply => (
+                                <div
+                                  key={reply.id}
+                                  className="flex items-start gap-2"
+                                >
+                                  <div className="flex-shrink-0">
+                                    {reply.authorImage ? (
+                                      <Image
+                                        src={reply.authorImage}
+                                        alt={reply.author}
+                                        width={28}
+                                        height={28}
+                                        className="rounded-full"
+                                      />
+                                    ) : (
+                                      <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center">
+                                        <User className="w-4 h-4 text-text-primary" />
+                                      </div>
                                     )}
                                   </div>
-                                  <p className="text-xs text-white/80 mb-1.5 whitespace-pre-wrap break-words">{reply.content}</p>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      onClick={() => handleUpvoteComment(reply.id)}
-                                      className={`flex items-center gap-1 text-xs transition-colors ${
-                                        reply.upvoted
-                                          ? 'text-accent'
-                                          : 'text-white/50 hover:text-accent'
-                                      }`}
-                                    >
-                                      <ArrowUp className={`w-3 h-3 ${reply.upvoted ? 'fill-current' : ''}`} />
-                                      <span>{reply.upvotes || 0}</span>
-                                    </button>
-                                    <button
-                                      onClick={() => handleLikeComment(reply.id)}
-                                      className={`flex items-center gap-1 text-xs transition-colors ${
-                                        reply.liked
-                                          ? 'text-red-500'
-                                          : 'text-white/50 hover:text-red-500'
-                                      }`}
-                                    >
-                                      <Heart className={`w-3 h-3 ${reply.liked ? 'fill-current' : ''}`} />
-                                      <span>{reply.likes}</span>
-                                    </button>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                                      <span className="text-xs font-semibold text-white">
+                                        @{reply.author}
+                                      </span>
+                                      <span className="text-xs text-white/50">
+                                        {formatDate(reply.createdAt)}
+                                      </span>
+                                      {reply.usefulnessScore > 0 && (
+                                        <>
+                                          <span className="text-xs text-white/50">
+                                            •
+                                          </span>
+                                          <span className="text-xs px-1 py-0.5 bg-accent/30 text-accent rounded-full">
+                                            ⭐{' '}
+                                            {reply.usefulnessScore.toFixed(1)}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-white/80 mb-1.5 whitespace-pre-wrap break-words">
+                                      {reply.content}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() =>
+                                          handleUpvoteComment(reply.id)
+                                        }
+                                        className={`flex items-center gap-1 text-xs transition-colors ${
+                                          reply.upvoted
+                                            ? 'text-accent'
+                                            : 'text-white/50 hover:text-accent'
+                                        }`}
+                                      >
+                                        <ArrowUp
+                                          className={`w-3 h-3 ${reply.upvoted ? 'fill-current' : ''}`}
+                                        />
+                                        <span>{reply.upvotes || 0}</span>
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          handleLikeComment(reply.id)
+                                        }
+                                        className={`flex items-center gap-1 text-xs transition-colors ${
+                                          reply.liked
+                                            ? 'text-red-500'
+                                            : 'text-white/50 hover:text-red-500'
+                                        }`}
+                                      >
+                                        <Heart
+                                          className={`w-3 h-3 ${reply.liked ? 'fill-current' : ''}`}
+                                        />
+                                        <span>{reply.likes}</span>
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                              ))}
+                            </div>
+                          )}
                       </div>
                     </motion.div>
                   ))}
@@ -593,7 +666,7 @@ export function TikTokComments({
                 <textarea
                   ref={inputRef}
                   value={newComment}
-                  onChange={(e) => {
+                  onChange={e => {
                     setNewComment(e.target.value)
                     // Auto-resize textarea
                     if (inputRef.current) {
@@ -603,7 +676,11 @@ export function TikTokComments({
                   }}
                   placeholder="Add a comment..."
                   className="flex-1 px-4 py-2 bg-white/10 placeholder-white/50 rounded-full focus:outline-none focus:ring-2 focus:ring-accent resize-none overflow-hidden"
-                  style={{ color: '#000000', minHeight: '2.5rem', maxHeight: '10rem' }}
+                  style={{
+                    color: '#000000',
+                    minHeight: '2.5rem',
+                    maxHeight: '10rem',
+                  }}
                   rows={1}
                   disabled={submitting}
                 />
