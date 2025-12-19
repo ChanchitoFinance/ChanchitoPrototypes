@@ -3,6 +3,7 @@
  * This file is only imported and executed on the server
  * Uses ChanchitoTools.EnvValidation for schema-based validation
  */
+/* eslint-disable no-restricted-syntax */
 
 export function validateEnvironmentVariables() {
   if (typeof window !== 'undefined') {
@@ -22,24 +23,17 @@ export function validateEnvironmentVariables() {
     const EnvValidator = adapter.EnvValidator
 
     // Get the path to lua files relative to project root
-    const luaPath = path.join(
-      process.cwd(),
-      'lib',
-      'env-validation',
-      'lua'
-    )
+    const luaPath = path.join(process.cwd(), 'lib', 'env-validation', 'lua')
     const validator = new EnvValidator(luaPath)
 
     // Use process.env directly for validation (matches schema keys)
     const envVarsForValidation = {
-      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-      GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-      NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
       STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
         process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
       NEXT_PUBLIC_ADMIN_EMAIL: process.env.NEXT_PUBLIC_ADMIN_EMAIL,
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     }
 
     // Load schema from config directory
@@ -50,12 +44,12 @@ export function validateEnvironmentVariables() {
 
     if (!result.valid) {
       // Ensure errors is an array
-      const errors = Array.isArray(result.errors) 
-        ? result.errors 
-        : result.errors 
-          ? Object.values(result.errors) 
+      const errors = Array.isArray(result.errors)
+        ? result.errors
+        : result.errors
+          ? Object.values(result.errors)
           : []
-      
+
       const errorMessages = errors
         .map((err: any) => {
           if (err && typeof err === 'object') {
@@ -64,7 +58,7 @@ export function validateEnvironmentVariables() {
           return String(err)
         })
         .join('\n')
-      
+
       if (errorMessages) {
         throw new Error(
           `Environment variable validation failed:\n${errorMessages}`
@@ -84,4 +78,3 @@ export function validateEnvironmentVariables() {
     }
   }
 }
-

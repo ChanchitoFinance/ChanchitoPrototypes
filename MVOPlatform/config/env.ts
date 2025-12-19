@@ -1,24 +1,22 @@
 /**
  * Centralized environment variables configuration
  * All environment variable access should go through this file
- * 
+ *
  * ESLint rule blocks direct process.env access elsewhere in the codebase
- * 
+ *
  * Uses ChanchitoTools.EnvValidation for schema-based validation
  */
 
 // Server-side environment variables
 /* eslint-disable no-restricted-syntax */
 const rawServerEnv = {
-  googleClientId: process.env.GOOGLE_CLIENT_ID!,
-  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-  nextAuthUrl: process.env.NEXTAUTH_URL!,
-  nextAuthSecret: process.env.NEXTAUTH_SECRET!,
   stripeSecretKey: process.env.STRIPE_SECRET_KEY!,
 } as const
 
 // Client-side environment variables (must be prefixed with NEXT_PUBLIC_)
 const rawClientEnv = {
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
   adminEmail: process.env.NEXT_PUBLIC_ADMIN_EMAIL!,
 } as const
@@ -28,6 +26,8 @@ const rawClientEnv = {
 // Import validation function only on server-side to avoid bundling issues
 if (typeof window === 'undefined' && typeof require !== 'undefined') {
   try {
+    // Load .env.local explicitly to ensure variables are available before validation
+    require('dotenv').config({ path: '.env.local' })
     // Use dynamic import with require to ensure it's only loaded server-side
     const validationModule = require('./env.validation')
     validationModule.validateEnvironmentVariables()
