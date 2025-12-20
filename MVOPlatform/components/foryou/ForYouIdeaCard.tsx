@@ -23,20 +23,31 @@ import { ideaService } from '@/lib/services/ideaService'
 interface ForYouIdeaCardProps {
   idea: Idea
   isActive: boolean
+  initialUserVotes?: {
+    use: boolean
+    dislike: boolean
+    pay: boolean
+  }
 }
 
-export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
+export function ForYouIdeaCard({
+  idea,
+  isActive,
+  initialUserVotes,
+}: ForYouIdeaCardProps) {
   const [currentIdea, setCurrentIdea] = useState(idea)
   const [isVoting, setIsVoting] = useState(false)
   const [userVote, setUserVote] = useState<{
     use: boolean
     dislike: boolean
     pay: boolean
-  }>({
-    use: false,
-    dislike: false,
-    pay: false,
-  })
+  }>(
+    initialUserVotes || {
+      use: false,
+      dislike: false,
+      pay: false,
+    }
+  )
   const [commentCount, setCommentCount] = useState(0)
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
@@ -44,16 +55,12 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
   const previousIdeaIdRef = useRef<string>(idea.id)
   const { isAuthenticated } = useAppSelector(state => state.auth)
 
-  // Fetch user's votes on mount
+  // Update user votes when initialUserVotes prop changes
   useEffect(() => {
-    const fetchUserVotes = async () => {
-      if (isAuthenticated) {
-        const votes = await ideaService.getUserVotes(currentIdea.id)
-        setUserVote(votes)
-      }
+    if (initialUserVotes) {
+      setUserVote(initialUserVotes)
     }
-    fetchUserVotes()
-  }, [currentIdea.id, isAuthenticated])
+  }, [initialUserVotes])
 
   // Use reusable video player hook with start time at 10 seconds
   const videoRef = useVideoPlayer({

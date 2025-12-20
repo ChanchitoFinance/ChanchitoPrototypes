@@ -40,6 +40,13 @@ export interface ICommentService {
    * Get comment count for an idea
    */
   getCommentCount(ideaId: string): Promise<number>
+
+  /**
+   * Get user votes for multiple comments
+   */
+  getUserCommentVotes(
+    commentIds: string[]
+  ): Promise<Record<string, { upvoted: boolean; downvoted: boolean }>>
 }
 
 /**
@@ -230,6 +237,44 @@ class SupabaseCommentService implements ICommentService {
     return count || 0
   }
 
+  async getUserCommentVotes(
+    commentIds: string[]
+  ): Promise<Record<string, { upvoted: boolean; downvoted: boolean }>> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return {}
+
+    const { data, error } = await supabase
+      .from('comment_votes')
+      .select('comment_id, reaction_type')
+      .in('comment_id', commentIds)
+      .eq('user_id', user.id)
+
+    if (error) throw error
+
+    const votes = data || []
+    const result: Record<string, { upvoted: boolean; downvoted: boolean }> = {}
+
+    // Initialize all comments with false votes
+    commentIds.forEach(commentId => {
+      result[commentId] = { upvoted: false, downvoted: false }
+    })
+
+    // Fill in the actual votes
+    votes.forEach(vote => {
+      if (result[vote.comment_id]) {
+        if (vote.reaction_type === 'upvote') {
+          result[vote.comment_id].upvoted = true
+        } else if (vote.reaction_type === 'downvote') {
+          result[vote.comment_id].downvoted = true
+        }
+      }
+    })
+
+    return result
+  }
+
   private async getCommentById(commentId: string): Promise<Comment> {
     const { data, error } = await supabase
       .from('comments')
@@ -255,7 +300,27 @@ class SupabaseCommentService implements ICommentService {
 
     if (error) throw error
 
-    return this.mapDbCommentToComment(data)
+    const comment = this.mapDbCommentToComment(data)
+
+    // Get current user's vote for this comment
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (user) {
+      const { data: userVote } = await supabase
+        .from('comment_votes')
+        .select('reaction_type')
+        .eq('comment_id', commentId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (userVote) {
+        comment.upvoted = userVote.reaction_type === 'upvote'
+        comment.downvoted = userVote.reaction_type === 'downvote'
+      }
+    }
+
+    return comment
   }
 
   private mapDbCommentToComment(dbComment: any): Comment {

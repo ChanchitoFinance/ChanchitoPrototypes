@@ -81,8 +81,30 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
     if (!initialized) {
       setLoading(true)
       // Load only 3 ideas initially for faster initial load
-      ideaService.getExploreIdeas(3).then(loadedIdeas => {
+      ideaService.getExploreIdeas(3).then(async loadedIdeas => {
         setIdeas(loadedIdeas)
+
+        // Batch fetch user votes for all loaded ideas
+        if (isAuthenticated && loadedIdeas.length > 0) {
+          try {
+            const ideaIds = loadedIdeas.map(idea => idea.id)
+            const votesMap = await ideaService.getUserVotesForIdeas(ideaIds)
+            // Update ideas with user vote information
+            setIdeas(prev =>
+              prev.map(idea => ({
+                ...idea,
+                userVotes: votesMap[idea.id] || {
+                  use: false,
+                  dislike: false,
+                  pay: false,
+                },
+              }))
+            )
+          } catch (error) {
+            console.error('Error fetching user votes:', error)
+          }
+        }
+
         setLoading(false)
         setInitialized(true)
 
@@ -98,7 +120,7 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
         }
       })
     }
-  }, [initialized, initialIdeaId])
+  }, [initialized, initialIdeaId, isAuthenticated])
 
   const loadMoreIdeas = useCallback(async () => {
     if (loading) return
@@ -107,12 +129,33 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
       // Load more explore ideas with offset - smaller batches for better performance
       const newIdeas = await ideaService.getExploreIdeas(3, ideas.length)
       if (newIdeas.length > 0) {
-        setIdeas(prev => [...prev, ...newIdeas])
+        // Batch fetch user votes for new ideas
+        if (isAuthenticated) {
+          try {
+            const newIdeaIds = newIdeas.map(idea => idea.id)
+            const votesMap = await ideaService.getUserVotesForIdeas(newIdeaIds)
+            // Update new ideas with user vote information
+            const newIdeasWithVotes = newIdeas.map(idea => ({
+              ...idea,
+              userVotes: votesMap[idea.id] || {
+                use: false,
+                dislike: false,
+                pay: false,
+              },
+            }))
+            setIdeas(prev => [...prev, ...newIdeasWithVotes])
+          } catch (error) {
+            console.error('Error fetching user votes for new ideas:', error)
+            setIdeas(prev => [...prev, ...newIdeas])
+          }
+        } else {
+          setIdeas(prev => [...prev, ...newIdeas])
+        }
       }
     } finally {
       setLoading(false)
     }
-  }, [loading, ideas.length])
+  }, [loading, ideas.length, isAuthenticated])
 
   // Add keyboard event listeners
   useEffect(() => {
@@ -236,7 +279,11 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
       {initialized &&
         ideas.map((idea, index) => (
           <div key={idea.id} data-index={index}>
-            <ForYouIdeaCard idea={idea} isActive={index === activeIndex} />
+            <ForYouIdeaCard
+              idea={idea}
+              isActive={index === activeIndex}
+              initialUserVotes={idea.userVotes}
+            />
           </div>
         ))}
 

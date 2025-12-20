@@ -19,12 +19,18 @@ interface HomeIdeaCardProps {
   idea: Idea
   onMouseEnter?: () => void
   onMouseLeave?: () => void
+  initialUserVotes?: {
+    use: boolean
+    dislike: boolean
+    pay: boolean
+  }
 }
 
 export function HomeIdeaCard({
   idea,
   onMouseEnter,
   onMouseLeave,
+  initialUserVotes,
 }: HomeIdeaCardProps) {
   const [currentIdea, setCurrentIdea] = useState(idea)
   const [isVoting, setIsVoting] = useState(false)
@@ -32,24 +38,22 @@ export function HomeIdeaCard({
     use: boolean
     dislike: boolean
     pay: boolean
-  }>({
-    use: false,
-    dislike: false,
-    pay: false,
-  })
+  }>(
+    initialUserVotes || {
+      use: false,
+      dislike: false,
+      pay: false,
+    }
+  )
   const cardRef = useRef<HTMLDivElement>(null)
   const { isAuthenticated } = useAppSelector(state => state.auth)
 
-  // Fetch user's votes on mount
+  // Update user votes when initialUserVotes prop changes
   useEffect(() => {
-    const fetchUserVotes = async () => {
-      if (isAuthenticated) {
-        const votes = await ideaService.getUserVotes(currentIdea.id)
-        setUserVote(votes)
-      }
+    if (initialUserVotes) {
+      setUserVote(initialUserVotes)
     }
-    fetchUserVotes()
-  }, [currentIdea.id, isAuthenticated])
+  }, [initialUserVotes])
 
   // Use reusable video player hook with start time at 10 seconds
   const videoRef = useVideoPlayer({

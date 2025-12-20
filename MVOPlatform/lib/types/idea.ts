@@ -36,6 +36,12 @@ export interface Idea {
   content?: ContentBlock[]
   // Status flag for visual differentiation
   status_flag?: IdeaStatusFlag
+  // User vote state for this idea
+  userVotes?: {
+    use: boolean
+    dislike: boolean
+    pay: boolean
+  }
   // Categorization for different sections (deprecated - use status_flag instead)
   featured?: boolean // For carousel (deprecated - use status_flag: 'trending')
   trending?: boolean // For trending section (deprecated)

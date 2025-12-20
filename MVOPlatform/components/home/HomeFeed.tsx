@@ -105,15 +105,53 @@ export function HomeFeed({
       setLoading(true)
       // Load 12 items initially for better UX (not waiting for demand)
       Promise.all([ideaService.getIdeas(12), ideaService.getNewIdeas(2)]).then(
-        ([loadedIdeas, loadedNewIdeas]) => {
+        async ([loadedIdeas, loadedNewIdeas]) => {
           setIdeas(loadedIdeas)
           setNewIdeas(loadedNewIdeas)
+
+          // Batch fetch user votes for all loaded ideas
+          if (
+            isAuthenticated &&
+            [...loadedIdeas, ...loadedNewIdeas].length > 0
+          ) {
+            const allIdeaIds = [...loadedIdeas, ...loadedNewIdeas].map(
+              idea => idea.id
+            )
+            try {
+              const votesMap =
+                await ideaService.getUserVotesForIdeas(allIdeaIds)
+              // Update ideas with user vote information
+              setIdeas(prev =>
+                prev.map(idea => ({
+                  ...idea,
+                  userVotes: votesMap[idea.id] || {
+                    use: false,
+                    dislike: false,
+                    pay: false,
+                  },
+                }))
+              )
+              setNewIdeas(prev =>
+                prev.map(idea => ({
+                  ...idea,
+                  userVotes: votesMap[idea.id] || {
+                    use: false,
+                    dislike: false,
+                    pay: false,
+                  },
+                }))
+              )
+            } catch (error) {
+              console.error('Error fetching user votes:', error)
+            }
+          }
+
           setLoading(false)
           setInitialized(true)
         }
       )
     }
-  }, [initialized])
+  }, [initialized, isAuthenticated])
 
   const handleLoadMore = useCallback(async () => {
     if (loading || !hasMore) return
@@ -124,12 +162,33 @@ export function HomeFeed({
       if (newIdeas.length === 0) {
         setHasMore(false)
       } else {
-        setIdeas(prev => [...prev, ...newIdeas])
+        // Batch fetch user votes for new ideas
+        if (isAuthenticated) {
+          try {
+            const newIdeaIds = newIdeas.map(idea => idea.id)
+            const votesMap = await ideaService.getUserVotesForIdeas(newIdeaIds)
+            // Update new ideas with user vote information
+            const newIdeasWithVotes = newIdeas.map(idea => ({
+              ...idea,
+              userVotes: votesMap[idea.id] || {
+                use: false,
+                dislike: false,
+                pay: false,
+              },
+            }))
+            setIdeas(prev => [...prev, ...newIdeasWithVotes])
+          } catch (error) {
+            console.error('Error fetching user votes for new ideas:', error)
+            setIdeas(prev => [...prev, ...newIdeas])
+          }
+        } else {
+          setIdeas(prev => [...prev, ...newIdeas])
+        }
       }
     } finally {
       setLoading(false)
     }
-  }, [loading, hasMore, ideas.length])
+  }, [loading, hasMore, ideas.length, isAuthenticated])
 
   // Auto-loading with IntersectionObserver
   useEffect(() => {
@@ -194,6 +253,7 @@ export function HomeFeed({
                       idea={idea}
                       onMouseEnter={() => setHoveredIdeaId(idea.id)}
                       onMouseLeave={() => setHoveredIdeaId(null)}
+                      initialUserVotes={idea.userVotes}
                     />
                   </motion.div>
                 ))}
@@ -214,6 +274,7 @@ export function HomeFeed({
                   idea={idea}
                   onMouseEnter={() => setHoveredIdeaId(idea.id)}
                   onMouseLeave={() => setHoveredIdeaId(null)}
+                  initialUserVotes={idea.userVotes}
                 />
               </motion.div>
             ))}

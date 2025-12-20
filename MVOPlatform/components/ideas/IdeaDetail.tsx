@@ -34,6 +34,15 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   const [loading, setLoading] = useState(true)
   const [isVoting, setIsVoting] = useState(false)
   const [commentCount, setCommentCount] = useState(0)
+  const [userVotes, setUserVotes] = useState<{
+    use: boolean
+    dislike: boolean
+    pay: boolean
+  }>({
+    use: false,
+    dislike: false,
+    pay: false,
+  })
   const containerRef = useRef<HTMLDivElement>(null)
   const commentsSectionRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -68,6 +77,16 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         if (loadedIdea) {
           setIdea(loadedIdea)
           setCommentCount(loadedIdea.commentCount)
+
+          // Fetch user votes if authenticated
+          if (isAuthenticated) {
+            try {
+              const votes = await ideaService.getUserVotes(ideaId)
+              setUserVotes(votes)
+            } catch (error) {
+              console.error('Error fetching user votes:', error)
+            }
+          }
         }
       } catch (error) {
         console.error('Error loading idea:', error)
@@ -77,7 +96,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     }
 
     loadIdea()
-  }, [ideaId])
+  }, [ideaId, isAuthenticated])
 
   // Use video player hook - auto-play when in viewport
   const videoPlayerRef = useVideoPlayer({
@@ -87,7 +106,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     threshold: 0.1, // Start playing when 10% visible
   })
 
-  const handleVote = async () => {
+  const handleVoteUp = async () => {
     if (!isAuthenticated) {
       alert('Please sign in to vote')
       return
@@ -98,6 +117,36 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     try {
       const updatedIdea = await ideaService.toggleVote(idea.id, 'use')
       setIdea(updatedIdea)
+      // Update local state: toggle use, ensure dislike is false, pay unchanged
+      setUserVotes(prev => ({
+        ...prev,
+        use: !prev.use,
+        dislike: false,
+      }))
+    } catch (error) {
+      console.error('Error voting:', error)
+    } finally {
+      setIsVoting(false)
+    }
+  }
+
+  const handleVoteDown = async () => {
+    if (!isAuthenticated) {
+      alert('Please sign in to vote')
+      return
+    }
+    if (!idea || isVoting) return
+
+    setIsVoting(true)
+    try {
+      const updatedIdea = await ideaService.toggleVote(idea.id, 'dislike')
+      setIdea(updatedIdea)
+      // Update local state: toggle dislike, ensure use is false, pay unchanged
+      setUserVotes(prev => ({
+        ...prev,
+        use: false,
+        dislike: !prev.dislike,
+      }))
     } catch (error) {
       console.error('Error voting:', error)
     } finally {
@@ -116,6 +165,11 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     try {
       const updatedIdea = await ideaService.toggleVote(idea.id, 'pay')
       setIdea(updatedIdea)
+      // Update local state: toggle pay, use/dislike unchanged
+      setUserVotes(prev => ({
+        ...prev,
+        pay: !prev.pay,
+      }))
     } catch (error) {
       console.error('Error voting:', error)
     } finally {
@@ -238,12 +292,15 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         {/* Actions Bar */}
         <IdeaActions
           idea={idea}
-          voted={idea.votesByType.use > 0}
-          voteCount={idea.votes}
-          liked={idea.votesByType.pay > 0}
+          votedUp={userVotes.use}
+          votedDown={userVotes.dislike}
+          liked={userVotes.pay}
+          useCount={idea.votesByType.use}
+          dislikeCount={idea.votesByType.dislike}
           likeCount={idea.votesByType.pay}
           commentCount={commentCount}
-          onVote={handleVote}
+          onVoteUp={handleVoteUp}
+          onVoteDown={handleVoteDown}
           onLike={handleLike}
           onCommentsClick={handleCommentsClick}
         />

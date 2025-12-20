@@ -86,6 +86,14 @@ export interface IIdeaService {
   getUserVotes(
     ideaId: string
   ): Promise<{ use: boolean; dislike: boolean; pay: boolean }>
+
+  /**
+   * Get all current user's votes for multiple ideas
+   * @param ideaIds Array of idea IDs
+   */
+  getUserVotesForIdeas(
+    ideaIds: string[]
+  ): Promise<Record<string, { use: boolean; dislike: boolean; pay: boolean }>>
 }
 
 /**
@@ -430,6 +438,43 @@ class SupabaseIdeaService implements IIdeaService {
       dislike: votes.some(v => v.vote_type === 'dislike'),
       pay: votes.some(v => v.vote_type === 'pay'),
     }
+  }
+
+  async getUserVotesForIdeas(
+    ideaIds: string[]
+  ): Promise<Record<string, { use: boolean; dislike: boolean; pay: boolean }>> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return {}
+
+    const { data, error } = await supabase
+      .from('idea_votes')
+      .select('idea_id, vote_type')
+      .in('idea_id', ideaIds)
+      .eq('voter_id', user.id)
+
+    if (error) throw error
+
+    const votes = data || []
+    const result: Record<
+      string,
+      { use: boolean; dislike: boolean; pay: boolean }
+    > = {}
+
+    // Initialize all ideas with false votes
+    ideaIds.forEach(ideaId => {
+      result[ideaId] = { use: false, dislike: false, pay: false }
+    })
+
+    // Fill in the actual votes
+    votes.forEach(vote => {
+      if (result[vote.idea_id]) {
+        result[vote.idea_id][vote.vote_type as 'use' | 'dislike' | 'pay'] = true
+      }
+    })
+
+    return result
   }
 
   private mapDbIdeaToIdea(dbIdea: any): Idea {

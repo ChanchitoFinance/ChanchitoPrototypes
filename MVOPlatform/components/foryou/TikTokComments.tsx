@@ -70,7 +70,46 @@ export function TikTokComments({
     setLoading(true)
     try {
       const loadedComments = await commentService.getComments(ideaId)
-      setComments(loadedComments)
+
+      // Fetch user votes for all comments and replies
+      if (user) {
+        const allCommentIds: string[] = []
+        const collectCommentIds = (comments: Comment[]) => {
+          comments.forEach(comment => {
+            allCommentIds.push(comment.id)
+            if (comment.replies) {
+              collectCommentIds(comment.replies)
+            }
+          })
+        }
+        collectCommentIds(loadedComments)
+
+        try {
+          const userVotes =
+            await commentService.getUserCommentVotes(allCommentIds)
+
+          // Apply user vote information to comments
+          const applyUserVotes = (comments: Comment[]): Comment[] => {
+            return comments.map(comment => ({
+              ...comment,
+              upvoted: userVotes[comment.id]?.upvoted || false,
+              downvoted: userVotes[comment.id]?.downvoted || false,
+              replies: comment.replies
+                ? applyUserVotes(comment.replies)
+                : undefined,
+            }))
+          }
+
+          const commentsWithVotes = applyUserVotes(loadedComments)
+          setComments(commentsWithVotes)
+        } catch (error) {
+          console.error('Error fetching user comment votes:', error)
+          setComments(loadedComments)
+        }
+      } else {
+        setComments(loadedComments)
+      }
+
       onCommentCountChange?.(loadedComments.length)
     } catch (error) {
       console.error('Error loading comments:', error)
@@ -80,6 +119,10 @@ export function TikTokComments({
   }
 
   const handleUpvoteComment = async (commentId: string) => {
+    if (!user) {
+      alert('Please sign in to vote')
+      return
+    }
     try {
       const updatedComment = await commentService.toggleUpvoteComment(
         commentId,
@@ -92,6 +135,10 @@ export function TikTokComments({
   }
 
   const handleDownvoteComment = async (commentId: string) => {
+    if (!user) {
+      alert('Please sign in to vote')
+      return
+    }
     try {
       const updatedComment = await commentService.toggleDownvoteComment(
         commentId,
@@ -161,7 +208,45 @@ export function TikTokComments({
       )
 
       const updatedComments = await commentService.getComments(ideaId)
-      setComments(updatedComments)
+
+      // Re-apply user vote information
+      if (user) {
+        const allCommentIds: string[] = []
+        const collectCommentIds = (comments: Comment[]) => {
+          comments.forEach(comment => {
+            allCommentIds.push(comment.id)
+            if (comment.replies) {
+              collectCommentIds(comment.replies)
+            }
+          })
+        }
+        collectCommentIds(updatedComments)
+
+        try {
+          const userVotes =
+            await commentService.getUserCommentVotes(allCommentIds)
+
+          const applyUserVotes = (comments: Comment[]): Comment[] => {
+            return comments.map(comment => ({
+              ...comment,
+              upvoted: userVotes[comment.id]?.upvoted || false,
+              downvoted: userVotes[comment.id]?.downvoted || false,
+              replies: comment.replies
+                ? applyUserVotes(comment.replies)
+                : undefined,
+            }))
+          }
+
+          const commentsWithVotes = applyUserVotes(updatedComments)
+          setComments(commentsWithVotes)
+        } catch (error) {
+          console.error('Error re-applying user comment votes:', error)
+          setComments(updatedComments)
+        }
+      } else {
+        setComments(updatedComments)
+      }
+
       onCommentCountChange?.(updatedComments.length)
 
       // Clear reply text
@@ -219,7 +304,45 @@ export function TikTokComments({
 
       // Reload comments to avoid duplicates and get the latest state
       const updatedComments = await commentService.getComments(ideaId)
-      setComments(updatedComments)
+
+      // Re-apply user vote information
+      if (user) {
+        const allCommentIds: string[] = []
+        const collectCommentIds = (comments: Comment[]) => {
+          comments.forEach(comment => {
+            allCommentIds.push(comment.id)
+            if (comment.replies) {
+              collectCommentIds(comment.replies)
+            }
+          })
+        }
+        collectCommentIds(updatedComments)
+
+        try {
+          const userVotes =
+            await commentService.getUserCommentVotes(allCommentIds)
+
+          const applyUserVotes = (comments: Comment[]): Comment[] => {
+            return comments.map(comment => ({
+              ...comment,
+              upvoted: userVotes[comment.id]?.upvoted || false,
+              downvoted: userVotes[comment.id]?.downvoted || false,
+              replies: comment.replies
+                ? applyUserVotes(comment.replies)
+                : undefined,
+            }))
+          }
+
+          const commentsWithVotes = applyUserVotes(updatedComments)
+          setComments(commentsWithVotes)
+        } catch (error) {
+          console.error('Error re-applying user comment votes:', error)
+          setComments(updatedComments)
+        }
+      } else {
+        setComments(updatedComments)
+      }
+
       onCommentCountChange?.(updatedComments.length)
 
       // Find the newly added comment (should be the first one)

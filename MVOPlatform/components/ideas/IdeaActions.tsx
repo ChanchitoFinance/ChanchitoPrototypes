@@ -1,30 +1,42 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ArrowUp, MessageSquare, Share2, DollarSign } from 'lucide-react'
+import {
+  ArrowUp,
+  ArrowDown,
+  MessageSquare,
+  Share2,
+  DollarSign,
+} from 'lucide-react'
 import { Idea } from '@/lib/types/idea'
 import { useAppSelector } from '@/lib/hooks'
 
 interface IdeaActionsProps {
   idea: Idea
-  voted: boolean
-  voteCount: number
+  votedUp: boolean
+  votedDown: boolean
   liked: boolean
+  useCount: number
+  dislikeCount: number
   likeCount: number
   commentCount: number
-  onVote: () => void
+  onVoteUp: () => void
+  onVoteDown: () => void
   onLike: () => void
   onCommentsClick?: () => void
 }
 
 export function IdeaActions({
   idea,
-  voted,
-  voteCount,
+  votedUp,
+  votedDown,
   liked,
+  useCount,
+  dislikeCount,
   likeCount,
   commentCount,
-  onVote,
+  onVoteUp,
+  onVoteDown,
   onLike,
   onCommentsClick,
 }: IdeaActionsProps) {
@@ -47,24 +59,45 @@ export function IdeaActions({
 
   return (
     <div className="flex items-center gap-4 md:gap-6 mb-8 pb-8 border-b border-border-color">
-      {/* Vote Button */}
+      {/* Upvote Button */}
       <motion.button
-        onClick={onVote}
+        onClick={onVoteUp}
         whileTap={{ scale: 0.95 }}
         className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-          voted
+          votedUp
             ? 'bg-accent text-text-primary'
             : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
         }`}
       >
         <motion.div
-          animate={voted ? { scale: [1, 1.2, 1] } : {}}
+          animate={votedUp ? { scale: [1, 1.2, 1] } : {}}
           transition={{ duration: 0.3 }}
         >
           <ArrowUp className="w-5 h-5" />
         </motion.div>
-        <span className="font-semibold">{voteCount}</span>
-        <span className="text-sm hidden md:inline">Votes</span>
+        <span className="font-semibold">{useCount}</span>
+        <span className="text-sm hidden md:inline">Up</span>
+      </motion.button>
+
+      {/* Downvote Button */}
+      <motion.button
+        onClick={onVoteDown}
+        whileTap={{ scale: 0.95 }}
+        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+          votedDown
+            ? 'bg-red-500 text-white'
+            : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
+        }`}
+        title="Downvote"
+      >
+        <motion.div
+          animate={votedDown ? { scale: [1, 1.2, 1] } : {}}
+          transition={{ duration: 0.3 }}
+        >
+          <ArrowDown className="w-5 h-5" />
+        </motion.div>
+        <span className="font-semibold">{dislikeCount}</span>
+        <span className="text-sm hidden md:inline">Down</span>
       </motion.button>
 
       {/* I'd Pay For It Button */}

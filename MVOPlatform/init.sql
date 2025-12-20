@@ -1,6 +1,17 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Enums
+DROP TYPE IF EXISTS post_status CASCADE;
+DROP TYPE IF EXISTS post_type CASCADE;
+DROP TYPE IF EXISTS media_type CASCADE;
+DROP TYPE IF EXISTS comment_reaction_type CASCADE;
+DROP TYPE IF EXISTS idea_vote_type CASCADE;
+DROP TYPE IF EXISTS pivot_state CASCADE;
+DROP TYPE IF EXISTS idea_status_flag CASCADE;
+DROP TYPE IF EXISTS space_visibility CASCADE;
+DROP TYPE IF EXISTS membership_status CASCADE;
+DROP TYPE IF EXISTS membership_role CASCADE;
+
 CREATE TYPE membership_role AS ENUM ('admin', 'moderator', 'member', 'validator');
 CREATE TYPE membership_status AS ENUM ('active', 'invited', 'blocked');
 CREATE TYPE space_visibility AS ENUM ('public', 'invite_only', 'private');
@@ -440,13 +451,16 @@ CREATE POLICY "Public read comments" ON comments FOR SELECT USING (true);
 CREATE POLICY "Authenticated create comments" ON comments FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "Users update own comments" ON comments FOR UPDATE USING (auth.uid() = user_id);
 
--- Votes: authenticated insert/delete, users can view their own
+-- Votes: authenticated insert, users can view their own
 CREATE POLICY "Authenticated insert idea_votes" ON idea_votes FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "Users delete own idea_votes" ON idea_votes FOR DELETE USING (auth.uid() = voter_id);
 CREATE POLICY "Users view own idea_votes" ON idea_votes FOR SELECT USING (auth.uid() = voter_id);
+CREATE POLICY "Anyone can read votes" ON idea_votes FOR SELECT USING (true);
 
 CREATE POLICY "Authenticated insert comment_votes" ON comment_votes FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Users delete own comment_votes" ON comment_votes FOR DELETE USING (auth.uid() = user_id);
 CREATE POLICY "Users view own comment_votes" ON comment_votes FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Anyone can read votes" ON comment_votes FOR SELECT USING (true);
 
 -- Notifications: users can view/update their own
 CREATE POLICY "Users view own notifications" ON notifications FOR SELECT USING (auth.uid() = user_id);
