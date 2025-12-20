@@ -1,0 +1,11 @@
+export { ideaService } from './ideaService'
+export { commentService } from './commentService'
+export { userService } from './userService'
+export { teamService } from './teamService'
+export { adminService } from './adminService'
+
+export type { IIdeaService } from './ideaService'
+export type { ICommentService } from './commentService'
+export type { IUserService } from './userService'
+export type { ITeamService } from './teamService'
+export type { IAdminService } from './adminService'
