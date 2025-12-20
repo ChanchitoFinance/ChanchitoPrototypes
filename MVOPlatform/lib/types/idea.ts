@@ -5,7 +5,11 @@
 
 import { ContentBlock } from './content'
 
-export type IdeaStatusFlag = 'new' | 'active_discussion' | 'trending' | 'validated'
+export type IdeaStatusFlag =
+  | 'new'
+  | 'active_discussion'
+  | 'trending'
+  | 'validated'
 
 export type IdeaVoteType = 'dislike' | 'use' | 'pay'
 
@@ -23,6 +27,7 @@ export interface Idea {
   score: number
   votes: number
   votesByType: IdeaVotes // Distribution of votes by type (mandatory)
+  commentCount: number
   tags: string[]
   createdAt: string
   image?: string
@@ -36,4 +41,3 @@ export interface Idea {
   trending?: boolean // For trending section (deprecated)
   forYou?: boolean // For personalized "For You" section
 }
-

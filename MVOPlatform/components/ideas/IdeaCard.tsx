@@ -41,9 +41,13 @@ export function IdeaCard({ idea }: IdeaCardProps) {
     // Save current path and scroll position before navigating
     if (typeof window !== 'undefined') {
       // Find the scrollable container (div inside main with overflow-y-auto)
-      const scrollContainer = document.querySelector('main > div.overflow-y-auto') as HTMLElement
-      const scrollY = scrollContainer ? scrollContainer.scrollTop : window.scrollY
-      
+      const scrollContainer = document.querySelector(
+        'main > div.overflow-y-auto'
+      ) as HTMLElement
+      const scrollY = scrollContainer
+        ? scrollContainer.scrollTop
+        : window.scrollY
+
       sessionStorage.setItem('previousPath', window.location.pathname)
       sessionStorage.setItem('previousScrollPosition', scrollY.toString())
     }
@@ -52,10 +56,7 @@ export function IdeaCard({ idea }: IdeaCardProps) {
   return (
     <div ref={cardRef} className="card-hover overflow-hidden">
       <Link href={`/ideas/${idea.id}`} onClick={handleClick}>
-        <motion.article
-          whileHover={{ y: -2 }}
-          className="p-4 flex flex-col"
-        >
+        <motion.article whileHover={{ y: -2 }} className="p-4 flex flex-col">
           {/* Media Section */}
           {(idea.image || idea.video) && (
             <div className="relative w-full aspect-video mb-3 rounded-md overflow-hidden bg-gray-100">
@@ -69,15 +70,15 @@ export function IdeaCard({ idea }: IdeaCardProps) {
                   playsInline
                   preload="none"
                 />
-                      ) : idea.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={idea.image}
-                          alt={idea.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : null}
+              ) : idea.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={idea.image}
+                  alt={idea.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              ) : null}
             </div>
           )}
 
@@ -95,7 +96,9 @@ export function IdeaCard({ idea }: IdeaCardProps) {
               <div className="text-2xl font-semibold text-accent whitespace-nowrap">
                 {idea.score}
               </div>
-              <div className="text-xs text-text-secondary whitespace-nowrap">{UI_LABELS.SCORE}</div>
+              <div className="text-xs text-text-secondary whitespace-nowrap">
+                {UI_LABELS.SCORE}
+              </div>
             </div>
           </div>
 
@@ -121,12 +124,12 @@ export function IdeaCard({ idea }: IdeaCardProps) {
               </button>
               <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
                 <MessageSquare className="w-3.5 h-3.5" />
-                <span className="text-sm">12</span>
+                <span className="text-sm">{idea.commentCount}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-1.5 flex-shrink-0 overflow-hidden">
-              {idea.tags.slice(0, 2).map((tag) => (
+              {idea.tags.slice(0, 2).map(tag => (
                 <span
                   key={tag}
                   className="badge-gray text-xs px-2 py-0.5 whitespace-nowrap flex-shrink-0 truncate max-w-[80px]"
@@ -136,7 +139,9 @@ export function IdeaCard({ idea }: IdeaCardProps) {
                 </span>
               ))}
               {idea.tags.length > 2 && (
-                <span className="text-xs text-text-secondary whitespace-nowrap flex-shrink-0">+{idea.tags.length - 2}</span>
+                <span className="text-xs text-text-secondary whitespace-nowrap flex-shrink-0">
+                  +{idea.tags.length - 2}
+                </span>
               )}
             </div>
           </div>
@@ -151,4 +156,3 @@ export function IdeaCard({ idea }: IdeaCardProps) {
     </div>
   )
 }
-

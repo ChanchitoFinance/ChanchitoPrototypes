@@ -2,7 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowUp, MessageSquare, Share2, Heart, User, Calendar, ArrowLeft } from 'lucide-react'
+import {
+  ArrowUp,
+  MessageSquare,
+  Share2,
+  Heart,
+  User,
+  Calendar,
+  ArrowLeft,
+} from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { formatDate } from '@/lib/utils/date'
@@ -36,7 +44,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     // Get the previous path from sessionStorage (set when navigating to idea)
     const previousPath = sessionStorage.getItem('previousPath') || '/'
     const scrollPosition = sessionStorage.getItem('previousScrollPosition')
-    
+
     // Save scroll position to localStorage before navigating
     if (scrollPosition && previousPath) {
       localStorage.setItem(`scrollPosition_${previousPath}`, scrollPosition)
@@ -45,7 +53,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
       sessionStorage.setItem('restoreScrollPath', previousPath)
       sessionStorage.setItem('restoreScrollPosition', scrollPosition)
     }
-    
+
     // Navigate back using router.back() if possible, otherwise push
     if (typeof window !== 'undefined' && window.history.length > 1) {
       router.back()
@@ -62,7 +70,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           setIdea(loadedIdea)
           setVoteCount(loadedIdea.votes)
           setLikeCount(Math.floor(loadedIdea.votes * 0.7)) // Mock likes count
-          setCommentCount(Math.floor(loadedIdea.votes * 0.3)) // Mock comments count
+          setCommentCount(loadedIdea.commentCount)
         }
       } catch (error) {
         console.error('Error loading idea:', error)
@@ -96,7 +104,10 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
 
   const handleCommentsClick = () => {
     if (commentsSectionRef.current) {
-      commentsSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      commentsSectionRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
     }
   }
 
@@ -127,7 +138,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
               muted
               playsInline
               autoPlay
-              onPause={(e) => {
+              onPause={e => {
                 // Prevent pausing - immediately resume playback
                 e.preventDefault()
                 const video = e.currentTarget
@@ -137,7 +148,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
                   })
                 }
               }}
-              onContextMenu={(e) => {
+              onContextMenu={e => {
                 // Prevent right-click context menu
                 e.preventDefault()
               }}
@@ -168,7 +179,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-6 md:p-12">
           <div className="max-w-4xl mx-auto">
             <div className="flex flex-wrap gap-2 mb-4">
-              {idea.tags.map((tag) => (
+              {idea.tags.map(tag => (
                 <span
                   key={tag}
                   className="px-3 py-1 text-xs font-medium text-white bg-white/20 backdrop-blur-sm rounded-full"
@@ -276,4 +287,3 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     </div>
   )
 }
-

@@ -87,6 +87,9 @@ class SupabaseIdeaService implements IIdeaService {
           tags (
             name
           )
+        ),
+        comments!left (
+          id
         )
       `
       )
@@ -119,6 +122,9 @@ class SupabaseIdeaService implements IIdeaService {
           tags (
             name
           )
+        ),
+        comments!left (
+          id
         )
       `
       )
@@ -155,6 +161,9 @@ class SupabaseIdeaService implements IIdeaService {
           tags (
             name
           )
+        ),
+        comments!left (
+          id
         )
       `
       )
@@ -192,6 +201,9 @@ class SupabaseIdeaService implements IIdeaService {
           tags (
             name
           )
+        ),
+        comments!left (
+          id
         )
       `
       )
@@ -225,6 +237,9 @@ class SupabaseIdeaService implements IIdeaService {
           tags (
             name
           )
+        ),
+        comments!left (
+          id
         )
       `
       )
@@ -258,6 +273,9 @@ class SupabaseIdeaService implements IIdeaService {
           tags (
             name
           )
+        ),
+        comments!left (
+          id
         )
       `
       )
@@ -293,6 +311,8 @@ class SupabaseIdeaService implements IIdeaService {
         ?.find(block => block.type === 'carousel')
         ?.slides?.find(slide => slide.video)?.video
 
+    const commentCount = dbIdea.comments?.length || 0
+
     return {
       id: dbIdea.id,
       title: dbIdea.title,
@@ -301,6 +321,7 @@ class SupabaseIdeaService implements IIdeaService {
       score,
       votes: totalVotes,
       votesByType: voteCounts,
+      commentCount,
       tags,
       createdAt: dbIdea.created_at,
       video,
