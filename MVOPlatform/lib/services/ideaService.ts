@@ -323,19 +323,19 @@ class SupabaseIdeaService implements IIdeaService {
     } = await supabase.auth.getUser()
     if (!user) throw new Error('User not authenticated')
 
-    // Check if vote exists
-    const { data: existingVote } = await supabase
-      .from('idea_votes')
-      .select('vote_type')
-      .eq('idea_id', ideaId)
-      .eq('voter_id', user.id)
-      .limit(1)
-      .maybeSingle()
-
     // Handle different vote types:
     // - 'use' and 'dislike' are mutually exclusive (only one can exist)
     // - 'pay' is independent (can coexist with use/dislike)
     if (voteType === 'use' || voteType === 'dislike') {
+      // Check if user has this specific vote type
+      const { data: existingVote } = await supabase
+        .from('idea_votes')
+        .select('vote_type')
+        .eq('idea_id', ideaId)
+        .eq('voter_id', user.id)
+        .eq('vote_type', voteType)
+        .maybeSingle()
+
       // For use/dislike votes, remove any existing use/dislike vote first
       await supabase
         .from('idea_votes')
@@ -346,7 +346,7 @@ class SupabaseIdeaService implements IIdeaService {
 
       // If clicking the same vote type, don't insert (removes the vote)
       // If clicking different vote type or no vote existed, insert the new vote
-      if (existingVote?.vote_type !== voteType) {
+      if (!existingVote) {
         await supabase.from('idea_votes').insert({
           idea_id: ideaId,
           voter_id: user.id,
@@ -354,8 +354,17 @@ class SupabaseIdeaService implements IIdeaService {
         })
       }
     } else if (voteType === 'pay') {
+      // Check specifically for pay vote
+      const { data: existingPayVote } = await supabase
+        .from('idea_votes')
+        .select('vote_type')
+        .eq('idea_id', ideaId)
+        .eq('voter_id', user.id)
+        .eq('vote_type', 'pay')
+        .maybeSingle()
+
       // For pay votes, toggle independently
-      if (existingVote?.vote_type === 'pay') {
+      if (existingPayVote) {
         // Remove pay vote
         await supabase
           .from('idea_votes')

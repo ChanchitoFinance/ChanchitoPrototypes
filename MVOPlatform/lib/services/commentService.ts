@@ -37,11 +37,6 @@ export interface ICommentService {
   toggleDownvoteComment(commentId: string, ideaId: string): Promise<Comment>
 
   /**
-   * Mark/unmark a comment as helpful
-   */
-  toggleHelpfulComment(commentId: string, ideaId: string): Promise<Comment>
-
-  /**
    * Get comment count for an idea
    */
   getCommentCount(ideaId: string): Promise<number>
@@ -223,47 +218,6 @@ class SupabaseCommentService implements ICommentService {
     return this.getCommentById(commentId)
   }
 
-  async toggleHelpfulComment(
-    commentId: string,
-    ideaId: string
-  ): Promise<Comment> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('Not authenticated')
-
-    // Check if vote exists
-    const { data: existingVote } = await supabase
-      .from('comment_votes')
-      .select('reaction_type')
-      .eq('comment_id', commentId)
-      .eq('user_id', user.user.id)
-      .single()
-
-    if (existingVote?.reaction_type === 'helpful') {
-      // Remove helpful
-      await supabase
-        .from('comment_votes')
-        .delete()
-        .eq('comment_id', commentId)
-        .eq('user_id', user.user.id)
-    } else {
-      // Remove any existing vote and add helpful
-      await supabase
-        .from('comment_votes')
-        .delete()
-        .eq('comment_id', commentId)
-        .eq('user_id', user.user.id)
-
-      await supabase.from('comment_votes').insert({
-        comment_id: commentId,
-        user_id: user.user.id,
-        reaction_type: 'helpful',
-      })
-    }
-
-    // Return updated comment
-    return this.getCommentById(commentId)
-  }
-
   async getCommentCount(ideaId: string): Promise<number> {
     const { count, error } = await supabase
       .from('comments')
@@ -312,9 +266,6 @@ class SupabaseCommentService implements ICommentService {
     const downvotes = votes.filter(
       (v: any) => v.reaction_type === 'downvote'
     ).length
-    const helpful = votes.filter(
-      (v: any) => v.reaction_type === 'helpful'
-    ).length
 
     const totalVotes = upvotes + downvotes
     const usefulnessScore =
@@ -331,7 +282,6 @@ class SupabaseCommentService implements ICommentService {
       createdAt: dbComment.created_at,
       upvotes,
       downvotes,
-      helpful,
       usefulnessScore,
       parentId: dbComment.parent_comment_id,
       replies: [],
