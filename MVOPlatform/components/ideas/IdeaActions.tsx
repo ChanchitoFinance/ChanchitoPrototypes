@@ -13,30 +13,30 @@ import { useAppSelector } from '@/lib/hooks'
 
 interface IdeaActionsProps {
   idea: Idea
-  votedUp: boolean
-  votedDown: boolean
+  upvoted: boolean
+  downvoted: boolean
   liked: boolean
   useCount: number
   dislikeCount: number
   likeCount: number
   commentCount: number
-  onVoteUp: () => void
-  onVoteDown: () => void
+  onUpvote: () => void
+  onDownvote: () => void
   onLike: () => void
   onCommentsClick?: () => void
 }
 
 export function IdeaActions({
   idea,
-  votedUp,
-  votedDown,
+  upvoted,
+  downvoted,
   liked,
   useCount,
   dislikeCount,
   likeCount,
   commentCount,
-  onVoteUp,
-  onVoteDown,
+  onUpvote,
+  onDownvote,
   onLike,
   onCommentsClick,
 }: IdeaActionsProps) {
@@ -61,16 +61,16 @@ export function IdeaActions({
     <div className="flex items-center gap-4 md:gap-6 mb-8 pb-8 border-b border-border-color">
       {/* Upvote Button */}
       <motion.button
-        onClick={onVoteUp}
+        onClick={onUpvote}
         whileTap={{ scale: 0.95 }}
         className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-          votedUp
+          upvoted
             ? 'bg-accent text-text-primary'
             : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
         }`}
       >
         <motion.div
-          animate={votedUp ? { scale: [1, 1.2, 1] } : {}}
+          animate={upvoted ? { scale: [1, 1.2, 1] } : {}}
           transition={{ duration: 0.3 }}
         >
           <ArrowUp className="w-5 h-5" />
@@ -81,17 +81,17 @@ export function IdeaActions({
 
       {/* Downvote Button */}
       <motion.button
-        onClick={onVoteDown}
+        onClick={onDownvote}
         whileTap={{ scale: 0.95 }}
         className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-          votedDown
+          downvoted
             ? 'bg-red-500 text-white'
             : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
         }`}
         title="Downvote"
       >
         <motion.div
-          animate={votedDown ? { scale: [1, 1.2, 1] } : {}}
+          animate={downvoted ? { scale: [1, 1.2, 1] } : {}}
           transition={{ duration: 0.3 }}
         >
           <ArrowDown className="w-5 h-5" />

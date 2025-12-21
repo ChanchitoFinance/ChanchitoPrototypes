@@ -18,12 +18,13 @@ import { UI_LABELS } from '@/lib/constants/ui'
 import { Idea } from '@/lib/types/idea'
 import { Comment } from '@/lib/types/comment'
 import { ideaService } from '@/lib/services/ideaService'
+import { toggleVote, fetchUserVotes } from '@/lib/slices/ideasSlice'
 import { useVideoPlayer } from '@/hooks/useVideoPlayer'
 import { CommentsBlock } from './CommentsBlock'
 import { IdeaActions } from './IdeaActions'
 import { ContentRenderer } from './ContentRenderer'
 import { IdeaDetailSkeleton } from '@/components/ui/Skeleton'
-import { useAppSelector } from '@/lib/hooks'
+import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 
 interface IdeaDetailProps {
   ideaId: string
@@ -32,17 +33,11 @@ interface IdeaDetailProps {
 export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   const [idea, setIdea] = useState<Idea | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isVoting, setIsVoting] = useState(false)
   const [commentCount, setCommentCount] = useState(0)
-  const [userVotes, setUserVotes] = useState<{
-    use: boolean
-    dislike: boolean
-    pay: boolean
-  }>({
-    use: false,
-    dislike: false,
-    pay: false,
-  })
+  const dispatch = useAppDispatch()
+  const { currentIdea, userVotes, isVoting } = useAppSelector(
+    state => state.ideas
+  )
   const containerRef = useRef<HTMLDivElement>(null)
   const commentsSectionRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -80,12 +75,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
 
           // Fetch user votes if authenticated
           if (isAuthenticated) {
-            try {
-              const votes = await ideaService.getUserVotes(ideaId)
-              setUserVotes(votes)
-            } catch (error) {
-              console.error('Error fetching user votes:', error)
-            }
+            dispatch(fetchUserVotes(ideaId))
           }
         }
       } catch (error) {
@@ -106,75 +96,34 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     threshold: 0.1, // Start playing when 10% visible
   })
 
-  const handleVoteUp = async () => {
+  const handleVoteUp = () => {
     if (!isAuthenticated) {
       alert('Please sign in to vote')
       return
     }
     if (!idea || isVoting) return
 
-    setIsVoting(true)
-    try {
-      const updatedIdea = await ideaService.toggleVote(idea.id, 'use')
-      setIdea(updatedIdea)
-      // Update local state: toggle use, ensure dislike is false, pay unchanged
-      setUserVotes(prev => ({
-        ...prev,
-        use: !prev.use,
-        dislike: false,
-      }))
-    } catch (error) {
-      console.error('Error voting:', error)
-    } finally {
-      setIsVoting(false)
-    }
+    dispatch(toggleVote({ ideaId: idea.id, voteType: 'use' }))
   }
 
-  const handleVoteDown = async () => {
+  const handleVoteDown = () => {
     if (!isAuthenticated) {
       alert('Please sign in to vote')
       return
     }
     if (!idea || isVoting) return
 
-    setIsVoting(true)
-    try {
-      const updatedIdea = await ideaService.toggleVote(idea.id, 'dislike')
-      setIdea(updatedIdea)
-      // Update local state: toggle dislike, ensure use is false, pay unchanged
-      setUserVotes(prev => ({
-        ...prev,
-        use: false,
-        dislike: !prev.dislike,
-      }))
-    } catch (error) {
-      console.error('Error voting:', error)
-    } finally {
-      setIsVoting(false)
-    }
+    dispatch(toggleVote({ ideaId: idea.id, voteType: 'dislike' }))
   }
 
-  const handleLike = async () => {
+  const handleLike = () => {
     if (!isAuthenticated) {
       alert('Please sign in to vote')
       return
     }
     if (isVoting) return
 
-    setIsVoting(true)
-    try {
-      const updatedIdea = await ideaService.toggleVote(idea.id, 'pay')
-      setIdea(updatedIdea)
-      // Update local state: toggle pay, use/dislike unchanged
-      setUserVotes(prev => ({
-        ...prev,
-        pay: !prev.pay,
-      }))
-    } catch (error) {
-      console.error('Error voting:', error)
-    } finally {
-      setIsVoting(false)
-    }
+    dispatch(toggleVote({ ideaId: idea.id, voteType: 'pay' }))
   }
 
   const handleCommentsClick = () => {
@@ -263,11 +212,14 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
                 </span>
               ))}
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg break-words" style={{
-              overflowWrap: 'break-word',
-              wordBreak: 'break-word',
-              maxWidth: '100%',
-            }}>
+            <h1
+              className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg break-words"
+              style={{
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
+                maxWidth: '100%',
+              }}
+            >
               {idea.title}
             </h1>
             <div className="flex items-center gap-4 text-white/80 text-sm md:text-base">
@@ -292,15 +244,15 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         {/* Actions Bar */}
         <IdeaActions
           idea={idea}
-          votedUp={userVotes.use}
-          votedDown={userVotes.dislike}
+          upvoted={userVotes.use}
+          downvoted={userVotes.dislike}
           liked={userVotes.pay}
           useCount={idea.votesByType.use}
           dislikeCount={idea.votesByType.dislike}
           likeCount={idea.votesByType.pay}
           commentCount={commentCount}
-          onVoteUp={handleVoteUp}
-          onVoteDown={handleVoteDown}
+          onUpvote={handleVoteUp}
+          onDownvote={handleVoteDown}
           onLike={handleLike}
           onCommentsClick={handleCommentsClick}
         />
@@ -312,11 +264,14 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           transition={{ duration: 0.6 }}
           className="prose prose-invert max-w-none mb-12"
         >
-          <div className="text-body-large text-text-secondary leading-relaxed whitespace-pre-line break-words" style={{
-            overflowWrap: 'break-word',
-            wordBreak: 'break-word',
-            maxWidth: '100%',
-          }}>
+          <div
+            className="text-body-large text-text-secondary leading-relaxed whitespace-pre-line break-words"
+            style={{
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
+              maxWidth: '100%',
+            }}
+          >
             {idea.description}
           </div>
         </motion.div>

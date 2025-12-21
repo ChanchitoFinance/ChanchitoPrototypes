@@ -1,55 +1,9 @@
 import { supabase } from '@/lib/supabase'
-
-export interface Tag {
-  id: string
-  name: string
-}
-
-export interface Badge {
-  id: string
-  code: string
-  name: string
-  description?: string
-  icon_media_id?: string
-}
-
-export interface UserBadge {
-  user_id: string
-  badge_id: string
-  awarded_at: string
-  badge?: Badge
-}
-
-export interface MediaAsset {
-  id: string
-  type: 'image' | 'video' | 'link'
-  url: string
-  metadata?: any
-  created_at: string
-}
-
-export interface IAdminService {
-  createTag(name: string): Promise<Tag>
-  getTags(): Promise<Tag[]>
-  deleteTag(id: string): Promise<void>
-
-  createBadge(badge: Omit<Badge, 'id'>): Promise<Badge>
-  getBadges(): Promise<Badge[]>
-  updateBadge(id: string, updates: Partial<Badge>): Promise<Badge>
-  deleteBadge(id: string): Promise<void>
-
-  awardBadge(userId: string, badgeId: string): Promise<UserBadge>
-  getUserBadges(userId: string): Promise<UserBadge[]>
-  revokeBadge(userId: string, badgeId: string): Promise<void>
-
-  uploadMedia(
-    type: MediaAsset['type'],
-    url: string,
-    metadata?: any
-  ): Promise<MediaAsset>
-  getMediaAssets(type?: MediaAsset['type']): Promise<MediaAsset[]>
-  deleteMediaAsset(id: string): Promise<void>
-}
+import { IAdminService } from './IAdminService'
+import { Tag } from '@/lib/types/tag'
+import { Badge } from '@/lib/types/badge'
+import { UserBadge } from '@/lib/types/userBadge'
+import { MediaAsset } from '@/lib/types/mediaAsset'
 
 class SupabaseAdminService implements IAdminService {
   async createTag(name: string): Promise<Tag> {
