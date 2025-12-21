@@ -106,7 +106,13 @@ export function HomeFeed({
       // Load 12 items initially for better UX (not waiting for demand)
       Promise.all([ideaService.getIdeas(12), ideaService.getNewIdeas(2)]).then(
         async ([loadedIdeas, loadedNewIdeas]) => {
-          setIdeas(loadedIdeas)
+          // Filter out ideas that are already in newIdeas from the main ideas list
+          const newIdeaIds = new Set(loadedNewIdeas.map(idea => idea.id))
+          const filteredIdeas = loadedIdeas.filter(
+            idea => !newIdeaIds.has(idea.id)
+          )
+
+          setIdeas(filteredIdeas)
           setNewIdeas(loadedNewIdeas)
 
           // Batch fetch user votes for all loaded ideas
@@ -158,31 +164,44 @@ export function HomeFeed({
     setLoading(true)
     try {
       // Load more ideas with offset
-      const newIdeas = await ideaService.loadMoreIdeas(ideas.length)
-      if (newIdeas.length === 0) {
+      const loadedMoreIdeas = await ideaService.loadMoreIdeas(ideas.length)
+      if (loadedMoreIdeas.length === 0) {
         setHasMore(false)
       } else {
-        // Batch fetch user votes for new ideas
-        if (isAuthenticated) {
-          try {
-            const newIdeaIds = newIdeas.map(idea => idea.id)
-            const votesMap = await ideaService.getUserVotesForIdeas(newIdeaIds)
-            // Update new ideas with user vote information
-            const newIdeasWithVotes = newIdeas.map(idea => ({
-              ...idea,
-              userVotes: votesMap[idea.id] || {
-                use: false,
-                dislike: false,
-                pay: false,
-              },
-            }))
-            setIdeas(prev => [...prev, ...newIdeasWithVotes])
-          } catch (error) {
-            console.error('Error fetching user votes for new ideas:', error)
-            setIdeas(prev => [...prev, ...newIdeas])
-          }
+        // Filter out ideas that are already in ideas or newIdeas arrays
+        const existingIdeaIds = new Set(
+          [...ideas, ...newIdeas].map(idea => idea.id)
+        )
+        const filteredNewIdeas = loadedMoreIdeas.filter(
+          idea => !existingIdeaIds.has(idea.id)
+        )
+
+        if (filteredNewIdeas.length === 0) {
+          setHasMore(false)
         } else {
-          setIdeas(prev => [...prev, ...newIdeas])
+          // Batch fetch user votes for new ideas
+          if (isAuthenticated) {
+            try {
+              const newIdeaIds = filteredNewIdeas.map(idea => idea.id)
+              const votesMap =
+                await ideaService.getUserVotesForIdeas(newIdeaIds)
+              // Update new ideas with user vote information
+              const newIdeasWithVotes = filteredNewIdeas.map(idea => ({
+                ...idea,
+                userVotes: votesMap[idea.id] || {
+                  use: false,
+                  dislike: false,
+                  pay: false,
+                },
+              }))
+              setIdeas(prev => [...prev, ...newIdeasWithVotes])
+            } catch (error) {
+              console.error('Error fetching user votes for new ideas:', error)
+              setIdeas(prev => [...prev, ...filteredNewIdeas])
+            }
+          } else {
+            setIdeas(prev => [...prev, ...filteredNewIdeas])
+          }
         }
       }
     } finally {
