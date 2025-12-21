@@ -184,23 +184,14 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           onTabChange('home')
         }
       },
-      active:
-        (isHomePage && activeTab === 'home') ||
-        (!isHomePage && activeTab === 'home'),
+      active: pathname === '/',
     },
     {
       id: 'foryou',
       label: UI_LABELS.FOR_YOU,
       icon: Heart,
-      href: '/',
-      onClick: () => {
-        if (isHomePage && onTabChange) {
-          onTabChange('foryou')
-        }
-      },
-      active:
-        (isHomePage && activeTab === 'foryou') ||
-        (!isHomePage && activeTab === 'foryou'),
+      href: '/for-you',
+      active: pathname === '/for-you',
     },
     {
       id: 'activity',
@@ -308,7 +299,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
             const Icon = item.icon
             const isActive = item.active || false
 
-            if (isHomePage && (item.id === 'home' || item.id === 'foryou')) {
+            if (isHomePage && item.id === 'home') {
               return (
                 <button
                   key={item.id}

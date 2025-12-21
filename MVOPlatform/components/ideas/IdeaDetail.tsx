@@ -2,7 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowUp, MessageSquare, Share2, Heart, User, Calendar, ArrowLeft } from 'lucide-react'
+import {
+  ArrowUp,
+  MessageSquare,
+  Share2,
+  Heart,
+  User,
+  Calendar,
+  ArrowLeft,
+} from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { formatDate } from '@/lib/utils/date'
@@ -10,11 +18,13 @@ import { UI_LABELS } from '@/lib/constants/ui'
 import { Idea } from '@/lib/types/idea'
 import { Comment } from '@/lib/types/comment'
 import { ideaService } from '@/lib/services/ideaService'
+import { toggleVote, fetchUserVotes } from '@/lib/slices/ideasSlice'
 import { useVideoPlayer } from '@/hooks/useVideoPlayer'
 import { CommentsBlock } from './CommentsBlock'
 import { IdeaActions } from './IdeaActions'
 import { ContentRenderer } from './ContentRenderer'
 import { IdeaDetailSkeleton } from '@/components/ui/Skeleton'
+import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 
 interface IdeaDetailProps {
   ideaId: string
@@ -23,20 +33,21 @@ interface IdeaDetailProps {
 export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   const [idea, setIdea] = useState<Idea | null>(null)
   const [loading, setLoading] = useState(true)
-  const [voted, setVoted] = useState(false)
-  const [voteCount, setVoteCount] = useState(0)
-  const [liked, setLiked] = useState(false)
-  const [likeCount, setLikeCount] = useState(0)
   const [commentCount, setCommentCount] = useState(0)
+  const dispatch = useAppDispatch()
+  const { currentIdea, userVotes, isVoting } = useAppSelector(
+    state => state.ideas
+  )
   const containerRef = useRef<HTMLDivElement>(null)
   const commentsSectionRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const { isAuthenticated } = useAppSelector(state => state.auth)
 
   const handleBack = () => {
     // Get the previous path from sessionStorage (set when navigating to idea)
     const previousPath = sessionStorage.getItem('previousPath') || '/'
     const scrollPosition = sessionStorage.getItem('previousScrollPosition')
-    
+
     // Save scroll position to localStorage before navigating
     if (scrollPosition && previousPath) {
       localStorage.setItem(`scrollPosition_${previousPath}`, scrollPosition)
@@ -45,7 +56,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
       sessionStorage.setItem('restoreScrollPath', previousPath)
       sessionStorage.setItem('restoreScrollPosition', scrollPosition)
     }
-    
+
     // Navigate back using router.back() if possible, otherwise push
     if (typeof window !== 'undefined' && window.history.length > 1) {
       router.back()
@@ -60,9 +71,12 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         const loadedIdea = await ideaService.getIdeaById(ideaId)
         if (loadedIdea) {
           setIdea(loadedIdea)
-          setVoteCount(loadedIdea.votes)
-          setLikeCount(Math.floor(loadedIdea.votes * 0.7)) // Mock likes count
-          setCommentCount(Math.floor(loadedIdea.votes * 0.3)) // Mock comments count
+          setCommentCount(loadedIdea.commentCount)
+
+          // Fetch user votes if authenticated
+          if (isAuthenticated) {
+            dispatch(fetchUserVotes(ideaId))
+          }
         }
       } catch (error) {
         console.error('Error loading idea:', error)
@@ -72,7 +86,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     }
 
     loadIdea()
-  }, [ideaId])
+  }, [ideaId, isAuthenticated])
 
   // Use video player hook - auto-play when in viewport
   const videoPlayerRef = useVideoPlayer({
@@ -82,21 +96,42 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     threshold: 0.1, // Start playing when 10% visible
   })
 
-  const handleVote = () => {
-    if (!voted) {
-      setVoted(true)
-      setVoteCount(voteCount + 1)
+  const handleVoteUp = () => {
+    if (!isAuthenticated) {
+      alert('Please sign in to vote')
+      return
     }
+    if (!idea || isVoting) return
+
+    dispatch(toggleVote({ ideaId: idea.id, voteType: 'use' }))
+  }
+
+  const handleVoteDown = () => {
+    if (!isAuthenticated) {
+      alert('Please sign in to vote')
+      return
+    }
+    if (!idea || isVoting) return
+
+    dispatch(toggleVote({ ideaId: idea.id, voteType: 'dislike' }))
   }
 
   const handleLike = () => {
-    setLiked(!liked)
-    setLikeCount(liked ? likeCount - 1 : likeCount + 1)
+    if (!isAuthenticated) {
+      alert('Please sign in to vote')
+      return
+    }
+    if (isVoting) return
+
+    dispatch(toggleVote({ ideaId: idea.id, voteType: 'pay' }))
   }
 
   const handleCommentsClick = () => {
     if (commentsSectionRef.current) {
-      commentsSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      commentsSectionRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
     }
   }
 
@@ -127,7 +162,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
               muted
               playsInline
               autoPlay
-              onPause={(e) => {
+              onPause={e => {
                 // Prevent pausing - immediately resume playback
                 e.preventDefault()
                 const video = e.currentTarget
@@ -137,7 +172,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
                   })
                 }
               }}
-              onContextMenu={(e) => {
+              onContextMenu={e => {
                 // Prevent right-click context menu
                 e.preventDefault()
               }}
@@ -168,7 +203,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-6 md:p-12">
           <div className="max-w-4xl mx-auto">
             <div className="flex flex-wrap gap-2 mb-4">
-              {idea.tags.map((tag) => (
+              {idea.tags.map(tag => (
                 <span
                   key={tag}
                   className="px-3 py-1 text-xs font-medium text-white bg-white/20 backdrop-blur-sm rounded-full"
@@ -177,11 +212,14 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
                 </span>
               ))}
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg break-words" style={{
-              overflowWrap: 'break-word',
-              wordBreak: 'break-word',
-              maxWidth: '100%',
-            }}>
+            <h1
+              className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg break-words"
+              style={{
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
+                maxWidth: '100%',
+              }}
+            >
               {idea.title}
             </h1>
             <div className="flex items-center gap-4 text-white/80 text-sm md:text-base">
@@ -206,12 +244,15 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         {/* Actions Bar */}
         <IdeaActions
           idea={idea}
-          voted={voted}
-          voteCount={voteCount}
-          liked={liked}
-          likeCount={likeCount}
+          upvoted={userVotes.use}
+          downvoted={userVotes.dislike}
+          liked={userVotes.pay}
+          useCount={idea.votesByType.use}
+          dislikeCount={idea.votesByType.dislike}
+          likeCount={idea.votesByType.pay}
           commentCount={commentCount}
-          onVote={handleVote}
+          onUpvote={handleVoteUp}
+          onDownvote={handleVoteDown}
           onLike={handleLike}
           onCommentsClick={handleCommentsClick}
         />
@@ -223,11 +264,14 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           transition={{ duration: 0.6 }}
           className="prose prose-invert max-w-none mb-12"
         >
-          <div className="text-body-large text-text-secondary leading-relaxed whitespace-pre-line break-words" style={{
-            overflowWrap: 'break-word',
-            wordBreak: 'break-word',
-            maxWidth: '100%',
-          }}>
+          <div
+            className="text-body-large text-text-secondary leading-relaxed whitespace-pre-line break-words"
+            style={{
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
+              maxWidth: '100%',
+            }}
+          >
             {idea.description}
           </div>
         </motion.div>
@@ -276,4 +320,3 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     </div>
   )
 }
-

@@ -42,7 +42,7 @@ npm install
 
 3. Set up Supabase database:
 
-Go to your Supabase project → SQL Editor and run the SQL from `init.sql` to create the users table and authentication trigger.
+Go to your Supabase project → SQL Editor and run the SQL from `init.sql` to create the complete database schema with all tables, enums, and policies. Then run `insert.sql` to populate with sample data.
 
 4. Set up environment variables (`.env.local`):
 
@@ -100,10 +100,29 @@ MVOPlatform/
 └── public/          # Static assets
 ```
 
+## Services
+
+The application uses a service layer for data management with Supabase:
+
+- **IdeaService**: Manages ideas, votes, and content
+- **CommentService**: Handles comments and comment voting
+- **UserService**: User profile management
+- **TeamService**: Team and space management
+- **AdminService**: Tags, badges, and media assets
+
+See `docs/services-usage.md` for detailed usage examples.
+
+## Database Setup
+
+1. Run `init.sql` in Supabase SQL Editor to create the complete schema
+2. Run `insert.sql` to populate with sample data
+3. All tables include Row Level Security policies for data protection
+
 ## Documentation
 
 See `docs/` directory for detailed documentation:
 
+- Services usage (`docs/services-usage.md`)
 - UX guidelines (`docs/UX/`)
 - Architecture (`docs/architecture/`)
 

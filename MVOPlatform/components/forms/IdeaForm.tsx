@@ -14,7 +14,21 @@ import { useAppSelector } from '@/lib/hooks'
 import { ContentRenderer } from '@/components/ideas/ContentRenderer'
 import { ideaService } from '@/lib/services/ideaService'
 import { Idea } from '@/lib/types/idea'
-import { X, ChevronDown, ChevronUp, Upload, Link as LinkIcon, Image as ImageIcon, Video, Crop, ZoomIn, ZoomOut, Eye, Edit } from 'lucide-react'
+import {
+  X,
+  ChevronDown,
+  ChevronUp,
+  Upload,
+  Link as LinkIcon,
+  Image as ImageIcon,
+  Video,
+  Crop,
+  ZoomIn,
+  ZoomOut,
+  Eye,
+  Edit,
+  Loader2,
+} from 'lucide-react'
 import Image from 'next/image'
 
 const ideaSchema = z.object({
@@ -25,33 +39,36 @@ const ideaSchema = z.object({
 
 type IdeaFormData = z.infer<typeof ideaSchema>
 
-// Mock spaces - In production this would come from an API
-const MOCK_SPACES = [
-  { id: '1', name: 'Public Space', team_id: '1' },
-  { id: '2', name: 'Tech Innovation', team_id: '1' },
-  { id: '3', name: 'Startups', team_id: '2' },
-]
-
 // LocalStorage key for form persistence
 const FORM_STORAGE_KEY = 'idea_form_draft'
 
 export function IdeaForm() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitProgress, setSubmitProgress] = useState('')
+  const [spaces, setSpaces] = useState<
+    Array<{ id: string; name: string; team_id: string }>
+  >([])
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [isTagsExpanded, setIsTagsExpanded] = useState(true)
   const [heroImage, setHeroImage] = useState<string | null>(null)
   const [heroVideo, setHeroVideo] = useState<string | null>(null)
-  const [heroCrop, setHeroCrop] = useState<{ x: number; y: number; width: number; height: number; scale?: number } | null>(null)
+  const [heroCrop, setHeroCrop] = useState<{
+    x: number
+    y: number
+    width: number
+    height: number
+    scale?: number
+  } | null>(null)
   const [showImageUpload, setShowImageUpload] = useState(false)
   const [showVideoUpload, setShowVideoUpload] = useState(false)
   const [showHeroCrop, setShowHeroCrop] = useState(false)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
-  const { profile } = useAppSelector((state) => state.auth)
+  const { profile } = useAppSelector(state => state.auth)
 
   const {
     register,
@@ -74,7 +91,7 @@ export function IdeaForm() {
       const savedData = localStorage.getItem(FORM_STORAGE_KEY)
       if (savedData) {
         const parsed = JSON.parse(savedData)
-        
+
         // Restore form values
         if (parsed.title) {
           setValue('title', parsed.title)
@@ -89,43 +106,47 @@ export function IdeaForm() {
         // Restore content blocks - ensure all types are preserved
         if (parsed.contentBlocks && Array.isArray(parsed.contentBlocks)) {
           // Validate and restore all block types including carousel, video, and html
-          const restoredBlocks = parsed.contentBlocks.map((block: any) => {
-            // Ensure the block has a valid type
-            if (!block || !block.type) return null
-            
-            // Restore carousel blocks
-            if (block.type === 'carousel') {
-              return {
-                type: 'carousel',
-                slides: Array.isArray(block.slides) ? block.slides : [{ description: '' }]
+          const restoredBlocks = parsed.contentBlocks
+            .map((block: any) => {
+              // Ensure the block has a valid type
+              if (!block || !block.type) return null
+
+              // Restore carousel blocks
+              if (block.type === 'carousel') {
+                return {
+                  type: 'carousel',
+                  slides: Array.isArray(block.slides)
+                    ? block.slides
+                    : [{ description: '' }],
+                }
               }
-            }
-            
-            // Restore video blocks
-            if (block.type === 'video') {
-              return {
-                type: 'video',
-                src: block.src || '',
-                title: block.title,
-                description: block.description,
-                objectFit: block.objectFit || 'fit',
-                alignment: block.alignment || 'center',
-                crop: block.crop || undefined
+
+              // Restore video blocks
+              if (block.type === 'video') {
+                return {
+                  type: 'video',
+                  src: block.src || '',
+                  title: block.title,
+                  description: block.description,
+                  objectFit: block.objectFit || 'fit',
+                  alignment: block.alignment || 'center',
+                  crop: block.crop || undefined,
+                }
               }
-            }
-            
-            // Restore html blocks
-            if (block.type === 'html') {
-              return {
-                type: 'html',
-                content: block.content || ''
+
+              // Restore html blocks
+              if (block.type === 'html') {
+                return {
+                  type: 'html',
+                  content: block.content || '',
+                }
               }
-            }
-            
-            // Restore other block types as-is
-            return block
-          }).filter((block: any) => block !== null)
-          
+
+              // Restore other block types as-is
+              return block
+            })
+            .filter((block: any) => block !== null)
+
           setContentBlocks(restoredBlocks)
         }
         if (parsed.heroImage) {
@@ -143,6 +164,20 @@ export function IdeaForm() {
     }
   }, [setValue])
 
+  // Fetch available spaces from Supabase
+  useEffect(() => {
+    const loadSpaces = async () => {
+      try {
+        const spacesData = await ideaService.getSpaces()
+        setSpaces(spacesData)
+      } catch (error) {
+        console.error('Error loading spaces:', error)
+      }
+    }
+
+    loadSpaces()
+  }, [])
+
   // Save form data to localStorage whenever it changes
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -157,8 +192,8 @@ export function IdeaForm() {
             image: slide.image || undefined,
             video: slide.video || undefined,
             title: slide.title || undefined,
-            description: slide.description || ''
-          }))
+            description: slide.description || '',
+          })),
         }
       }
       // Ensure video blocks are fully serialized
@@ -170,14 +205,14 @@ export function IdeaForm() {
           description: block.description || undefined,
           objectFit: block.objectFit || 'fit',
           alignment: block.alignment || 'center',
-          crop: block.crop || undefined
+          crop: block.crop || undefined,
         }
       }
       // Ensure html blocks are fully serialized
       if (block.type === 'html') {
         return {
           ...block,
-          content: block.content || ''
+          content: block.content || '',
         }
       }
       // Return other blocks as-is
@@ -207,12 +242,12 @@ export function IdeaForm() {
     }
 
     // Only save if there's actual content
-    const hasContent = 
-      titleValue || 
-      selectedSpaceId || 
-      selectedTags.length > 0 || 
-      contentBlocks.length > 0 || 
-      heroImage || 
+    const hasContent =
+      titleValue ||
+      selectedSpaceId ||
+      selectedTags.length > 0 ||
+      contentBlocks.length > 0 ||
+      heroImage ||
       heroVideo
 
     if (hasContent) {
@@ -222,19 +257,29 @@ export function IdeaForm() {
         localStorage.setItem(FORM_STORAGE_KEY, serialized)
       } catch (error) {
         console.error('Error saving form data:', error)
-        
+
         // If storage quota exceeded or video is too large, try saving without video
-        if (error instanceof Error && (error.name === 'QuotaExceededError' || error.message.includes('exceeded'))) {
+        if (
+          error instanceof Error &&
+          (error.name === 'QuotaExceededError' ||
+            error.message.includes('exceeded'))
+        ) {
           console.warn('localStorage quota exceeded, saving without hero video')
           try {
             // Save without video to preserve other content
-            localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formDataWithoutVideo))
+            localStorage.setItem(
+              FORM_STORAGE_KEY,
+              JSON.stringify(formDataWithoutVideo)
+            )
           } catch (retryError) {
             console.error('Error saving without video:', retryError)
             // Last resort: try clearing and saving minimal data
             try {
               localStorage.removeItem(FORM_STORAGE_KEY)
-              localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formDataWithoutVideo))
+              localStorage.setItem(
+                FORM_STORAGE_KEY,
+                JSON.stringify(formDataWithoutVideo)
+              )
             } catch (finalError) {
               console.error('Error in final save attempt:', finalError)
             }
@@ -242,7 +287,15 @@ export function IdeaForm() {
         }
       }
     }
-  }, [titleValue, selectedSpaceId, selectedTags, contentBlocks, heroImage, heroVideo, heroCrop])
+  }, [
+    titleValue,
+    selectedSpaceId,
+    selectedTags,
+    contentBlocks,
+    heroImage,
+    heroVideo,
+    heroCrop,
+  ])
 
   const addTag = () => {
     const tag = tagInput.trim()
@@ -255,7 +308,7 @@ export function IdeaForm() {
   }
 
   const removeTag = (tag: string) => {
-    const newTags = selectedTags.filter((t) => t !== tag)
+    const newTags = selectedTags.filter(t => t !== tag)
     setSelectedTags(newTags)
     setValue('tags', newTags.join(','))
   }
@@ -286,16 +339,18 @@ export function IdeaForm() {
     }
   }
 
-
-
   const onSubmit = async (data: IdeaFormData) => {
     // Filter out empty blocks (blocks with no content)
-    const validBlocks = contentBlocks.filter((block) => {
+    const validBlocks = contentBlocks.filter(block => {
       if (block.type === 'heading') return block.text.trim().length > 0
       if (block.type === 'text') return block.content.trim().length > 0
       if (block.type === 'image') return block.src.trim().length > 0
       if (block.type === 'video') return block.src.trim().length > 0
-      if (block.type === 'carousel') return block.slides.length > 0 && block.slides.some(s => s.description.trim().length > 0)
+      if (block.type === 'carousel')
+        return (
+          block.slides.length > 0 &&
+          block.slides.some(s => s.description.trim().length > 0)
+        )
       if (block.type === 'button') return block.text.trim().length > 0
       if (block.type === 'html') return block.content.trim().length > 0
       return true // spacer blocks are always valid
@@ -307,8 +362,11 @@ export function IdeaForm() {
     }
 
     setIsSubmitting(true)
+    setSubmitProgress('Preparing idea data...')
 
     try {
+      setSubmitProgress('Processing content...')
+
       // Generate description from first text block or use title
       let description = data.title
       const firstTextBlock = validBlocks.find(block => block.type === 'text')
@@ -330,6 +388,8 @@ export function IdeaForm() {
       // Get author name from profile or use default
       const author = profile?.email || profile?.id || 'Anonymous'
 
+      setSubmitProgress('Serializing content...')
+
       // Ensure all blocks are properly serialized, especially carousels
       const serializedContentBlocks = validBlocks.map(block => {
         // Ensure carousel slides are fully serialized
@@ -338,12 +398,14 @@ export function IdeaForm() {
           const slides = Array.isArray(block.slides) ? block.slides : []
           return {
             type: 'carousel' as const,
-            slides: slides.map(slide => ({
-              image: slide?.image || undefined,
-              video: slide?.video || undefined,
-              title: slide?.title || undefined,
-              description: slide?.description || ''
-            })).filter(slide => slide.description || slide.image || slide.video) // Only include slides with content
+            slides: slides
+              .map(slide => ({
+                image: slide?.image || undefined,
+                video: slide?.video || undefined,
+                title: slide?.title || undefined,
+                description: slide?.description || '',
+              }))
+              .filter(slide => slide.description || slide.image || slide.video), // Only include slides with content
           }
         }
         // Ensure video blocks are fully serialized
@@ -355,14 +417,14 @@ export function IdeaForm() {
             description: block.description || undefined,
             objectFit: block.objectFit || 'fit',
             alignment: block.alignment || 'center',
-            crop: block.crop || undefined
+            crop: block.crop || undefined,
           }
         }
         // Ensure html blocks are fully serialized
         if (block.type === 'html') {
           return {
             type: 'html' as const,
-            content: block.content || ''
+            content: block.content || '',
           }
         }
         // Return other blocks as-is
@@ -381,6 +443,7 @@ export function IdeaForm() {
           use: 0,
           pay: 0,
         },
+        commentCount: 0, // New ideas start with 0 comments
         tags: selectedTags,
         createdAt: createdAt, // Today's date
         image: heroImage || undefined,
@@ -389,8 +452,12 @@ export function IdeaForm() {
         status_flag: 'new', // New ideas have 'new' status
       }
 
+      setSubmitProgress('Uploading to Supabase...')
+
       // Save the idea using the service
-      const createdIdea = await ideaService.createIdea(newIdea)
+      const createdIdea = await ideaService.createIdea(newIdea, data.space_id)
+
+      setSubmitProgress('Finalizing...')
 
       // Clear saved form data from localStorage after successful submission
       if (typeof window !== 'undefined') {
@@ -405,21 +472,25 @@ export function IdeaForm() {
       router.push(`/ideas/${createdIdea.id}`)
     } catch (error) {
       console.error('Error creating idea:', error)
+      setSubmitProgress('')
       alert('Error creating idea. Please try again.')
     } finally {
-    setIsSubmitting(false)
+      setIsSubmitting(false)
+      setSubmitProgress('')
     }
   }
 
   // Preview Mode - Show final result
   if (isPreviewMode) {
-    const selectedSpace = MOCK_SPACES.find(s => s.id === selectedSpaceId)
-    
+    const selectedSpace = spaces.find(s => s.id === selectedSpaceId)
+
     return (
       <div className="min-h-screen bg-background">
         {/* Preview Mode Header */}
         <div className="sticky top-0 z-50 bg-background border-b border-border-color px-4 py-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-text-primary truncate flex-1 min-w-0 mr-4">Preview Mode</h2>
+          <h2 className="text-lg font-semibold text-text-primary truncate flex-1 min-w-0 mr-4">
+            Preview Mode
+          </h2>
           <button
             type="button"
             onClick={() => setIsPreviewMode(false)}
@@ -437,11 +508,15 @@ export function IdeaForm() {
               <video
                 src={heroVideo}
                 className="w-full h-full object-cover"
-                style={heroCrop ? {
-                  objectPosition: `${heroCrop.x}% ${heroCrop.y}%`,
-                  transform: `scale(${heroCrop.scale || 1})`,
-                  transformOrigin: `${heroCrop.x}% ${heroCrop.y}%`,
-                } : undefined}
+                style={
+                  heroCrop
+                    ? {
+                        objectPosition: `${heroCrop.x}% ${heroCrop.y}%`,
+                        transform: `scale(${heroCrop.scale || 1})`,
+                        transformOrigin: `${heroCrop.x}% ${heroCrop.y}%`,
+                      }
+                    : undefined
+                }
                 controls={false}
                 muted
                 playsInline
@@ -457,11 +532,15 @@ export function IdeaForm() {
                 fill
                 className="object-cover"
                 priority
-                style={heroCrop ? {
-                  objectPosition: `${heroCrop.x}% ${heroCrop.y}%`,
-                  transform: `scale(${heroCrop.scale || 1})`,
-                  transformOrigin: `${heroCrop.x}% ${heroCrop.y}%`,
-                } : undefined}
+                style={
+                  heroCrop
+                    ? {
+                        objectPosition: `${heroCrop.x}% ${heroCrop.y}%`,
+                        transform: `scale(${heroCrop.scale || 1})`,
+                        transformOrigin: `${heroCrop.x}% ${heroCrop.y}%`,
+                      }
+                    : undefined
+                }
               />
             </div>
           ) : (
@@ -474,7 +553,7 @@ export function IdeaForm() {
               {/* Tags */}
               {selectedTags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3 md:mb-4">
-                  {selectedTags.map((tag) => (
+                  {selectedTags.map(tag => (
                     <span
                       key={tag}
                       className="px-3 py-1 text-xs font-medium text-white bg-white/20 backdrop-blur-sm rounded-full"
@@ -486,11 +565,14 @@ export function IdeaForm() {
               )}
               {/* Title */}
               {titleValue && (
-                <h1 className="text-2xl md:text-3xl lg:text-5xl font-bold text-white mb-3 md:mb-4 drop-shadow-lg break-words" style={{
-                  overflowWrap: 'break-word',
-                  wordBreak: 'break-word',
-                  maxWidth: '100%',
-                }}>
+                <h1
+                  className="text-2xl md:text-3xl lg:text-5xl font-bold text-white mb-3 md:mb-4 drop-shadow-lg break-words"
+                  style={{
+                    overflowWrap: 'break-word',
+                    wordBreak: 'break-word',
+                    maxWidth: '100%',
+                  }}
+                >
                   {titleValue}
                 </h1>
               )}
@@ -522,7 +604,9 @@ export function IdeaForm() {
     <div className="min-h-screen bg-background">
       {/* Edit Mode Header */}
       <div className="sticky top-0 z-50 bg-background border-b border-border-color px-4 py-3 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-text-primary truncate flex-1 min-w-0 mr-4">Create Idea</h2>
+        <h2 className="text-lg font-semibold text-text-primary truncate flex-1 min-w-0 mr-4">
+          Create Idea
+        </h2>
         <button
           type="button"
           onClick={() => setIsPreviewMode(true)}
@@ -541,11 +625,15 @@ export function IdeaForm() {
             <video
               src={heroVideo}
               className="w-full h-full object-cover pointer-events-none"
-              style={heroCrop ? {
-                objectPosition: `${heroCrop.x}% ${heroCrop.y}%`,
-                transform: `scale(${heroCrop.scale || 1})`,
-                transformOrigin: `${heroCrop.x}% ${heroCrop.y}%`,
-              } : undefined}
+              style={
+                heroCrop
+                  ? {
+                      objectPosition: `${heroCrop.x}% ${heroCrop.y}%`,
+                      transform: `scale(${heroCrop.scale || 1})`,
+                      transformOrigin: `${heroCrop.x}% ${heroCrop.y}%`,
+                    }
+                  : undefined
+              }
               controls={false}
               muted
               playsInline
@@ -561,11 +649,15 @@ export function IdeaForm() {
               fill
               className="object-cover"
               priority
-              style={heroCrop ? {
-                objectPosition: `${heroCrop.x}% ${heroCrop.y}%`,
-                transform: `scale(${heroCrop.scale || 1})`,
-                transformOrigin: `${heroCrop.x}% ${heroCrop.y}%`,
-              } : undefined}
+              style={
+                heroCrop
+                  ? {
+                      objectPosition: `${heroCrop.x}% ${heroCrop.y}%`,
+                      transform: `scale(${heroCrop.scale || 1})`,
+                      transformOrigin: `${heroCrop.x}% ${heroCrop.y}%`,
+                    }
+                  : undefined
+              }
             />
           </div>
         ) : (
@@ -602,7 +694,7 @@ export function IdeaForm() {
                       onChange={handleVideoUpload}
                       className="hidden"
                     />
-          </label>
+                  </label>
                   <button
                     type="button"
                     onClick={() => setShowVideoUpload(false)}
@@ -660,12 +752,14 @@ export function IdeaForm() {
             </button>
           </div>
         )}
-        
+
         {/* Crop Editor for Hero */}
         {showHeroCrop && (heroImage || heroVideo) && (
           <div className="absolute top-20 right-4 bg-background border border-border-color rounded-lg p-4 shadow-lg z-20 max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-semibold text-text-primary">Crop & Adjust Hero Media</h4>
+              <h4 className="text-sm font-semibold text-text-primary">
+                Crop & Adjust Hero Media
+              </h4>
               <button
                 type="button"
                 onClick={() => setShowHeroCrop(false)}
@@ -678,7 +772,7 @@ export function IdeaForm() {
               src={heroImage || heroVideo}
               isVideo={!!heroVideo}
               crop={heroCrop}
-              onSave={(crop) => {
+              onSave={crop => {
                 setHeroCrop(crop)
                 setShowHeroCrop(false)
               }}
@@ -693,7 +787,7 @@ export function IdeaForm() {
             {/* Tags */}
             {selectedTags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-3 md:mb-4">
-                {selectedTags.map((tag) => (
+                {selectedTags.map(tag => (
                   <span
                     key={tag}
                     className="px-3 py-1 text-xs font-medium text-white bg-white/20 backdrop-blur-sm rounded-full"
@@ -704,29 +798,31 @@ export function IdeaForm() {
               </div>
             )}
             {/* Title Input */}
-          <input
-            {...register('title')}
-            type="text"
+            <input
+              {...register('title')}
+              type="text"
               className="w-full bg-transparent border-none outline-none text-2xl md:text-3xl lg:text-5xl font-bold text-white mb-3 md:mb-4 drop-shadow-lg placeholder:text-white/50"
               placeholder="Enter your idea title..."
-              onKeyDown={(e) => {
+              onKeyDown={e => {
                 if (e.key === 'Enter') {
                   e.preventDefault()
                 }
               }}
-          />
-          {errors.title && (
-              <p className="text-red-300 text-sm mt-1 md:mt-2">{errors.title.message}</p>
+            />
+            {errors.title && (
+              <p className="text-red-300 text-sm mt-1 md:mt-2">
+                {errors.title.message}
+              </p>
             )}
             {/* Tags Input Placeholder */}
             {selectedTags.length === 0 && (
               <div className="text-white/60 text-xs md:text-sm">
                 Add tags below to categorize your idea
               </div>
-          )}
+            )}
+          </div>
         </div>
-        </div>
-        </div>
+      </div>
 
       {/* Hidden file inputs */}
       <input
@@ -750,32 +846,37 @@ export function IdeaForm() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          onSubmit={(e) => {
+          onSubmit={e => {
             e.preventDefault()
             handleSubmit(onSubmit)(e)
           }}
         >
           {/* Space Selection */}
           <div className="mb-8">
-            <label htmlFor="space_id" className="text-sm font-medium text-text-secondary mb-2 block">
+            <label
+              htmlFor="space_id"
+              className="text-sm font-medium text-text-secondary mb-2 block"
+            >
               Space <span className="text-red-500">*</span>
-          </label>
+            </label>
             <select
               {...register('space_id')}
               id="space_id"
               className="w-full px-4 py-2 bg-background border border-border-color rounded-lg text-text-primary"
             >
               <option value="">Select a space</option>
-              {MOCK_SPACES.map((space) => (
+              {spaces.map(space => (
                 <option key={space.id} value={space.id}>
                   {space.name}
                 </option>
               ))}
             </select>
             {errors.space_id && (
-              <p className="mt-1 text-sm text-red-500">{errors.space_id.message}</p>
-          )}
-        </div>
+              <p className="mt-1 text-sm text-red-500">
+                {errors.space_id.message}
+              </p>
+            )}
+          </div>
 
           {/* Tags Section */}
           <div className="mb-8 pb-8 border-b border-border-color">
@@ -786,7 +887,7 @@ export function IdeaForm() {
             >
               <label className="text-sm font-medium text-text-secondary cursor-pointer">
                 Tags
-          </label>
+              </label>
               {isTagsExpanded ? (
                 <ChevronUp className="w-4 h-4 text-text-secondary" />
               ) : (
@@ -799,8 +900,8 @@ export function IdeaForm() {
                   <input
                     type="text"
                     value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => {
+                    onChange={e => setTagInput(e.target.value)}
+                    onKeyDown={e => {
                       if (e.key === 'Enter') {
                         e.preventDefault()
                         addTag()
@@ -809,13 +910,18 @@ export function IdeaForm() {
                     placeholder="Type a tag and press Enter"
                     className="flex-1 px-3 py-2 bg-background border border-border-color rounded-lg text-text-primary text-sm"
                   />
-                  <Button type="button" onClick={addTag} variant="outline" size="sm">
+                  <Button
+                    type="button"
+                    onClick={addTag}
+                    variant="outline"
+                    size="sm"
+                  >
                     Add
                   </Button>
-        </div>
+                </div>
                 {selectedTags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {selectedTags.map((tag) => (
+                    {selectedTags.map(tag => (
                       <span
                         key={tag}
                         className="inline-flex items-center gap-1 px-3 py-1 bg-accent/10 text-accent rounded-full text-sm"
@@ -831,10 +937,10 @@ export function IdeaForm() {
                       </span>
                     ))}
                   </div>
-          )}
-        </div>
-          )}
-        </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Rich Content Editor */}
           <div className="mb-8">
@@ -842,22 +948,30 @@ export function IdeaForm() {
               value={contentBlocks}
               onChange={setContentBlocks}
             />
-      </div>
+          </div>
 
           {/* Submit Buttons */}
           <div className="flex gap-4">
-        <Button type="submit" variant="primary" disabled={isSubmitting}>
-          {isSubmitting ? UI_LABELS.SUBMITTING : UI_LABELS.SUBMIT_IDEA}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-        >
-          Cancel
-        </Button>
-      </div>
-    </motion.form>
+            <Button type="submit" variant="primary" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{submitProgress || 'Creating idea...'}</span>
+                </div>
+              ) : (
+                UI_LABELS.SUBMIT_IDEA
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+          </div>
+        </motion.form>
       </article>
     </div>
   )
@@ -872,8 +986,20 @@ function HeroCropEditor({
 }: {
   src: string | null
   isVideo?: boolean
-  crop: { x: number; y: number; width: number; height: number; scale?: number } | null
-  onSave: (crop: { x: number; y: number; width: number; height: number; scale?: number }) => void
+  crop: {
+    x: number
+    y: number
+    width: number
+    height: number
+    scale?: number
+  } | null
+  onSave: (crop: {
+    x: number
+    y: number
+    width: number
+    height: number
+    scale?: number
+  }) => void
   onCancel: () => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -948,7 +1074,7 @@ function HeroCropEditor({
             autoPlay
             loop
             controls={false}
-            onLoadedMetadata={(e) => {
+            onLoadedMetadata={e => {
               const video = e.currentTarget
               video.currentTime = 0.1 // Set to a small time to show first frame
             }}
@@ -1009,4 +1135,3 @@ function HeroCropEditor({
     </div>
   )
 }
-

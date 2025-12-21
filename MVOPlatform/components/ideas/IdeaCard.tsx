@@ -8,20 +8,23 @@ import { formatDate } from '@/lib/utils/date'
 import { UI_LABELS } from '@/lib/constants/ui'
 import { Idea } from '@/lib/types/idea'
 import { useVideoPlayer } from '@/hooks/useVideoPlayer'
+import { useAppSelector } from '@/lib/hooks'
+import { ideaService } from '@/lib/services/ideaService'
 
 interface IdeaCardProps {
   idea: Idea
 }
 
 export function IdeaCard({ idea }: IdeaCardProps) {
-  const [voted, setVoted] = useState(false)
-  const [voteCount, setVoteCount] = useState(idea.votes)
+  const [currentIdea, setCurrentIdea] = useState(idea)
+  const [isVoting, setIsVoting] = useState(false)
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
+  const { isAuthenticated } = useAppSelector(state => state.auth)
 
   // Use reusable video player hook with start time at 10 seconds
   const videoRef = useVideoPlayer({
-    videoSrc: idea.video,
+    videoSrc: currentIdea.video,
     containerRef: cardRef,
     startTime: 10,
     threshold: 0.5,
@@ -29,11 +32,22 @@ export function IdeaCard({ idea }: IdeaCardProps) {
     onPause: () => setIsVideoPlaying(false),
   })
 
-  const handleVote = (e: React.MouseEvent) => {
+  const handleVote = async (e: React.MouseEvent) => {
     e.preventDefault()
-    if (!voted) {
-      setVoted(true)
-      setVoteCount(voteCount + 1)
+    if (!isAuthenticated) {
+      alert('Please sign in to vote')
+      return
+    }
+    if (isVoting) return
+
+    setIsVoting(true)
+    try {
+      const updatedIdea = await ideaService.toggleVote(currentIdea.id, 'use')
+      setCurrentIdea(updatedIdea)
+    } catch (error) {
+      console.error('Error voting:', error)
+    } finally {
+      setIsVoting(false)
     }
   }
 
@@ -41,43 +55,47 @@ export function IdeaCard({ idea }: IdeaCardProps) {
     // Save current path and scroll position before navigating
     if (typeof window !== 'undefined') {
       // Find the scrollable container (div inside main with overflow-y-auto)
-      const scrollContainer = document.querySelector('main > div.overflow-y-auto') as HTMLElement
-      const scrollY = scrollContainer ? scrollContainer.scrollTop : window.scrollY
-      
+      const scrollContainer = document.querySelector(
+        'main > div.overflow-y-auto'
+      ) as HTMLElement
+      const scrollY = scrollContainer
+        ? scrollContainer.scrollTop
+        : window.scrollY
+
       sessionStorage.setItem('previousPath', window.location.pathname)
       sessionStorage.setItem('previousScrollPosition', scrollY.toString())
     }
   }
 
+  const voted = currentIdea.votesByType.use > 0
+  const voteCount = currentIdea.votes
+
   return (
     <div ref={cardRef} className="card-hover overflow-hidden">
-      <Link href={`/ideas/${idea.id}`} onClick={handleClick}>
-        <motion.article
-          whileHover={{ y: -2 }}
-          className="p-4 flex flex-col"
-        >
+      <Link href={`/ideas/${currentIdea.id}`} onClick={handleClick}>
+        <motion.article whileHover={{ y: -2 }} className="p-4 flex flex-col">
           {/* Media Section */}
-          {(idea.image || idea.video) && (
+          {(currentIdea.image || currentIdea.video) && (
             <div className="relative w-full aspect-video mb-3 rounded-md overflow-hidden bg-gray-100">
-              {idea.video ? (
+              {currentIdea.video ? (
                 <video
                   ref={videoRef}
-                  src={idea.video}
+                  src={currentIdea.video}
                   className="w-full h-full object-cover"
                   loop
                   muted
                   playsInline
                   preload="none"
                 />
-                      ) : idea.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={idea.image}
-                          alt={idea.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : null}
+              ) : currentIdea.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={currentIdea.image}
+                  alt={currentIdea.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              ) : null}
             </div>
           )}
 
@@ -85,17 +103,19 @@ export function IdeaCard({ idea }: IdeaCardProps) {
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex-1 min-w-0 max-w-[calc(100%-80px)]">
               <h2 className="text-lg font-semibold text-text-primary mb-1 line-clamp-2 break-words">
-                {idea.title}
+                {currentIdea.title}
               </h2>
               <p className="text-sm text-text-secondary line-clamp-2 mb-2 break-words">
-                {idea.description}
+                {currentIdea.description}
               </p>
             </div>
             <div className="text-right flex-shrink-0 w-16">
               <div className="text-2xl font-semibold text-accent whitespace-nowrap">
-                {idea.score}
+                {currentIdea.score}
               </div>
-              <div className="text-xs text-text-secondary whitespace-nowrap">{UI_LABELS.SCORE}</div>
+              <div className="text-xs text-text-secondary whitespace-nowrap">
+                {UI_LABELS.SCORE}
+              </div>
             </div>
           </div>
 
@@ -104,11 +124,12 @@ export function IdeaCard({ idea }: IdeaCardProps) {
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={handleVote}
+                disabled={isVoting}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-250 text-sm whitespace-nowrap flex-shrink-0 ${
                   voted
                     ? 'bg-accent text-text-primary'
                     : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
-                }`}
+                } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <motion.div
                   animate={voted ? { scale: [1, 1.2, 1] } : {}}
@@ -121,12 +142,12 @@ export function IdeaCard({ idea }: IdeaCardProps) {
               </button>
               <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
                 <MessageSquare className="w-3.5 h-3.5" />
-                <span className="text-sm">12</span>
+                <span className="text-sm">{currentIdea.commentCount}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-1.5 flex-shrink-0 overflow-hidden">
-              {idea.tags.slice(0, 2).map((tag) => (
+              {currentIdea.tags.slice(0, 2).map(tag => (
                 <span
                   key={tag}
                   className="badge-gray text-xs px-2 py-0.5 whitespace-nowrap flex-shrink-0 truncate max-w-[80px]"
@@ -135,20 +156,21 @@ export function IdeaCard({ idea }: IdeaCardProps) {
                   {tag}
                 </span>
               ))}
-              {idea.tags.length > 2 && (
-                <span className="text-xs text-text-secondary whitespace-nowrap flex-shrink-0">+{idea.tags.length - 2}</span>
+              {currentIdea.tags.length > 2 && (
+                <span className="text-xs text-text-secondary whitespace-nowrap flex-shrink-0">
+                  +{currentIdea.tags.length - 2}
+                </span>
               )}
             </div>
           </div>
 
           {/* Author and Date */}
           <div className="flex items-center justify-between text-xs text-text-secondary pt-2 border-t border-background">
-            <span>By {idea.author}</span>
-            <span>{formatDate(idea.createdAt)}</span>
+            <span>By {currentIdea.author}</span>
+            <span>{formatDate(currentIdea.createdAt)}</span>
           </div>
         </motion.article>
       </Link>
     </div>
   )
 }
-

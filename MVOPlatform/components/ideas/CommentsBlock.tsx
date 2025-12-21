@@ -2,7 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowUp, ArrowDown, ThumbsUp, User, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react'
+import {
+  ArrowUp,
+  ArrowDown,
+  User,
+  ChevronDown,
+  ChevronUp,
+  MessageSquare,
+} from 'lucide-react'
 import Image from 'next/image'
 import { formatDate } from '@/lib/utils/date'
 import { Comment } from '@/lib/types/comment'
@@ -36,7 +43,45 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
     setLoading(true)
     try {
       const loadedComments = await commentService.getComments(ideaId)
-      setComments(loadedComments)
+
+      // Fetch user votes for all comments and replies
+      if (user) {
+        const allCommentIds: string[] = []
+        const collectCommentIds = (comments: Comment[]) => {
+          comments.forEach(comment => {
+            allCommentIds.push(comment.id)
+            if (comment.replies) {
+              collectCommentIds(comment.replies)
+            }
+          })
+        }
+        collectCommentIds(loadedComments)
+
+        try {
+          const userVotes =
+            await commentService.getUserCommentVotes(allCommentIds)
+
+          // Apply user vote information to comments
+          const applyUserVotes = (comments: Comment[]): Comment[] => {
+            return comments.map(comment => ({
+              ...comment,
+              upvoted: userVotes[comment.id]?.upvoted || false,
+              downvoted: userVotes[comment.id]?.downvoted || false,
+              replies: comment.replies
+                ? applyUserVotes(comment.replies)
+                : undefined,
+            }))
+          }
+
+          const commentsWithVotes = applyUserVotes(loadedComments)
+          setComments(commentsWithVotes)
+        } catch (error) {
+          console.error('Error fetching user comment votes:', error)
+          setComments(loadedComments)
+        }
+      } else {
+        setComments(loadedComments)
+      }
     } catch (error) {
       console.error('Error loading comments:', error)
     } finally {
@@ -45,6 +90,10 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
   }
 
   const handleUpvoteComment = async (commentId: string) => {
+    if (!user) {
+      alert('Please sign in to vote')
+      return
+    }
     try {
       const updatedComment = await commentService.toggleUpvoteComment(
         commentId,
@@ -57,20 +106,18 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
   }
 
   const handleDownvoteComment = async (commentId: string) => {
+    if (!user) {
+      alert('Please sign in to vote')
+      return
+    }
     try {
-      const updatedComment = await commentService.toggleDownvoteComment(commentId, ideaId)
+      const updatedComment = await commentService.toggleDownvoteComment(
+        commentId,
+        ideaId
+      )
       updateCommentInState(commentId, updatedComment)
     } catch (error) {
       console.error('Error downvoting comment:', error)
-    }
-  }
-
-  const handleHelpfulComment = async (commentId: string) => {
-    try {
-      const updatedComment = await commentService.toggleHelpfulComment(commentId, ideaId)
-      updateCommentInState(commentId, updatedComment)
-    } catch (error) {
-      console.error('Error marking comment as helpful:', error)
     }
   }
 
@@ -108,6 +155,11 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
     const replyContent = replyText.get(parentId)?.trim()
     if (!replyContent || submitting) return
 
+    if (!user) {
+      alert('Please sign in to comment')
+      return
+    }
+
     setSubmitting(true)
     try {
       const authorName =
@@ -126,7 +178,44 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
       )
 
       const updatedComments = await commentService.getComments(ideaId)
-      setComments(updatedComments)
+
+      // Re-apply user vote information
+      if (user) {
+        const allCommentIds: string[] = []
+        const collectCommentIds = (comments: Comment[]) => {
+          comments.forEach(comment => {
+            allCommentIds.push(comment.id)
+            if (comment.replies) {
+              collectCommentIds(comment.replies)
+            }
+          })
+        }
+        collectCommentIds(updatedComments)
+
+        try {
+          const userVotes =
+            await commentService.getUserCommentVotes(allCommentIds)
+
+          const applyUserVotes = (comments: Comment[]): Comment[] => {
+            return comments.map(comment => ({
+              ...comment,
+              upvoted: userVotes[comment.id]?.upvoted || false,
+              downvoted: userVotes[comment.id]?.downvoted || false,
+              replies: comment.replies
+                ? applyUserVotes(comment.replies)
+                : undefined,
+            }))
+          }
+
+          const commentsWithVotes = applyUserVotes(updatedComments)
+          setComments(commentsWithVotes)
+        } catch (error) {
+          console.error('Error re-applying user comment votes:', error)
+          setComments(updatedComments)
+        }
+      } else {
+        setComments(updatedComments)
+      }
 
       setReplyText(prev => {
         const newMap = new Map(prev)
@@ -147,6 +236,11 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newComment.trim() || submitting) return
+
+    if (!user) {
+      alert('Please sign in to comment')
+      return
+    }
 
     const commentText = newComment.trim()
     setSubmitting(true)
@@ -176,7 +270,44 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
 
       // Reload comments to avoid duplicates and get the latest state
       const updatedComments = await commentService.getComments(ideaId)
-      setComments(updatedComments)
+
+      // Re-apply user vote information
+      if (user) {
+        const allCommentIds: string[] = []
+        const collectCommentIds = (comments: Comment[]) => {
+          comments.forEach(comment => {
+            allCommentIds.push(comment.id)
+            if (comment.replies) {
+              collectCommentIds(comment.replies)
+            }
+          })
+        }
+        collectCommentIds(updatedComments)
+
+        try {
+          const userVotes =
+            await commentService.getUserCommentVotes(allCommentIds)
+
+          const applyUserVotes = (comments: Comment[]): Comment[] => {
+            return comments.map(comment => ({
+              ...comment,
+              upvoted: userVotes[comment.id]?.upvoted || false,
+              downvoted: userVotes[comment.id]?.downvoted || false,
+              replies: comment.replies
+                ? applyUserVotes(comment.replies)
+                : undefined,
+            }))
+          }
+
+          const commentsWithVotes = applyUserVotes(updatedComments)
+          setComments(commentsWithVotes)
+        } catch (error) {
+          console.error('Error re-applying user comment votes:', error)
+          setComments(updatedComments)
+        }
+      } else {
+        setComments(updatedComments)
+      }
 
       // Find the newly added comment (should be the first one)
       const newComment = updatedComments[0]
@@ -357,21 +488,10 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
                       }`}
                       title="Downvote"
                     >
-                      <ArrowDown className={`w-4 h-4 ${comment.downvoted ? 'fill-current' : ''}`} />
+                      <ArrowDown
+                        className={`w-4 h-4 ${comment.downvoted ? 'fill-current' : ''}`}
+                      />
                       <span>{comment.downvotes || 0}</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleHelpfulComment(comment.id)}
-                      className={`flex items-center gap-1.5 text-sm transition-colors ${
-                        comment.helpfulMarked
-                          ? 'text-green-500'
-                          : 'text-text-secondary hover:text-green-500'
-                      }`}
-                      title="Helpful"
-                    >
-                      <ThumbsUp className={`w-4 h-4 ${comment.helpfulMarked ? 'fill-current' : ''}`} />
-                      <span>{comment.helpful || 0}</span>
                     </button>
 
                     <button
@@ -451,83 +571,92 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
                   )}
 
                   {/* Replies */}
-                  {expandedReplies.has(comment.id) && comment.replies && comment.replies.length > 0 && (
-                    <div className="mt-4 ml-6 space-y-4 border-l-2 border-border-color pl-4">
-                      {comment.replies.map((reply) => (
-                        <div key={reply.id} className="flex items-start gap-3">
-                          <div className="flex-shrink-0">
-                            {reply.authorImage ? (
-                              <Image
-                                src={reply.authorImage}
-                                alt={reply.author}
-                                width={32}
-                                height={32}
-                                className="rounded-full"
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-text-primary font-semibold">
-                                <User className="w-4 h-4" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <span className="font-semibold text-sm text-text-primary">@{reply.author}</span>
-                              <span className="text-text-secondary text-xs">•</span>
-                              <span className="text-text-secondary text-xs">{formatDate(reply.createdAt)}</span>
-                              {reply.usefulnessScore > 0 && (
-                                <>
-                                  <span className="text-text-secondary text-xs">•</span>
-                                  <span className="text-xs px-0.2 py-0.5 bg-accent/20 text-accent rounded-full">
-                                    {reply.usefulnessScore.toFixed(1)}
-                                  </span>
-                                </>
+                  {expandedReplies.has(comment.id) &&
+                    comment.replies &&
+                    comment.replies.length > 0 && (
+                      <div className="mt-4 ml-6 space-y-4 border-l-2 border-border-color pl-4">
+                        {comment.replies.map(reply => (
+                          <div
+                            key={reply.id}
+                            className="flex items-start gap-3"
+                          >
+                            <div className="flex-shrink-0">
+                              {reply.authorImage ? (
+                                <Image
+                                  src={reply.authorImage}
+                                  alt={reply.author}
+                                  width={32}
+                                  height={32}
+                                  className="rounded-full"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-text-primary font-semibold">
+                                  <User className="w-4 h-4" />
+                                </div>
                               )}
                             </div>
-                            <p className="text-text-secondary text-sm mb-2 whitespace-pre-wrap break-words">{reply.content}</p>
-                            <div className="flex items-center gap-3">
-                              <button
-                                onClick={() => handleUpvoteComment(reply.id)}
-                                className={`flex items-center gap-1 text-xs transition-colors ${
-                                  reply.upvoted
-                                    ? 'text-accent'
-                                    : 'text-text-secondary hover:text-accent'
-                                }`}
-                                title="Upvote"
-                              >
-                                <ArrowUp className={`w-3 h-3 ${reply.upvoted ? 'fill-current' : ''}`} />
-                                <span>{reply.upvotes || 0}</span>
-                              </button>
-                              <button
-                                onClick={() => handleDownvoteComment(reply.id)}
-                                className={`flex items-center gap-1 text-xs transition-colors ${
-                                  reply.downvoted
-                                    ? 'text-red-500'
-                                    : 'text-text-secondary hover:text-red-500'
-                                }`}
-                                title="Downvote"
-                              >
-                                <ArrowDown className={`w-3 h-3 ${reply.downvoted ? 'fill-current' : ''}`} />
-                                <span>{reply.downvotes || 0}</span>
-                              </button>
-                              <button
-                                onClick={() => handleHelpfulComment(reply.id)}
-                                className={`flex items-center gap-1 text-xs transition-colors ${
-                                  reply.helpfulMarked
-                                    ? 'text-green-500'
-                                    : 'text-text-secondary hover:text-green-500'
-                                }`}
-                                title="Helpful"
-                              >
-                                <ThumbsUp className={`w-3 h-3 ${reply.helpfulMarked ? 'fill-current' : ''}`} />
-                                <span>{reply.helpful || 0}</span>
-                              </button>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className="font-semibold text-sm text-text-primary">
+                                  @{reply.author}
+                                </span>
+                                <span className="text-text-secondary text-xs">
+                                  •
+                                </span>
+                                <span className="text-text-secondary text-xs">
+                                  {formatDate(reply.createdAt)}
+                                </span>
+                                {reply.usefulnessScore > 0 && (
+                                  <>
+                                    <span className="text-text-secondary text-xs">
+                                      •
+                                    </span>
+                                    <span className="text-xs px-0.2 py-0.5 bg-accent/20 text-accent rounded-full">
+                                      {reply.usefulnessScore.toFixed(1)}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                              <p className="text-text-secondary text-sm mb-2 whitespace-pre-wrap break-words">
+                                {reply.content}
+                              </p>
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={() => handleUpvoteComment(reply.id)}
+                                  className={`flex items-center gap-1 text-xs transition-colors ${
+                                    reply.upvoted
+                                      ? 'text-accent'
+                                      : 'text-text-secondary hover:text-accent'
+                                  }`}
+                                  title="Upvote"
+                                >
+                                  <ArrowUp
+                                    className={`w-3 h-3 ${reply.upvoted ? 'fill-current' : ''}`}
+                                  />
+                                  <span>{reply.upvotes || 0}</span>
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDownvoteComment(reply.id)
+                                  }
+                                  className={`flex items-center gap-1 text-xs transition-colors ${
+                                    reply.downvoted
+                                      ? 'text-red-500'
+                                      : 'text-text-secondary hover:text-red-500'
+                                  }`}
+                                  title="Downvote"
+                                >
+                                  <ArrowDown
+                                    className={`w-3 h-3 ${reply.downvoted ? 'fill-current' : ''}`}
+                                  />
+                                  <span>{reply.downvotes || 0}</span>
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
                 </div>
               </div>
             </motion.div>

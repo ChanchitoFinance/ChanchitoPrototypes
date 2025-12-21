@@ -2,7 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowUp, MessageSquare, Share2, DollarSign } from 'lucide-react'
+import {
+  ArrowUp,
+  ArrowDown,
+  MessageSquare,
+  Share2,
+  DollarSign,
+} from 'lucide-react'
 import Image from 'next/image'
 import { formatDate } from '@/lib/utils/date'
 import { UI_LABELS } from '@/lib/constants/ui'
@@ -11,59 +17,159 @@ import { useVideoPlayer } from '@/hooks/useVideoPlayer'
 import { TikTokComments } from './TikTokComments'
 import { commentService } from '@/lib/services/commentService'
 import { VoteDistributionBar } from '@/components/ui/VoteDistributionBar'
+import { useAppSelector } from '@/lib/hooks'
+import { ideaService } from '@/lib/services/ideaService'
 
 interface ForYouIdeaCardProps {
   idea: Idea
   isActive: boolean
+  initialUserVotes?: {
+    use: boolean
+    dislike: boolean
+    pay: boolean
+  }
 }
 
-export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
-  const [voted, setVoted] = useState(false)
-  const [voteCount, setVoteCount] = useState(idea.votes)
-  const [wouldPay, setWouldPay] = useState(false)
+export function ForYouIdeaCard({
+  idea,
+  isActive,
+  initialUserVotes,
+}: ForYouIdeaCardProps) {
+  const [currentIdea, setCurrentIdea] = useState(idea)
+  const [isVoting, setIsVoting] = useState(false)
+  const [userVote, setUserVote] = useState<{
+    use: boolean
+    dislike: boolean
+    pay: boolean
+  }>(
+    initialUserVotes || {
+      use: false,
+      dislike: false,
+      pay: false,
+    }
+  )
   const [commentCount, setCommentCount] = useState(0)
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
   const previousIdeaIdRef = useRef<string>(idea.id)
-  
+  const { isAuthenticated } = useAppSelector(state => state.auth)
+
+  // Update user votes when initialUserVotes prop changes
+  useEffect(() => {
+    if (initialUserVotes) {
+      setUserVote(initialUserVotes)
+    }
+  }, [initialUserVotes])
+
   // Use reusable video player hook with start time at 10 seconds
   const videoRef = useVideoPlayer({
-    videoSrc: idea.video,
+    videoSrc: currentIdea.video,
     isActive,
     startTime: 45,
   })
 
   // Load comment count
   useEffect(() => {
-    commentService.getCommentCount(idea.id).then(setCommentCount)
-  }, [idea.id])
+    commentService.getCommentCount(currentIdea.id).then(setCommentCount)
+  }, [currentIdea.id])
 
   // Close comments panel when idea changes (user scrolled to different idea)
   useEffect(() => {
-    if (previousIdeaIdRef.current !== idea.id) {
+    if (previousIdeaIdRef.current !== currentIdea.id) {
       setCommentsOpen(false)
-      previousIdeaIdRef.current = idea.id
+      previousIdeaIdRef.current = currentIdea.id
     }
-  }, [idea.id])
+  }, [currentIdea.id])
 
-  const handleVote = (e: React.MouseEvent) => {
+  const handleVote = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!voted) {
-      setVoted(true)
-      setVoteCount(voteCount + 1)
+    if (!isAuthenticated) {
+      alert('Please sign in to vote')
+      return
+    }
+    if (isVoting) return
+
+    setIsVoting(true)
+    try {
+      const updatedIdea = await ideaService.toggleVote(currentIdea.id, 'use')
+      setCurrentIdea(updatedIdea)
+      // For use/dislike, toggle the specific vote and ensure the other is false
+      setUserVote(prev => ({
+        ...prev,
+        use: !prev.use,
+        dislike: false, // ensure dislike is false when voting up
+        pay: prev.pay, // pay remains unchanged
+      }))
+    } catch (error) {
+      console.error('Error voting:', error)
+    } finally {
+      setIsVoting(false)
     }
   }
 
-  const handleWouldPay = (e: React.MouseEvent) => {
+  const handleWouldPay = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    setWouldPay(!wouldPay)
+    if (!isAuthenticated) {
+      alert('Please sign in to vote')
+      return
+    }
+    if (isVoting) return
+
+    setIsVoting(true)
+    try {
+      const updatedIdea = await ideaService.toggleVote(currentIdea.id, 'pay')
+      setCurrentIdea(updatedIdea)
+      // For pay, just toggle it
+      setUserVote(prev => ({
+        ...prev,
+        pay: !prev.pay,
+      }))
+    } catch (error) {
+      console.error('Error voting:', error)
+    } finally {
+      setIsVoting(false)
+    }
+  }
+
+  const handleDownVote = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!isAuthenticated) {
+      alert('Please sign in to vote')
+      return
+    }
+    if (isVoting) return
+
+    setIsVoting(true)
+    try {
+      const updatedIdea = await ideaService.toggleVote(
+        currentIdea.id,
+        'dislike'
+      )
+      setCurrentIdea(updatedIdea)
+      // For use/dislike, toggle the specific vote and ensure the other is false
+      setUserVote(prev => ({
+        ...prev,
+        use: false, // ensure use is false when voting down
+        dislike: !prev.dislike,
+        pay: prev.pay, // pay remains unchanged
+      }))
+    } catch (error) {
+      console.error('Error voting:', error)
+    } finally {
+      setIsVoting(false)
+    }
   }
 
   const handleCommentClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setCommentsOpen((prev) => !prev)
+    setCommentsOpen(prev => !prev)
   }
+
+  const voted = userVote.use
+  const downvoted = userVote.dislike
+  const wouldPay = userVote.pay
+  const voteCount = currentIdea.votes
 
   return (
     <div
@@ -72,11 +178,11 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
     >
       {/* Background image/video area */}
       <div className="absolute inset-0">
-        {idea.video ? (
+        {currentIdea.video ? (
           <>
             <video
               ref={videoRef}
-              src={idea.video}
+              src={currentIdea.video}
               className="absolute inset-0 w-full h-full object-cover"
               loop
               muted
@@ -87,11 +193,11 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
             {/* Black fade from bottom to top for text visibility */}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none" />
           </>
-        ) : idea.image ? (
+        ) : currentIdea.image ? (
           <>
             <Image
-              src={idea.image}
-              alt={idea.title}
+              src={currentIdea.image}
+              alt={currentIdea.title}
               fill
               className="object-cover"
               priority={isActive}
@@ -105,10 +211,10 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center px-6 max-w-2xl">
                 <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
-                  {idea.title}
+                  {currentIdea.title}
                 </h2>
                 <p className="text-lg md:text-xl text-text-secondary leading-relaxed">
-                  {idea.description}
+                  {currentIdea.description}
                 </p>
               </div>
             </div>
@@ -121,7 +227,7 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
       {/* Top section - Score and tags */}
       <div className="absolute top-0 left-0 right-0 z-10 flex items-start justify-between p-4 md:p-6 pointer-events-none">
         <div className="flex flex-wrap gap-2 pointer-events-auto">
-          {idea.tags.map((tag) => (
+          {currentIdea.tags.map(tag => (
             <span
               key={tag}
               className="px-3 py-1 text-xs font-medium text-white bg-black/50 backdrop-blur-sm rounded-full"
@@ -132,9 +238,11 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
         </div>
         <div className="text-right flex-shrink-0 pointer-events-auto relative">
           <div className="text-4xl md:text-5xl font-bold text-accent drop-shadow-lg">
-            {idea.score}
+            {currentIdea.score}
           </div>
-          <div className="text-xs text-white/80 drop-shadow-md">{UI_LABELS.SCORE}</div>
+          <div className="text-xs text-white/80 drop-shadow-md">
+            {UI_LABELS.SCORE}
+          </div>
         </div>
       </div>
 
@@ -146,21 +254,25 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
             {/* Left side - Text content */}
             <div className="flex-1 text-white min-w-0 pointer-events-auto pb-0">
               <h3 className="text-lg font-bold mb-1 drop-shadow-lg">
-                {idea.title}
+                {currentIdea.title}
               </h3>
               {/* Vote Distribution Bar - Between title and description */}
               <div className="mb-1 flex justify-start pointer-events-auto">
                 <div className="w-[80%]">
-                  <VoteDistributionBar votes={idea.votesByType} orientation="horizontal" thickness="extra-thin" />
+                  <VoteDistributionBar
+                    votes={currentIdea.votesByType}
+                    orientation="horizontal"
+                    thickness="extra-thin"
+                  />
                 </div>
               </div>
               <p className="text-sm text-white/90 mb-1 line-clamp-2 drop-shadow-md">
-                {idea.description}
+                {currentIdea.description}
               </p>
               <div className="flex items-center gap-2 text-xs text-white/80">
-                <span>@{idea.author}</span>
+                <span>@{currentIdea.author}</span>
                 <span>•</span>
-                <span>{formatDate(idea.createdAt)}</span>
+                <span>{formatDate(currentIdea.createdAt)}</span>
               </div>
             </div>
 
@@ -176,7 +288,25 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
                 }`}
               >
                 <ArrowUp className="w-5 h-5" />
-                <span className="text-xs font-semibold">{voteCount}</span>
+                <span className="text-xs font-semibold">
+                  {currentIdea.votesByType.use}
+                </span>
+              </motion.button>
+
+              <motion.button
+                onClick={handleDownVote}
+                whileTap={{ scale: 0.9 }}
+                className={`flex flex-col items-center gap-1 p-2.5 rounded-full transition-colors ${
+                  downvoted
+                    ? 'bg-red-500 text-white'
+                    : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
+                }`}
+                title="Downvote"
+              >
+                <ArrowDown className="w-5 h-5" />
+                <span className="text-xs font-semibold">
+                  {currentIdea.votesByType.dislike}
+                </span>
               </motion.button>
 
               <motion.button
@@ -189,7 +319,12 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
                 }`}
                 title="I'd pay for it"
               >
-                <DollarSign className={`w-5 h-5 ${wouldPay ? 'fill-current' : ''}`} />
+                <DollarSign
+                  className={`w-5 h-5 ${wouldPay ? 'fill-current' : ''}`}
+                />
+                <span className="text-xs font-semibold">
+                  {currentIdea.votesByType.pay}
+                </span>
               </motion.button>
 
               <motion.button
@@ -198,12 +333,13 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
                 className={`flex flex-col items-center gap-1 p-2.5 rounded-full transition-colors ${
                   commentsOpen
                     ? 'bg-accent text-text-primary'
-                    : idea.status_flag === 'active_discussion'
-                    ? 'bg-accent/20 text-accent hover:bg-accent/30'
-                    : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
+                    : currentIdea.status_flag === 'active_discussion'
+                      ? 'bg-accent/20 text-accent hover:bg-accent/30'
+                      : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
                 }`}
                 animate={
-                  idea.status_flag === 'active_discussion' && !commentsOpen
+                  currentIdea.status_flag === 'active_discussion' &&
+                  !commentsOpen
                     ? {
                         opacity: [0.7, 1, 0.7],
                       }
@@ -211,11 +347,21 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
                 }
                 transition={{
                   duration: 3,
-                  repeat: idea.status_flag === 'active_discussion' && !commentsOpen ? Infinity : 0,
+                  repeat:
+                    currentIdea.status_flag === 'active_discussion' &&
+                    !commentsOpen
+                      ? Infinity
+                      : 0,
                   ease: 'easeInOut',
                 }}
               >
-                <MessageSquare className={idea.status_flag === 'active_discussion' ? "w-[21px] h-[21px]" : "w-5 h-5"} />
+                <MessageSquare
+                  className={
+                    currentIdea.status_flag === 'active_discussion'
+                      ? 'w-[21px] h-[21px]'
+                      : 'w-5 h-5'
+                  }
+                />
                 <span className="text-xs font-semibold">{commentCount}</span>
               </motion.button>
 
@@ -232,21 +378,25 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
             {/* Left side - Text content */}
             <div className="flex-1 text-white min-w-0 pointer-events-auto">
               <h3 className="text-2xl font-bold mb-2 drop-shadow-lg">
-                {idea.title}
+                {currentIdea.title}
               </h3>
               {/* Vote Distribution Bar - Between title and description */}
               <div className="mb-2 flex justify-start pointer-events-auto">
                 <div className="w-[80%]">
-                  <VoteDistributionBar votes={idea.votesByType} orientation="horizontal" thickness="extra-thin" />
+                  <VoteDistributionBar
+                    votes={currentIdea.votesByType}
+                    orientation="horizontal"
+                    thickness="extra-thin"
+                  />
                 </div>
               </div>
               <p className="text-base text-white/90 mb-2 line-clamp-2 drop-shadow-md">
-                {idea.description}
+                {currentIdea.description}
               </p>
               <div className="flex items-center gap-3 text-sm text-white/80">
-                <span>@{idea.author}</span>
+                <span>@{currentIdea.author}</span>
                 <span>•</span>
-                <span>{formatDate(idea.createdAt)}</span>
+                <span>{formatDate(currentIdea.createdAt)}</span>
               </div>
             </div>
 
@@ -262,7 +412,25 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
                 }`}
               >
                 <ArrowUp className="w-6 h-6" />
-                <span className="text-xs font-semibold">{voteCount}</span>
+                <span className="text-xs font-semibold">
+                  {currentIdea.votesByType.use}
+                </span>
+              </motion.button>
+
+              <motion.button
+                onClick={handleDownVote}
+                whileTap={{ scale: 0.9 }}
+                className={`flex flex-col items-center gap-1 p-3 rounded-full transition-colors ${
+                  downvoted
+                    ? 'bg-red-500 text-white'
+                    : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
+                }`}
+                title="Downvote"
+              >
+                <ArrowDown className="w-6 h-6" />
+                <span className="text-xs font-semibold">
+                  {currentIdea.votesByType.dislike}
+                </span>
               </motion.button>
 
               <motion.button
@@ -275,7 +443,12 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
                 }`}
                 title="I'd pay for it"
               >
-                <DollarSign className={`w-6 h-6 ${wouldPay ? 'fill-current' : ''}`} />
+                <DollarSign
+                  className={`w-6 h-6 ${wouldPay ? 'fill-current' : ''}`}
+                />
+                <span className="text-xs font-semibold">
+                  {currentIdea.votesByType.pay}
+                </span>
               </motion.button>
 
               <motion.button
@@ -284,12 +457,13 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
                 className={`flex flex-col items-center gap-1 p-3 rounded-full transition-colors ${
                   commentsOpen
                     ? 'bg-accent text-text-primary'
-                    : idea.status_flag === 'active_discussion'
-                    ? 'bg-accent/20 text-accent hover:bg-accent/30'
-                    : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
+                    : currentIdea.status_flag === 'active_discussion'
+                      ? 'bg-accent/20 text-accent hover:bg-accent/30'
+                      : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
                 }`}
                 animate={
-                  idea.status_flag === 'active_discussion' && !commentsOpen
+                  currentIdea.status_flag === 'active_discussion' &&
+                  !commentsOpen
                     ? {
                         opacity: [0.7, 1, 0.7],
                       }
@@ -297,11 +471,21 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
                 }
                 transition={{
                   duration: 3,
-                  repeat: idea.status_flag === 'active_discussion' && !commentsOpen ? Infinity : 0,
+                  repeat:
+                    currentIdea.status_flag === 'active_discussion' &&
+                    !commentsOpen
+                      ? Infinity
+                      : 0,
                   ease: 'easeInOut',
                 }}
               >
-                <MessageSquare className={idea.status_flag === 'active_discussion' ? "w-[25px] h-[25px]" : "w-6 h-6"} />
+                <MessageSquare
+                  className={
+                    currentIdea.status_flag === 'active_discussion'
+                      ? 'w-[25px] h-[25px]'
+                      : 'w-6 h-6'
+                  }
+                />
                 <span className="text-xs font-semibold">{commentCount}</span>
               </motion.button>
 
@@ -315,7 +499,7 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
 
       {/* Comments Panel */}
       <TikTokComments
-        ideaId={idea.id}
+        ideaId={currentIdea.id}
         isOpen={commentsOpen}
         onClose={() => setCommentsOpen(false)}
         onCommentCountChange={setCommentCount}
@@ -323,4 +507,3 @@ export function ForYouIdeaCard({ idea, isActive }: ForYouIdeaCardProps) {
     </div>
   )
 }
-
