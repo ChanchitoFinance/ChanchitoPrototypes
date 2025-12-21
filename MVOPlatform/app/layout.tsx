@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from '@/components/providers/Providers'
+import { GoogleAnalytics } from '@/components/GoogleAnalytics'
 
 export const metadata: Metadata = {
   title: 'MVO - Validate Your Business Idea',
@@ -15,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <GoogleAnalytics />
         <Providers>{children}</Providers>
       </body>
     </html>
