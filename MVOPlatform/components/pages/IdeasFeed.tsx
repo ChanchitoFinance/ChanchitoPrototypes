@@ -1,14 +1,13 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Footer } from '@/components/layout/Footer'
 import { IdeaCard } from '@/components/ideas/IdeaCard'
 import { motion } from 'framer-motion'
-import { Idea } from '@/lib/types/idea'
-import { ideaService } from '@/lib/services/ideaService'
 import { IdeaCardSkeleton } from '@/components/ui/Skeleton'
 import { useTranslations } from '@/components/providers/I18nProvider'
+import { useGetIdeasInfiniteQuery } from '@/lib/api/ideasApi'
 
 interface IdeasFeedProps {
   showHeader?: boolean
@@ -22,70 +21,47 @@ export function IdeasFeed({
   isForYou = false,
 }: IdeasFeedProps) {
   const t = useTranslations()
-  const [ideas, setIdeas] = useState<Idea[]>([])
-  const [loading, setLoading] = useState(false)
-  const [initialized, setInitialized] = useState(false)
-  const [hasMore, setHasMore] = useState(true)
   const loadMoreRef = useRef<HTMLDivElement>(null)
   const observerRef = useRef<IntersectionObserver | null>(null)
 
-  // Load initial ideas - Only load first batch for lazy loading
-  useEffect(() => {
-    if (!initialized) {
-      setLoading(true)
-      // Use getForYouIdeas for "For You" section, otherwise use getIdeas
-      // Load only 6 items initially for faster initial load
-      const loadPromise = isForYou
-        ? ideaService.getForYouIdeas(6)
-        : ideaService.getIdeas(6)
+  // RTK Query hook with appropriate filter based on mode
+  const {
+    data: ideasData,
+    isLoading,
+    isFetching: isFetchingMore,
+    hasNextPage,
+    fetchNextPage,
+  } = useGetIdeasInfiniteQuery({
+    limit: 6,
+    statusFilter: isForYou ? 'forYou' : undefined,
+  })
 
-      loadPromise.then(loadedIdeas => {
-        setIdeas(loadedIdeas)
-        setLoading(false)
-        setInitialized(true)
-      })
-    }
-  }, [initialized, isForYou])
+  // Flatten paginated ideas into a single array
+  const ideas = useMemo(() => {
+    if (!ideasData?.pages) return []
+    return ideasData.pages.flatMap(page => page.ideas)
+  }, [ideasData])
 
-  const handleLoadMore = useCallback(async () => {
-    if (loading || !hasMore) return
-    setLoading(true)
-    try {
-      // For "For You" section, load more from getForYouIdeas with offset
-      // Smaller batches for better performance
-      if (isForYou) {
-        const newIdeas = await ideaService.getForYouIdeas(6, ideas.length)
-        if (newIdeas.length === 0) {
-          setHasMore(false)
-        } else {
-          setIdeas(prev => [...prev, ...newIdeas])
-        }
-      } else {
-        const newIdeas = await ideaService.loadMoreIdeas(ideas.length)
-        if (newIdeas.length === 0) {
-          setHasMore(false)
-        } else {
-          setIdeas(prev => [...prev, ...newIdeas])
-        }
-      }
-    } finally {
-      setLoading(false)
+  // Handle manual load more (for non-ForYou sections)
+  const handleLoadMore = () => {
+    if (!isFetchingMore && hasNextPage) {
+      fetchNextPage()
     }
-  }, [loading, hasMore, isForYou, ideas.length])
+  }
 
   // Auto-loading with IntersectionObserver for For You section
   useEffect(() => {
-    if (!isForYou || !initialized || !hasMore) return
+    if (!isForYou || isLoading || !hasNextPage) return
 
     const options = {
       root: null,
-      rootMargin: '200px', // Load earlier for smoother experience
+      rootMargin: '200px',
       threshold: 0.1,
     }
 
     observerRef.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore && !loading) {
-        handleLoadMore()
+      if (entries[0].isIntersecting && hasNextPage && !isFetchingMore) {
+        fetchNextPage()
       }
     }, options)
 
@@ -99,7 +75,7 @@ export function IdeasFeed({
         observerRef.current.unobserve(currentRef)
       }
     }
-  }, [isForYou, initialized, hasMore, loading, handleLoadMore])
+  }, [isForYou, isLoading, hasNextPage, isFetchingMore, fetchNextPage])
 
   const content = (
     <main
@@ -118,7 +94,7 @@ export function IdeasFeed({
       )}
 
       {/* Show skeletons while loading initial data */}
-      {!initialized && (
+      {isLoading && (
         <>
           {isForYou ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -137,7 +113,7 @@ export function IdeasFeed({
       )}
 
       {/* Show ideas once loaded */}
-      {initialized && (
+      {!isLoading && (
         <>
           {isForYou ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -152,7 +128,7 @@ export function IdeasFeed({
                 </motion.div>
               ))}
               {/* Loading skeletons for new items */}
-              {loading &&
+              {isFetchingMore &&
                 [1, 2].map(i => <IdeaCardSkeleton key={`loading-${i}`} />)}
             </div>
           ) : (
@@ -168,7 +144,7 @@ export function IdeasFeed({
                 </motion.div>
               ))}
               {/* Loading skeletons for new items */}
-              {loading &&
+              {isFetchingMore &&
                 [1, 2].map(i => <IdeaCardSkeleton key={`loading-${i}`} />)}
             </div>
           )}
@@ -181,12 +157,12 @@ export function IdeasFeed({
             <div className="mt-12 text-center">
               <button
                 onClick={handleLoadMore}
-                disabled={loading || !hasMore}
+                disabled={isFetchingMore || !hasNextPage}
                 className="button-secondary"
               >
-                {loading
+                {isFetchingMore
                   ? t('status.loading')
-                  : hasMore
+                  : hasNextPage
                     ? t('actions.load_more')
                     : t('status.no_more_ideas')}
               </button>
@@ -194,7 +170,7 @@ export function IdeasFeed({
           )}
 
           {/* Loading indicator for For You */}
-          {isForYou && loading && (
+          {isForYou && isFetchingMore && (
             <div className="mt-8 text-center">
               <div className="text-text-secondary">
                 {t('status.loading_more_ideas')}
@@ -203,7 +179,7 @@ export function IdeasFeed({
           )}
 
           {/* No more items indicator */}
-          {isForYou && !hasMore && ideas.length > 0 && (
+          {isForYou && !hasNextPage && ideas.length > 0 && (
             <div className="mt-8 text-center">
               <div className="text-text-secondary">
                 {t('status.no_more_ideas')}

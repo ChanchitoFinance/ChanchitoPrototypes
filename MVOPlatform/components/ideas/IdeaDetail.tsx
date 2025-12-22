@@ -1,29 +1,22 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { motion } from 'framer-motion'
-import {
-  ArrowUp,
-  MessageSquare,
-  Share2,
-  Heart,
-  User,
-  Calendar,
-  ArrowLeft,
-} from 'lucide-react'
+import { User, Calendar } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { formatDate } from '@/lib/utils/date'
-import { Idea } from '@/lib/types/idea'
-import { Comment } from '@/lib/types/comment'
-import { ideaService } from '@/lib/services/ideaService'
-import { toggleVote, fetchUserVotes } from '@/lib/slices/ideasSlice'
 import { useVideoPlayer } from '@/hooks/useVideoPlayer'
 import { CommentsBlock } from './CommentsBlock'
 import { IdeaActions } from './IdeaActions'
 import { ContentRenderer } from './ContentRenderer'
 import { IdeaDetailSkeleton } from '@/components/ui/Skeleton'
-import { useAppSelector, useAppDispatch } from '@/lib/hooks'
+import { useAppSelector } from '@/lib/hooks'
+import {
+  useGetIdeaByIdQuery,
+  useGetUserVotesQuery,
+  useToggleVoteMutation,
+} from '@/lib/api/ideasApi'
 import { getCardMedia } from '@/lib/utils/media'
 import { useTranslations } from '@/components/providers/I18nProvider'
 
@@ -33,17 +26,21 @@ interface IdeaDetailProps {
 
 export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   const t = useTranslations()
-  const [idea, setIdea] = useState<Idea | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [commentCount, setCommentCount] = useState(0)
-  const dispatch = useAppDispatch()
-  const { currentIdea, userVotes, isVoting } = useAppSelector(
-    state => state.ideas
-  )
   const containerRef = useRef<HTMLDivElement>(null)
   const commentsSectionRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const { isAuthenticated } = useAppSelector(state => state.auth)
+
+  // RTK Query hooks - uses cache if idea was already fetched in feed
+  const { data: idea, isLoading: isLoadingIdea } = useGetIdeaByIdQuery(ideaId)
+
+  // Fetch user votes for this idea (only when authenticated)
+  const { data: userVotes } = useGetUserVotesQuery(ideaId, {
+    skip: !isAuthenticated,
+  })
+
+  // Vote mutation with optimistic updates
+  const [toggleVote, { isLoading: isVoting }] = useToggleVoteMutation()
 
   const handleBack = () => {
     // Get the previous path from sessionStorage (set when navigating to idea)
@@ -67,37 +64,13 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     }
   }
 
-  useEffect(() => {
-    const loadIdea = async () => {
-      try {
-        const loadedIdea = await ideaService.getIdeaById(ideaId)
-        if (loadedIdea) {
-          setIdea(loadedIdea)
-          setCommentCount(loadedIdea.commentCount)
-
-          // Fetch user votes if authenticated
-          if (isAuthenticated) {
-            dispatch(fetchUserVotes(ideaId))
-          }
-        }
-      } catch (error) {
-        console.error('Error loading idea:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadIdea()
-  }, [ideaId, isAuthenticated])
-
   const cardMedia = idea ? getCardMedia(idea) : {}
-
   // Use video player hook - auto-play when in viewport
   const videoPlayerRef = useVideoPlayer({
     videoSrc: cardMedia.video,
     containerRef: containerRef,
     startTime: 35,
-    threshold: 0.1, // Start playing when 10% visible
+    threshold: 0.1,
   })
 
   const handleVoteUp = () => {
@@ -107,7 +80,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     }
     if (!idea || isVoting) return
 
-    dispatch(toggleVote({ ideaId: idea.id, voteType: 'use' }))
+    toggleVote({ ideaId: idea.id, voteType: 'use' })
   }
 
   const handleVoteDown = () => {
@@ -117,7 +90,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     }
     if (!idea || isVoting) return
 
-    dispatch(toggleVote({ ideaId: idea.id, voteType: 'dislike' }))
+    toggleVote({ ideaId: idea.id, voteType: 'dislike' })
   }
 
   const handleLike = () => {
@@ -125,9 +98,9 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
       alert(t('auth.sign_in_to_vote'))
       return
     }
-    if (isVoting) return
+    if (!idea || isVoting) return
 
-    dispatch(toggleVote({ ideaId: idea.id, voteType: 'pay' }))
+    toggleVote({ ideaId: idea.id, voteType: 'pay' })
   }
 
   const handleCommentsClick = () => {
@@ -139,7 +112,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     }
   }
 
-  if (loading) {
+  if (isLoadingIdea) {
     return <IdeaDetailSkeleton />
   }
 
@@ -150,6 +123,9 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
       </div>
     )
   }
+
+  // Default user votes if not loaded
+  const votes = userVotes || { use: false, dislike: false, pay: false }
 
   return (
     <div className="min-h-screen bg-background">
@@ -248,13 +224,13 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         {/* Actions Bar */}
         <IdeaActions
           idea={idea}
-          upvoted={userVotes.use}
-          downvoted={userVotes.dislike}
-          liked={userVotes.pay}
+          upvoted={votes.use}
+          downvoted={votes.dislike}
+          liked={votes.pay}
           useCount={idea.votesByType.use}
           dislikeCount={idea.votesByType.dislike}
           likeCount={idea.votesByType.pay}
-          commentCount={commentCount}
+          commentCount={idea.commentCount}
           onUpvote={handleVoteUp}
           onDownvote={handleVoteDown}
           onLike={handleLike}
