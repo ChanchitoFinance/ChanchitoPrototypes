@@ -1,0 +1,59 @@
+{
+  "hero": {
+    "title": "Valida tu idea de negocio en",
+    "title_highlight": "48 horas",
+    "description": "Obtén insights basados en datos y puntajes de validación para tu idea de negocio. Toma decisiones informadas antes de invertir tiempo y recursos."
+  },
+  "navigation": {
+    "home": "Inicio",
+    "for_you": "Para Ti",
+    "explore": "Explorar",
+    "activity": "Actividad",
+    "upload": "Subir",
+    "profile": "Perfil",
+    "more": "Más",
+    "admin": "Admin"
+  },
+  "actions": {
+    "sign_in": "Iniciar Sesión",
+    "sign_out": "Cerrar Sesión",
+    "submit_idea": "Enviar Idea",
+    "submit_your_idea": "Envía Tu Idea",
+    "submit_your_idea_now": "Envía Tu Idea Ahora",
+    "submitting": "Enviando...",
+    "load_more": "Cargar Más",
+    "checkout": "Pagar",
+    "processing": "Procesando..."
+  },
+  "status": {
+    "loading": "Cargando...",
+    "loading_more_ideas": "Cargando más ideas...",
+    "no_more_ideas": "No hay más ideas para cargar"
+  },
+  "common": {
+    "score": "Puntuación",
+    "overall_score": "Puntuación General",
+    "overall_validation_score": "Puntuación General de Validación",
+    "submitted": "Enviado",
+    "validation_report": "Informe de Validación"
+  },
+  "auth": {
+    "sign_in_required": "Inicio de Sesión Requerido",
+    "sign_in_with_google": "Iniciar Sesión con Google",
+    "sign_in_description": "Por favor inicia sesión con tu cuenta de Google para enviar una idea."
+  },
+  "ideas": {
+    "browse_ideas": "Explorar Ideas",
+    "discover_ideas": "Descubre y vota por ideas de negocio validadas",
+    "for_you_title": "Para Ti",
+    "for_you_subtitle": "Ideas curadas especialmente para ti"
+  },
+  "brand": {
+    "name": "MVO"
+  },
+  "messages": {
+    "generic_error": "Algo salió mal. Por favor intenta de nuevo.",
+    "idea_submitted": "¡Tu idea ha sido enviada exitosamente!",
+    "no_ideas": "No se encontraron ideas."
+  }
+}

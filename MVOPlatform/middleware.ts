@@ -1,16 +1,14 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import createMiddleware from 'next-intl/middleware'
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
+export default createMiddleware({
+  // A list of all locales that are supported
+  locales: ['en', 'es'],
 
-  await supabase.auth.getSession()
-
-  return res
-}
+  // Used when no locale matches
+  defaultLocale: 'en',
+})
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)'],
+  // Match only internationalized pathnames
+  matcher: ['/', '/(en|es)/:path*'],
 }

@@ -1,0 +1,59 @@
+{
+  "hero": {
+    "title": "Validate your business idea in",
+    "title_highlight": "48 hours",
+    "description": "Get data-driven insights and validation scores for your business idea. Make informed decisions before investing time and resources."
+  },
+  "navigation": {
+    "home": "Home",
+    "for_you": "For You",
+    "explore": "Explore",
+    "activity": "Activity",
+    "upload": "Upload",
+    "profile": "Profile",
+    "more": "More",
+    "admin": "Admin"
+  },
+  "actions": {
+    "sign_in": "Sign In",
+    "sign_out": "Sign Out",
+    "submit_idea": "Submit Idea",
+    "submit_your_idea": "Submit Your Idea",
+    "submit_your_idea_now": "Submit Your Idea Now",
+    "submitting": "Submitting...",
+    "load_more": "Load More",
+    "checkout": "Checkout",
+    "processing": "Processing..."
+  },
+  "status": {
+    "loading": "Loading...",
+    "loading_more_ideas": "Loading more ideas...",
+    "no_more_ideas": "No more ideas to load"
+  },
+  "common": {
+    "score": "Score",
+    "overall_score": "Overall Score",
+    "overall_validation_score": "Overall Validation Score",
+    "submitted": "Submitted",
+    "validation_report": "Validation Report"
+  },
+  "auth": {
+    "sign_in_required": "Sign In Required",
+    "sign_in_with_google": "Sign In with Google",
+    "sign_in_description": "Please sign in with your Google account to submit an idea."
+  },
+  "ideas": {
+    "browse_ideas": "Browse Ideas",
+    "discover_ideas": "Discover and vote on validated business ideas",
+    "for_you_title": "For You",
+    "for_you_subtitle": "Ideas curated just for you"
+  },
+  "brand": {
+    "name": "MVO"
+  },
+  "messages": {
+    "generic_error": "Something went wrong. Please try again.",
+    "idea_submitted": "Your idea has been submitted successfully!",
+    "no_ideas": "No ideas found."
+  }
+}

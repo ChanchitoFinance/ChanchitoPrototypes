@@ -20,7 +20,7 @@ import {
 import { clientEnv } from '@/config/env'
 import { UserMenu } from '@/components/ui/UserMenu'
 import Image from 'next/image'
-import { UI_LABELS } from '@/lib/constants/ui'
+import { useTranslations } from '@/components/providers/I18nProvider'
 
 interface SidebarProps {
   activeTab?: 'home' | 'foryou'
@@ -110,6 +110,7 @@ const SIDEBAR_STYLES = {
 
 export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const dispatch = useAppDispatch()
+  const t = useTranslations()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -173,7 +174,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const navItems = [
     {
       id: 'home',
-      label: UI_LABELS.HOME,
+      label: t('navigation.home'),
       icon: Home,
       href: '/',
       onClick: () => {
@@ -188,21 +189,21 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     },
     {
       id: 'foryou',
-      label: UI_LABELS.FOR_YOU,
+      label: t('navigation.for_you'),
       icon: Heart,
       href: '/for-you',
       active: pathname === '/for-you',
     },
     {
       id: 'activity',
-      label: UI_LABELS.ACTIVITY,
+      label: t('navigation.activity'),
       icon: Activity,
       href: '/activity',
       active: pathname === '/activity',
     },
     {
       id: 'upload',
-      label: UI_LABELS.UPLOAD,
+      label: t('navigation.upload'),
       icon: Plus,
       href: '/upload',
       active: pathname === '/upload',
@@ -212,7 +213,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const bottomItems = [
     {
       id: 'more',
-      label: UI_LABELS.MORE,
+      label: t('navigation.more'),
       icon: MoreHorizontal,
       href: '/more',
       active: pathname === '/more',
@@ -230,7 +231,9 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     <div className="h-full flex flex-col bg-background">
       {/* Logo/Brand - Acts as back button on detail pages */}
       <div className={`${SIDEBAR_STYLES.container.padding.logo} flex-shrink-0`}>
-        <div className={`flex items-center ${showExpanded ? 'justify-between' : 'justify-center'}`}>
+        <div
+          className={`flex items-center ${showExpanded ? 'justify-between' : 'justify-center'}`}
+        >
           {showExpanded && (
             <>
               {isDetailPage ? (
@@ -238,14 +241,14 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                   onClick={handleBack}
                   className={`${SIDEBAR_STYLES.logo.expanded.text} font-semibold text-text-primary hover:text-accent transition-colors cursor-pointer truncate flex-1 min-w-0`}
                 >
-                  {UI_LABELS.BRAND_NAME}
+                  {t('brand.name')}
                 </button>
               ) : (
                 <Link
                   href="/"
                   className={`${SIDEBAR_STYLES.logo.expanded.text} font-semibold text-text-primary truncate flex-1 min-w-0`}
                 >
-                  {UI_LABELS.BRAND_NAME}
+                  {t('brand.name')}
                 </Link>
               )}
               {isMobile && (
@@ -430,7 +433,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                       ? SIDEBAR_STYLES.colors.active
                       : SIDEBAR_STYLES.colors.inactive
                   } ${!showExpanded ? 'justify-center' : ''}`}
-                  title={!showExpanded ? UI_LABELS.ADMIN : ''}
+                  title={!showExpanded ? t('navigation.admin') : ''}
                 >
                   <Activity
                     className={`${SIDEBAR_STYLES.icon.size} flex-shrink-0`}
@@ -439,7 +442,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                     <span
                       className={`${SIDEBAR_STYLES.button.text.size} ${SIDEBAR_STYLES.button.text.weight}`}
                     >
-                      {UI_LABELS.ADMIN}
+                      {t('navigation.admin')}
                     </span>
                   )}
                 </Link>
@@ -475,14 +478,14 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
               className={`w-full flex items-center ${SIDEBAR_STYLES.button.gap.expanded} ${SIDEBAR_STYLES.button.padding.horizontal.expanded} ${SIDEBAR_STYLES.button.padding.vertical} ${SIDEBAR_STYLES.button.borderRadius} transition-colors ${SIDEBAR_STYLES.colors.inactive} ${
                 !showExpanded ? 'justify-center' : ''
               }`}
-              title={!showExpanded ? UI_LABELS.SIGN_IN : ''}
+              title={!showExpanded ? t('actions.sign_in') : ''}
             >
               <LogIn className={`${SIDEBAR_STYLES.icon.size} flex-shrink-0`} />
               {showExpanded && (
                 <span
                   className={`${SIDEBAR_STYLES.button.text.size} ${SIDEBAR_STYLES.button.text.weight}`}
                 >
-                  {UI_LABELS.SIGN_IN}
+                  {t('actions.sign_in')}
                 </span>
               )}
             </button>

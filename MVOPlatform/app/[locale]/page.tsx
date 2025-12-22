@@ -4,8 +4,10 @@ import { useEffect } from 'react'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { HeroCarousel } from '@/components/carousel/HeroCarousel'
 import { HomeFeed } from '@/components/home/HomeFeed'
+import { useTranslations } from '@/components/providers/I18nProvider'
 
 export default function Home() {
+  const t = useTranslations()
   // Restore scroll position on mount
   useEffect(() => {
     const restoreScroll = () => {
