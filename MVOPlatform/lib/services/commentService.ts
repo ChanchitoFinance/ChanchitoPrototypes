@@ -81,27 +81,21 @@ class SupabaseCommentService implements ICommentService {
 
     const comments = data?.map(this.mapDbCommentToComment) || []
 
-    // Build nested structure
-    const topLevelComments: Comment[] = []
-    const repliesMap = new Map<string, Comment[]>()
+    // Build nested structure up to 4 levels deep
+    const buildCommentTree = (
+      parentId: string | null,
+      depth: number = 0
+    ): Comment[] => {
+      if (depth >= 4) return [] // Limit to 4 levels
 
-    for (const comment of comments) {
-      if (comment.parentId) {
-        if (!repliesMap.has(comment.parentId)) {
-          repliesMap.set(comment.parentId, [])
-        }
-        repliesMap.get(comment.parentId)!.push(comment)
-      } else {
-        topLevelComments.push(comment)
-      }
+      const children = comments.filter(comment => comment.parentId === parentId)
+      return children.map(comment => ({
+        ...comment,
+        replies: buildCommentTree(comment.id, depth + 1),
+      }))
     }
 
-    // Attach replies
-    for (const comment of topLevelComments) {
-      comment.replies = repliesMap.get(comment.id) || []
-    }
-
-    return topLevelComments
+    return buildCommentTree(null)
   }
 
   async addComment(
@@ -343,6 +337,7 @@ class SupabaseCommentService implements ICommentService {
       ideaId: dbComment.idea_id,
       author:
         dbComment.users?.username || dbComment.users?.full_name || 'Anonymous',
+      authorImage: undefined, // TODO: Implement profile image fetching
       content: dbComment.content,
       createdAt: dbComment.created_at,
       upvotes,

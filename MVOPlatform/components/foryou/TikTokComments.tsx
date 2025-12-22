@@ -2,20 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  ArrowUp,
-  ArrowDown,
-  User,
-  MessageSquare,
-  ChevronUp,
-  ChevronDown,
-  X,
-} from 'lucide-react'
-import Image from 'next/image'
-import { formatDate } from '@/lib/utils/date'
+import { ArrowUp, MessageSquare, X } from 'lucide-react'
 import { Comment } from '@/lib/types/comment'
 import { useAppSelector } from '@/lib/hooks'
 import { commentService } from '@/lib/services/commentService'
+import { CommentTree } from '../ideas/CommentTree'
 
 interface TikTokCommentsProps {
   ideaId: string
@@ -151,21 +142,22 @@ export function TikTokComments({
   }
 
   const updateCommentInState = (commentId: string, updatedComment: Comment) => {
-    setComments(prev =>
-      prev.map(comment => {
+    const updateCommentRecursive = (comments: Comment[]): Comment[] => {
+      return comments.map(comment => {
         if (comment.id === commentId) {
           return updatedComment
         }
-        // Check if it's a reply
         if (comment.replies) {
-          const updatedReplies = comment.replies.map(reply =>
-            reply.id === commentId ? updatedComment : reply
-          )
-          return { ...comment, replies: updatedReplies }
+          return {
+            ...comment,
+            replies: updateCommentRecursive(comment.replies),
+          }
         }
         return comment
       })
-    )
+    }
+
+    setComments(prev => updateCommentRecursive(prev))
   }
 
   const toggleReplies = (commentId: string) => {
@@ -255,6 +247,9 @@ export function TikTokComments({
         newMap.delete(parentId)
         return newMap
       })
+
+      // Clear the replying state to hide the reply form
+      setReplyingTo(null)
 
       // Expand replies if not already expanded
       if (!expandedReplies.has(parentId)) {
@@ -530,264 +525,31 @@ export function TikTokComments({
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4 pb-4">
-                  {comments.map(comment => (
-                    <motion.div
-                      key={comment.id}
-                      ref={el => {
-                        if (el) {
-                          newCommentRefs.current.set(comment.id, el)
-                        }
-                      }}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{
-                        opacity: 1,
-                        x: 0,
-                      }}
-                      transition={{ duration: 0.4 }}
-                      className={`flex gap-3 p-2 rounded-lg -m-2 transition-all duration-300 ${
-                        highlightedCommentId === comment.id
-                          ? 'bg-accent/20 ring-2 ring-accent'
-                          : ''
-                      }`}
-                    >
-                      {/* Avatar */}
-                      <div className="flex-shrink-0">
-                        {comment.authorImage ? (
-                          <Image
-                            src={comment.authorImage}
-                            alt={comment.author}
-                            width={36}
-                            height={36}
-                            className="rounded-full"
-                          />
-                        ) : (
-                          <div className="w-9 h-9 rounded-full bg-accent flex items-center justify-center">
-                            <User className="w-5 h-5 text-text-primary" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="mb-1 flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-semibold text-white">
-                            @{comment.author}
-                          </span>
-                          <span className="text-xs text-white/60">
-                            {formatDate(comment.createdAt)}
-                          </span>
-                          {comment.usefulnessScore > 0 && (
-                            <>
-                              <span className="text-xs text-white/60">•</span>
-                              <span className="text-xs px-0.2 py-0.5 bg-accent/30 text-accent rounded-full">
-                                {comment.usefulnessScore.toFixed(1)}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <p className="text-sm text-white/90 mb-2 whitespace-pre-wrap break-words">
-                          {comment.content}
-                        </p>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <button
-                            onClick={() => handleUpvoteComment(comment.id)}
-                            className={`flex items-center gap-1 text-xs transition-colors ${
-                              comment.upvoted
-                                ? 'text-accent'
-                                : 'text-white/60 hover:text-accent'
-                            }`}
-                            title="Upvote"
-                          >
-                            <ArrowUp
-                              className={`w-3.5 h-3.5 ${comment.upvoted ? 'fill-current' : ''}`}
-                            />
-                            <span>{comment.upvotes || 0}</span>
-                          </button>
-
-                          <button
-                            onClick={() => handleDownvoteComment(comment.id)}
-                            className={`flex items-center gap-1 text-xs transition-colors ${
-                              comment.downvoted
-                                ? 'text-red-500'
-                                : 'text-white/60 hover:text-red-500'
-                            }`}
-                            title="Downvote"
-                          >
-                            <ArrowDown
-                              className={`w-3.5 h-3.5 ${comment.downvoted ? 'fill-current' : ''}`}
-                            />
-                            <span>{comment.downvotes || 0}</span>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              setReplyingTo(
-                                replyingTo === comment.id ? null : comment.id
-                              )
-                              if (!replyText.has(comment.id)) {
-                                setReplyText(prev =>
-                                  new Map(prev).set(comment.id, '')
-                                )
-                              }
-                            }}
-                            className="flex items-center gap-1 text-xs text-white/60 hover:text-accent transition-colors"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Reply</span>
-                          </button>
-
-                          {comment.replies && comment.replies.length > 0 && (
-                            <button
-                              onClick={() => toggleReplies(comment.id)}
-                              className="flex items-center gap-1 text-xs text-white/60 hover:text-accent transition-colors"
-                            >
-                              {expandedReplies.has(comment.id) ? (
-                                <ChevronUp className="w-3.5 h-3.5" />
-                              ) : (
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              )}
-                              <span>{comment.replies.length}</span>
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Reply Form */}
-                        {replyingTo === comment.id && (
-                          <form
-                            onSubmit={e => handleReplySubmit(comment.id, e)}
-                            className="mt-2 pt-2 border-t border-white/10"
-                          >
-                            <div className="flex gap-2">
-                              <textarea
-                                value={replyText.get(comment.id) || ''}
-                                onChange={e => {
-                                  setReplyText(prev =>
-                                    new Map(prev).set(
-                                      comment.id,
-                                      e.target.value
-                                    )
-                                  )
-                                  // Auto-resize
-                                  if (e.target) {
-                                    e.target.style.height = 'auto'
-                                    e.target.style.height = `${e.target.scrollHeight}px`
-                                  }
-                                }}
-                                placeholder="Write a reply..."
-                                className="flex-1 px-3 py-1.5 bg-white/10 placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent resize-none overflow-hidden text-sm"
-                                style={{
-                                  minHeight: '1.5rem',
-                                  maxHeight: '8rem',
-                                  color: '#000000',
-                                }}
-                                rows={1}
-                              />
-                              <button
-                                type="submit"
-                                disabled={
-                                  !replyText.get(comment.id)?.trim() ||
-                                  submitting
-                                }
-                                className="px-3 py-1.5 bg-accent text-text-primary rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                              >
-                                <ArrowUp className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </form>
-                        )}
-
-                        {/* Replies */}
-                        {expandedReplies.has(comment.id) &&
-                          comment.replies &&
-                          comment.replies.length > 0 && (
-                            <div className="mt-3 ml-4 space-y-3 border-l-2 border-white/10 pl-3">
-                              {comment.replies.map(reply => (
-                                <div
-                                  key={reply.id}
-                                  className="flex items-start gap-2"
-                                >
-                                  <div className="flex-shrink-0">
-                                    {reply.authorImage ? (
-                                      <Image
-                                        src={reply.authorImage}
-                                        alt={reply.author}
-                                        width={28}
-                                        height={28}
-                                        className="rounded-full"
-                                      />
-                                    ) : (
-                                      <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center">
-                                        <User className="w-4 h-4 text-text-primary" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                                      <span className="text-xs font-semibold text-white">
-                                        @{reply.author}
-                                      </span>
-                                      <span className="text-xs text-white/50">
-                                        {formatDate(reply.createdAt)}
-                                      </span>
-                                      {reply.usefulnessScore > 0 && (
-                                        <>
-                                          <span className="text-xs text-white/50">
-                                            •
-                                          </span>
-                                          <span className="text-xs px-0.2 py-0.5 bg-accent/30 text-accent rounded-full">
-                                            {reply.usefulnessScore.toFixed(1)}
-                                          </span>
-                                        </>
-                                      )}
-                                    </div>
-                                    <p className="text-xs text-white/80 mb-1.5 whitespace-pre-wrap break-words">
-                                      {reply.content}
-                                    </p>
-                                    <div className="flex items-center gap-2">
-                                      <button
-                                        onClick={() =>
-                                          handleUpvoteComment(reply.id)
-                                        }
-                                        className={`flex items-center gap-1 text-xs transition-colors ${
-                                          reply.upvoted
-                                            ? 'text-accent'
-                                            : 'text-white/50 hover:text-accent'
-                                        }`}
-                                        title="Upvote"
-                                      >
-                                        <ArrowUp
-                                          className={`w-3 h-3 ${reply.upvoted ? 'fill-current' : ''}`}
-                                        />
-                                        <span>{reply.upvotes || 0}</span>
-                                      </button>
-                                      <button
-                                        onClick={() =>
-                                          handleDownvoteComment(reply.id)
-                                        }
-                                        className={`flex items-center gap-1 text-xs transition-colors ${
-                                          reply.downvoted
-                                            ? 'text-red-500'
-                                            : 'text-white/50 hover:text-red-500'
-                                        }`}
-                                        title="Downvote"
-                                      >
-                                        <ArrowDown
-                                          className={`w-3 h-3 ${reply.downvoted ? 'fill-current' : ''}`}
-                                        />
-                                        <span>{reply.downvotes || 0}</span>
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                      </div>
-                    </motion.div>
-                  ))}
+                <div className="space-y-3 pb-4">
+                  <CommentTree
+                    comments={comments}
+                    depth={0}
+                    maxDepth={4}
+                    expandedReplies={expandedReplies}
+                    replyingTo={replyingTo}
+                    replyText={replyText}
+                    highlightedCommentId={highlightedCommentId}
+                    onToggleReplies={toggleReplies}
+                    onUpvote={handleUpvoteComment}
+                    onDownvote={handleDownvoteComment}
+                    onReply={commentId => {
+                      setReplyingTo(replyingTo === commentId ? null : commentId)
+                      if (!replyText.has(commentId)) {
+                        setReplyText(prev => new Map(prev).set(commentId, ''))
+                      }
+                    }}
+                    onReplyTextChange={(commentId, text) => {
+                      setReplyText(prev => new Map(prev).set(commentId, text))
+                    }}
+                    onReplySubmit={handleReplySubmit}
+                    submitting={submitting}
+                    isDark={true}
+                  />
                   <div ref={commentsEndRef} />
                 </div>
               )}
