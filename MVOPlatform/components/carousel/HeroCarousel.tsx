@@ -18,7 +18,13 @@ interface HeroCarouselProps {
 const AUTO_SCROLL_INTERVAL = 5000 // 5 seconds
 
 // Internal component for video thumbnail
-function VideoThumbnail({ videoSrc, title }: { videoSrc: string; title: string }) {
+function VideoThumbnail({
+  videoSrc,
+  title,
+}: {
+  videoSrc: string
+  title: string
+}) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -56,14 +62,14 @@ function VideoThumbnail({ videoSrc, title }: { videoSrc: string; title: string }
       muted
       playsInline
       preload="metadata"
-      onLoadedMetadata={(e) => {
+      onLoadedMetadata={e => {
         // Set video to show a frame at 2 seconds for thumbnail
         const video = e.currentTarget
         if (video.readyState >= 1) {
           video.currentTime = 2
         }
       }}
-      onCanPlay={(e) => {
+      onCanPlay={e => {
         const video = e.currentTarget
         if (video.readyState >= 2 && video.currentTime < 1) {
           video.currentTime = 2
@@ -74,12 +80,12 @@ function VideoThumbnail({ videoSrc, title }: { videoSrc: string; title: string }
 }
 
 // Internal component for carousel video item
-function CarouselVideoItem({ 
-  idea, 
-  isActive 
-}: { 
+function CarouselVideoItem({
+  idea,
+  isActive,
+}: {
   idea: Idea
-  isActive: boolean 
+  isActive: boolean
 }) {
   const videoRef = useVideoPlayer({
     videoSrc: idea.video,
@@ -118,7 +124,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
   // Load trending ideas if not provided (max 5 for carousel)
   useEffect(() => {
     if (!initialIdeas && !initialized) {
-      ideaService.getTrendingIdeas(5).then((loadedIdeas) => {
+      ideaService.getTrendingIdeas(5).then(loadedIdeas => {
         setIdeas(loadedIdeas)
         setInitialized(true)
       })
@@ -130,7 +136,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
     if (ideas.length === 0 || isPaused || isUserInteracting) return
 
     autoScrollRef.current = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % ideas.length)
+      setActiveIndex(prev => (prev + 1) % ideas.length)
     }, AUTO_SCROLL_INTERVAL)
 
     return () => {
@@ -144,7 +150,9 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
   useEffect(() => {
     if (!containerRef.current || isUserInteracting) return
 
-    const scrollContainer = containerRef.current.querySelector('.carousel-scroll-container') as HTMLElement
+    const scrollContainer = containerRef.current.querySelector(
+      '.carousel-scroll-container'
+    ) as HTMLElement
     if (scrollContainer) {
       const itemWidth = scrollContainer.clientWidth
       scrollContainer.scrollTo({
@@ -157,9 +165,11 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
   const handleThumbnailClick = (index: number) => {
     setIsUserInteracting(true)
     setActiveIndex(index)
-    
+
     // Scroll to the selected item
-    const scrollContainer = containerRef.current?.querySelector('.carousel-scroll-container') as HTMLElement
+    const scrollContainer = containerRef.current?.querySelector(
+      '.carousel-scroll-container'
+    ) as HTMLElement
     if (scrollContainer) {
       const itemWidth = scrollContainer.clientWidth
       scrollContainer.scrollTo({
@@ -167,7 +177,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
         behavior: 'smooth',
       })
     }
-    
+
     setTimeout(() => setIsUserInteracting(false), AUTO_SCROLL_INTERVAL + 1000)
   }
 
@@ -179,14 +189,13 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
     setIsPaused(false)
   }
 
-
   // Show skeleton while loading
   if (!initialized || ideas.length === 0) {
     return (
       <div className="relative w-full h-[500px] md:h-[600px] bg-black flex">
         <div className="relative flex-1 h-full overflow-hidden">
           <div className="carousel-scroll-container flex h-full overflow-x-auto scrollbar-hide snap-x snap-mandatory">
-            {[1, 2, 3, 4, 5].map((i) => (
+            {[1, 2, 3, 4, 5].map(i => (
               <CarouselItemSkeleton key={i} />
             ))}
           </div>
@@ -218,18 +227,25 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
         ref={containerRef}
         className="relative flex-1 h-full overflow-hidden"
       >
-        <div 
+        <div
           className="carousel-scroll-container flex h-full overflow-x-auto scrollbar-hide snap-x snap-mandatory"
           style={{ scrollBehavior: 'smooth' }}
-          onScroll={(e) => {
+          onScroll={e => {
             const container = e.currentTarget
             const scrollLeft = container.scrollLeft
             const itemWidth = container.clientWidth
             const newIndex = Math.round(scrollLeft / itemWidth)
-            if (newIndex !== activeIndex && newIndex >= 0 && newIndex < ideas.length) {
+            if (
+              newIndex !== activeIndex &&
+              newIndex >= 0 &&
+              newIndex < ideas.length
+            ) {
               setIsUserInteracting(true)
               setActiveIndex(newIndex)
-              setTimeout(() => setIsUserInteracting(false), AUTO_SCROLL_INTERVAL + 1000)
+              setTimeout(
+                () => setIsUserInteracting(false),
+                AUTO_SCROLL_INTERVAL + 1000
+              )
             }
           }}
         >
@@ -241,7 +257,10 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
               {/* Background Image/Video */}
               <div className="absolute inset-0">
                 {idea.video ? (
-                  <CarouselVideoItem idea={idea} isActive={index === activeIndex} />
+                  <CarouselVideoItem
+                    idea={idea}
+                    isActive={index === activeIndex}
+                  />
                 ) : idea.image ? (
                   <div className="relative w-full h-full">
                     <Image
@@ -263,7 +282,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                 <div className="max-w-4xl w-full text-white">
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2 mb-3 md:mb-4">
-                    {idea.tags.slice(0, 3).map((tag) => (
+                    {idea.tags.slice(0, 3).map(tag => (
                       <span
                         key={tag}
                         className="px-2 md:px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs md:text-sm font-medium"
@@ -287,14 +306,18 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                   <div className="flex flex-wrap items-center gap-2 md:gap-6 mb-4 md:mb-8 text-xs md:text-sm text-gray-400">
                     <span>{idea.author}</span>
                     <span className="hidden md:inline">•</span>
-                    <span className="hidden md:inline">{formatDate(idea.createdAt)}</span>
+                    <span className="hidden md:inline">
+                      {formatDate(idea.createdAt)}
+                    </span>
                     <span className="hidden md:inline">•</span>
                     <span className="hidden md:flex items-center gap-1">
                       <ArrowUp className="w-4 h-4" />
                       {idea.votes} votes
                     </span>
                     <span className="hidden md:inline">•</span>
-                    <span className="hidden md:inline text-accent font-semibold">Score: {idea.score}</span>
+                    <span className="hidden md:inline text-accent font-semibold">
+                      Score: {idea.score}
+                    </span>
                   </div>
 
                   {/* Action Buttons - Simplified on mobile */}
@@ -305,11 +328,21 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                         // Save current path and scroll position before navigating
                         if (typeof window !== 'undefined') {
                           // Find the scrollable container (div inside main with overflow-y-auto)
-                          const scrollContainer = document.querySelector('main > div.overflow-y-auto') as HTMLElement
-                          const scrollY = scrollContainer ? scrollContainer.scrollTop : window.scrollY
-                          
-                          sessionStorage.setItem('previousPath', window.location.pathname)
-                          sessionStorage.setItem('previousScrollPosition', scrollY.toString())
+                          const scrollContainer = document.querySelector(
+                            'main > div.overflow-y-auto'
+                          ) as HTMLElement
+                          const scrollY = scrollContainer
+                            ? scrollContainer.scrollTop
+                            : window.scrollY
+
+                          sessionStorage.setItem(
+                            'previousPath',
+                            window.location.pathname
+                          )
+                          sessionStorage.setItem(
+                            'previousScrollPosition',
+                            scrollY.toString()
+                          )
                         }
                       }}
                       className="px-4 md:px-8 py-2 md:py-3 bg-white text-black text-sm md:text-base font-semibold rounded-md hover:bg-gray-200 transition-colors"
@@ -328,7 +361,6 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
             </div>
           ))}
         </div>
-
       </div>
 
       {/* Sidebar Thumbnails - All ideas visible, compact layout */}
@@ -385,9 +417,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                 <p className="text-xs md:text-sm font-medium text-white line-clamp-2">
                   {idea.title}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {idea.author}
-                </p>
+                <p className="text-xs text-gray-400 mt-0.5">{idea.author}</p>
               </div>
             </button>
           ))}
@@ -395,14 +425,14 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
       </div>
 
       {/* Mobile: Simplified carousel with navigation dots */}
-      <div className="md:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-[100] flex gap-2">
+      <div className="md:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-[10] flex gap-2">
         {ideas.map((_, index) => (
           <button
             key={index}
             onClick={() => handleThumbnailClick(index)}
             className={`transition-all ${
-              index === activeIndex 
-                ? 'w-8 h-2 bg-accent rounded-full shadow-lg' 
+              index === activeIndex
+                ? 'w-8 h-2 bg-accent rounded-full shadow-lg'
                 : 'w-2 h-2 bg-[#FFFFFF]/30 rounded-full hover:bg-[#66D3FF]/50'
             }`}
             aria-label={`Go to slide ${index + 1}`}
@@ -412,4 +442,3 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
     </div>
   )
 }
-
