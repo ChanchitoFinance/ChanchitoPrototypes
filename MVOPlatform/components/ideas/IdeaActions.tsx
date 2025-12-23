@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { Idea } from '@/lib/types/idea'
 import { useAppSelector } from '@/lib/hooks'
+import { useTranslations } from '@/components/providers/I18nProvider'
 
 interface IdeaActionsProps {
   idea: Idea
@@ -40,6 +41,8 @@ export function IdeaActions({
   onLike,
   onCommentsClick,
 }: IdeaActionsProps) {
+  const t = useTranslations()
+
   const handleShare = async () => {
     if (navigator.share) {
       try {
@@ -76,7 +79,7 @@ export function IdeaActions({
           <ArrowUp className="w-5 h-5" />
         </motion.div>
         <span className="font-semibold">{useCount}</span>
-        <span className="text-sm hidden md:inline">Up</span>
+        <span className="text-sm hidden md:inline">{t('actions.up')}</span>
       </motion.button>
 
       {/* Downvote Button */}
@@ -97,7 +100,7 @@ export function IdeaActions({
           <ArrowDown className="w-5 h-5" />
         </motion.div>
         <span className="font-semibold">{dislikeCount}</span>
-        <span className="text-sm hidden md:inline">Down</span>
+        <span className="text-sm hidden md:inline">{t('actions.down')}</span>
       </motion.button>
 
       {/* I'd Pay For It Button */}
@@ -113,7 +116,7 @@ export function IdeaActions({
       >
         <DollarSign className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
         <span className="font-semibold">{likeCount}</span>
-        <span className="text-sm hidden md:inline">I'd pay</span>
+        <span className="text-sm hidden md:inline">{t('actions.id_pay')}</span>
       </motion.button>
 
       {/* Comments Button */}
@@ -123,7 +126,9 @@ export function IdeaActions({
       >
         <MessageSquare className="w-5 h-5" />
         <span className="font-semibold">{commentCount}</span>
-        <span className="text-sm hidden md:inline">Comments</span>
+        <span className="text-sm hidden md:inline">
+          {t('actions.comments')}
+        </span>
       </button>
 
       {/* Share Button */}
@@ -133,7 +138,7 @@ export function IdeaActions({
         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-text-secondary hover:bg-gray-200 transition-colors ml-auto"
       >
         <Share2 className="w-5 h-5" />
-        <span className="text-sm hidden md:inline">Share</span>
+        <span className="text-sm hidden md:inline">{t('actions.share')}</span>
       </motion.button>
     </div>
   )

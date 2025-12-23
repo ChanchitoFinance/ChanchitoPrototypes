@@ -470,7 +470,9 @@ export function TikTokComments({
 
               {/* Header */}
               <div className="flex items-center justify-between px-4 pb-4 border-b border-white/10">
-                <h2 className="text-lg font-semibold text-white">Comments</h2>
+                <h2 className="text-lg font-semibold text-white">
+                  {t('comments.title')}
+                </h2>
                 <button
                   onClick={onClose}
                   className="p-2 rounded-full hover:bg-white/10 transition-colors pointer-events-auto"
@@ -482,7 +484,9 @@ export function TikTokComments({
 
             {/* Header - Desktop only */}
             <div className="hidden md:flex items-center justify-between p-4 border-b border-white/10">
-              <h2 className="text-lg font-semibold text-white">Comments</h2>
+              <h2 className="text-lg font-semibold text-white">
+                {t('comments.title')}
+              </h2>
               <button
                 onClick={onClose}
                 className="p-2 rounded-full hover:bg-white/10 transition-colors"
@@ -517,13 +521,15 @@ export function TikTokComments({
             >
               {loading ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="text-white/60">Loading comments...</div>
+                  <div className="text-white/60">{t('comments.loading')}</div>
                 </div>
               ) : comments.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center text-white/60">
-                    <p className="text-lg mb-2">No comments yet</p>
-                    <p className="text-sm">Be the first to comment!</p>
+                    <p className="text-lg mb-2">
+                      {t('comments.no_comments_title')}
+                    </p>
+                    <p className="text-sm">{t('comments.no_comments')}</p>
                   </div>
                 </div>
               ) : (
@@ -574,7 +580,7 @@ export function TikTokComments({
                       inputRef.current.style.height = `${inputRef.current.scrollHeight}px`
                     }
                   }}
-                  placeholder="Add a comment..."
+                  placeholder={t('comments.add_comment')}
                   className="flex-1 px-4 py-2 bg-white/10 placeholder-white/50 rounded-full focus:outline-none focus:ring-2 focus:ring-accent resize-none overflow-hidden"
                   style={{
                     color: '#000000',

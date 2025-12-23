@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/VoteDistributionBar'
 import { useAppSelector } from '@/lib/hooks'
 import { ideaService } from '@/lib/services/ideaService'
-import { useTranslations } from '@/components/providers/I18nProvider'
+import { useTranslations, useLocale } from '@/components/providers/I18nProvider'
 import { getCardMedia } from '@/lib/utils/media'
 
 interface HomeIdeaCardProps {
@@ -34,6 +34,7 @@ export function HomeIdeaCard({
   initialUserVotes,
 }: HomeIdeaCardProps) {
   const t = useTranslations()
+  const { locale } = useLocale()
   const [currentIdea, setCurrentIdea] = useState(idea)
   const [isVoting, setIsVoting] = useState(false)
   const [userVote, setUserVote] = useState<{
@@ -140,7 +141,7 @@ export function HomeIdeaCard({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <Link href={`/ideas/${currentIdea.id}`} onClick={handleClick}>
+      <Link href={`/${locale}/ideas/${currentIdea.id}`} onClick={handleClick}>
         <motion.article whileHover={{ y: -2 }} className="p-4 flex flex-col">
           {/* Media Section */}
           <div className="relative w-full aspect-video mb-3 rounded-md overflow-hidden">

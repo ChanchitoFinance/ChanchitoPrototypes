@@ -5,17 +5,16 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { Footer } from '@/components/layout/Footer'
 import { useState, useEffect } from 'react'
 
-export default function IdeaDetailPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export default function IdeaDetailPage({ params }: { params: { id: string } }) {
   const [sidebarWidth, setSidebarWidth] = useState(256) // Default to expanded width (w-64 = 256px)
   const [activeTab, setActiveTab] = useState<'home' | 'foryou'>('home')
 
   // Load active tab from localStorage on mount
   useEffect(() => {
-    const savedTab = localStorage.getItem('activeTab') as 'home' | 'foryou' | null
+    const savedTab = localStorage.getItem('activeTab') as
+      | 'home'
+      | 'foryou'
+      | null
     if (savedTab) {
       setActiveTab(savedTab)
     }
@@ -66,16 +65,12 @@ export default function IdeaDetailPage({
   }, [])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex">
       <Sidebar activeTab={activeTab} />
-      <div 
-        className="flex-1 flex flex-col transition-all duration-300"
-        style={{ marginLeft: `${sidebarWidth}px` }}
-      >
+      <div className="flex-1 flex flex-col transition-all duration-300">
         <IdeaDetail ideaId={params.id} />
         <Footer />
       </div>
     </div>
   )
 }
-

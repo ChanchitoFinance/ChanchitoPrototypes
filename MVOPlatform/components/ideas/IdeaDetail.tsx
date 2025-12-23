@@ -236,7 +236,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
                 <span>{formatDate(idea.createdAt)}</span>
               </div>
               <div className="text-accent font-semibold text-lg md:text-xl">
-                Score: {idea.score}
+                {t('common.score')}: {idea.score}
               </div>
             </div>
           </div>

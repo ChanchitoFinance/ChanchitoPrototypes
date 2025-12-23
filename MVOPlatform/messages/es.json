@@ -28,7 +28,12 @@
     "add": "Agregar",
     "edit": "Editar",
     "preview": "Vista Previa",
-    "save": "Guardar"
+    "save": "Guardar",
+    "up": "Me gusta",
+    "down": "No me gusta",
+    "id_pay": "Pagar",
+    "comments": "Comentarios",
+    "share": "Compartir"
   },
   "status": {
     "loading": "Cargando...",
@@ -46,7 +51,9 @@
     "sign_in_required": "Inicio de Sesión Requerido",
     "sign_in_with_google": "Iniciar Sesión con Google",
     "sign_in_description": "Por favor inicia sesión con tu cuenta de Google para enviar una idea.",
-    "sign_in_to_upload": "Por favor inicia sesión con tu cuenta de Google para subir una idea."
+    "sign_in_to_upload": "Por favor inicia sesión con tu cuenta de Google para subir una idea.",
+    "sign_in_to_vote": "Por favor inicia sesión para votar",
+    "sign_in_to_comment": "Por favor inicia sesión para comentar"
   },
   "ideas": {
     "browse_ideas": "Explorar Ideas",
@@ -102,6 +109,20 @@
     "no_ideas": "No se encontraron ideas.",
     "see_results": "Ver Resultados",
     "idea_not_found": "Idea no encontrada"
+  },
+  "comments": {
+    "title": "Comentarios",
+    "write_comment": "Escribe un comentario...",
+    "posting": "Publicando...",
+    "post": "Publicar",
+    "loading": "Cargando comentarios...",
+    "no_comments": "Aún no hay comentarios. ¡Sé el primero en comentar!",
+    "no_comments_title": "Aún no hay comentarios",
+    "reply": "Responder",
+    "reply_placeholder": "Escribe una respuesta...",
+    "replies": "respuestas",
+    "reply_single": "respuesta",
+    "add_comment": "Agregar un comentario..."
   },
   "carousel": {
     "trending": "Tendencias",

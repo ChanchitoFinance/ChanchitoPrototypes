@@ -351,7 +351,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
 
   return (
     <div className="mt-12">
-      <h2 className="text-heading-2 mb-6">Comments</h2>
+      <h2 className="text-heading-2 mb-6">{t('comments.title')}</h2>
 
       {/* Comment Form */}
       <form onSubmit={handleSubmitComment} className="mb-8">
@@ -368,7 +368,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
                   textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
                 }
               }}
-              placeholder="Write a comment..."
+              placeholder={t('comments.write_comment')}
               className="w-full px-4 py-3 bg-gray-100 rounded-lg border border-border-color focus:outline-none focus:ring-2 focus:ring-accent resize-none overflow-hidden"
               style={{
                 minHeight: '3rem',
@@ -385,7 +385,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
           >
             <ArrowUp className="w-4 h-4" />
             <span className="hidden md:inline">
-              {submitting ? 'Posting...' : 'Post'}
+              {submitting ? t('comments.posting') : t('comments.post')}
             </span>
           </button>
         </div>
@@ -393,10 +393,10 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
 
       {/* Comments List */}
       {loading ? (
-        <div className="text-text-secondary">Loading comments...</div>
+        <div className="text-text-secondary">{t('comments.loading')}</div>
       ) : comments.length === 0 ? (
         <div className="text-text-secondary text-center py-8">
-          No comments yet. Be the first to comment!
+          {t('comments.no_comments')}
         </div>
       ) : (
         <div className="space-y-4">
