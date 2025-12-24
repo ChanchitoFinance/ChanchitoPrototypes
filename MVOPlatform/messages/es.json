@@ -59,7 +59,20 @@
     "analytics": "Analíticas",
     "votes": "Votos",
     "comments": "Comentarios",
-    "total_interactions": "Interacciones Totales"
+    "total_interactions": "Interacciones Totales",
+    "neutral": "Neutral",
+    "market_potential": "Potencial de Mercado",
+    "feasibility_score": "Puntuación de Factibilidad",
+    "impact_score": "Puntuación de Impacto",
+    "high": "Alto",
+    "medium": "Medio",
+    "low": "Bajo",
+    "percentage": "Porcentaje",
+    "idea_score": "Puntuación de la Idea",
+    "total_votes": "Votos Totales",
+    "total_comments": "Comentarios Totales",
+    "vote": "voto",
+    "votes": "votos"
   },
   "auth": {
     "sign_in_required": "Inicio de Sesión Requerido",
@@ -99,19 +112,62 @@
         "total_ideas": "Total de Ideas",
         "total_votes": "Total de Votos",
         "total_comments": "Total de Comentarios",
-        "avg_score": "Puntuación Promedio"
+        "avg_score": "Puntuación Promedio",
+        "engagement_rate": "Tasa de Participación",
+        "impact_score": "Puntuación de Impacto",
+        "feasibility_score": "Puntuación de Factibilidad"
       },
       "charts": {
         "votes_distribution": "Distribución de Votos",
         "ideas_performance": "Rendimiento de Ideas",
         "interaction_timeline": "Línea de Tiempo de Interacciones",
         "top_performing_ideas": "Ideas con Mejor Rendimiento",
-        "vote_types_breakdown": "Desglose de Tipos de Votos"
+        "vote_types_breakdown": "Desglose de Tipos de Votos",
+        "category_distribution": "Distribución de Categorías",
+        "sentiment_analysis": "Análisis de Sentimiento"
       },
       "best_idea": "Idea con Mejor Rendimiento",
       "worst_idea": "Necesita Mejoras",
       "most_interacted": "Más Discutida",
-      "no_data": "No hay datos disponibles aún"
+      "no_data": "No hay datos disponibles aún",
+      "idea_analytics": {
+        "title": "Analíticas de la Idea",
+        "subtitle": "Insights detallados sobre esta idea",
+        "score_explanation": "Explicación de la Puntuación",
+        "score_description": "Esta puntuación refleja la validación general del mercado de tu idea. Puntuaciones más altas indican un mayor potencial de mercado.",
+        "vote_meaning": "Qué Significan los Votos",
+        "vote_meaning_description": "Los votos ayudan a determinar la factibilidad e impacto de tu idea:",
+        "up_vote": "Lo usaría - Indica demanda de mercado",
+        "down_vote": "No lo usaría - Indica posibles problemas",
+        "pay_vote": "Pagaría por esto - Señal más fuerte de validación",
+        "most_voted_comments": "Comentarios Más Votados",
+        "top_categories": "Principales Categorías",
+        "feasibility_assessment": "Evaluación de Factibilidad",
+        "impact_assessment": "Evaluación de Impacto",
+        "market_potential": "Potencial de Mercado",
+        "suggestions": "Sugerencias para Mejorar",
+        "no_comments": "Aún no hay comentarios para esta idea",
+        "sentiment_description": "Este gráfico muestra el sentimiento general de tu idea basado en los votos de los usuarios. Los votos de \"Usar\" indican interés positivo, los votos de \"Pagar\" muestran validación fuerte, y los votos de \"No me gusta\" sugieren preocupaciones.",
+        "overall_sentiment": "Sentimiento General",
+        "suggestion_1": "Considera abordar las preocupaciones de los usuarios que no usarían este producto",
+        "suggestion_2": "Explora formas de aumentar el valor percibido para fomentar más votos de \"Pagaría por esto\"",
+        "suggestion_3": "Fomenta más comentarios y discusiones de los usuarios para validar tu idea aún más",
+        "suggestion_4": "Agrega etiquetas relevantes para ayudar a los usuarios a descubrir tu idea",
+        "all_good": "¡Tu idea se está desempeñando bien! Sigue con el excelente trabajo y continúa interactuando con tu audiencia."
+      }
+    },
+    "example": {
+      "message": "Inicia sesión para desbloquear tu panel de actividad personal y analíticas. Aquí tienes una vista previa de lo que puedes acceder:",
+      "feature_1": "Realiza un seguimiento de todas tus ideas enviadas en un solo lugar",
+      "feature_2": "Ver analíticas detalladas y métricas de rendimiento",
+      "feature_3": "Obtén información sobre validación de mercado y comentarios de usuarios",
+      "preview": "Vista Previa del Panel",
+      "idea_title_1": "Solución SaaS Innovadora",
+      "idea_description": "Una plataforma revolucionaria de software como servicio que optimiza las operaciones comerciales y aumenta la productividad.",
+      "idea_title_2": "Producto Ecológico",
+      "idea_description_2": "Solución de empaque sostenible y biodegradable para la industria alimentaria.",
+      "idea_title_3": "Concepto de Aplicación Móvil",
+      "idea_description_3": "Una aplicación de redes sociales enfocada en el desarrollo profesional y la mentoría."
     }
   },
   "brand": {

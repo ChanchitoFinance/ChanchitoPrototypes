@@ -48,4 +48,6 @@ export interface Idea {
   forYou?: boolean // For personalized "For You" section
   // Anonymous flag - if true, don't show author in public views
   anonymous?: boolean
+  // Creator email for ownership verification
+  creatorEmail?: string | null
 }

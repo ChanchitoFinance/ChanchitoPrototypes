@@ -59,7 +59,11 @@ export interface IIdeaService {
   /**
    * Get ideas for a specific space
    */
-  getIdeasBySpace(spaceId: string, limit?: number, offset?: number): Promise<Idea[]>
+  getIdeasBySpace(
+    spaceId: string,
+    limit?: number,
+    offset?: number
+  ): Promise<Idea[]>
 
   /**
    * Create a new idea
@@ -125,15 +129,21 @@ export interface IIdeaService {
     totalVotes: number
     totalComments: number
     averageScore: number
+    engagementRate: number
+    impactScore: number
+    feasibilityScore: number
     ideasWithStats: Array<{
       idea: Idea
       engagementRate: number
       voteDistribution: { use: number; dislike: number; pay: number }
+      categoryDistribution: Record<string, number>
     }>
     topPerformingIdeas: Idea[]
     worstPerformingIdeas: Idea[]
     mostDiscussedIdeas: Idea[]
     voteTypeBreakdown: { use: number; dislike: number; pay: number }
+    categoryBreakdown: Record<string, number>
+    sentimentAnalysis: { positive: number; neutral: number; negative: number }
   }>
 }
 
@@ -154,7 +164,8 @@ class SupabaseIdeaService implements IIdeaService {
         anonymous,
         users!ideas_creator_id_fkey (
           username,
-          full_name
+          full_name,
+          email
         ),
         idea_votes (
           vote_type
@@ -190,7 +201,8 @@ class SupabaseIdeaService implements IIdeaService {
         anonymous,
         users!ideas_creator_id_fkey (
           username,
-          full_name
+          full_name,
+          email
         ),
         idea_votes (
           vote_type
@@ -230,7 +242,8 @@ class SupabaseIdeaService implements IIdeaService {
         anonymous,
         users!ideas_creator_id_fkey (
           username,
-          full_name
+          full_name,
+          email
         ),
         idea_votes (
           vote_type
@@ -271,7 +284,8 @@ class SupabaseIdeaService implements IIdeaService {
         anonymous,
         users!ideas_creator_id_fkey (
           username,
-          full_name
+          full_name,
+          email
         ),
         idea_votes (
           vote_type
@@ -308,7 +322,8 @@ class SupabaseIdeaService implements IIdeaService {
         anonymous,
         users!ideas_creator_id_fkey (
           username,
-          full_name
+          full_name,
+          email
         ),
         idea_votes (
           vote_type
@@ -345,7 +360,8 @@ class SupabaseIdeaService implements IIdeaService {
         anonymous,
         users!ideas_creator_id_fkey (
           username,
-          full_name
+          full_name,
+          email
         ),
         idea_votes (
           vote_type
@@ -659,7 +675,8 @@ class SupabaseIdeaService implements IIdeaService {
           created_at,
           users!ideas_creator_id_fkey (
             username,
-            full_name
+            full_name,
+            email
           ),
           idea_votes (
             vote_type
@@ -733,7 +750,8 @@ class SupabaseIdeaService implements IIdeaService {
         created_at,
         users!ideas_creator_id_fkey (
           username,
-          full_name
+          full_name,
+          email
         ),
         idea_votes (
           vote_type
@@ -765,11 +783,16 @@ class SupabaseIdeaService implements IIdeaService {
         totalVotes: 0,
         totalComments: 0,
         averageScore: 0,
+        engagementRate: 0,
+        impactScore: 0,
+        feasibilityScore: 0,
         ideasWithStats: [],
         topPerformingIdeas: [],
         worstPerformingIdeas: [],
         mostDiscussedIdeas: [],
         voteTypeBreakdown: { use: 0, dislike: 0, pay: 0 },
+        categoryBreakdown: {},
+        sentimentAnalysis: { positive: 0, neutral: 0, negative: 0 },
       }
     }
 
@@ -780,14 +803,54 @@ class SupabaseIdeaService implements IIdeaService {
       mappedIdeas
     )
 
+    const totalIdeasCount = mappedIdeas.length
     const totalVotes = mappedIdeas.reduce((sum, idea) => sum + idea.votes, 0)
     const totalComments = mappedIdeas.reduce(
       (sum, idea) => sum + idea.commentCount,
       0
     )
     const averageScore =
-      mappedIdeas.reduce((sum, idea) => sum + idea.score, 0) /
-      mappedIdeas.length
+      totalIdeasCount > 0
+        ? mappedIdeas.reduce((sum, idea) => sum + idea.score, 0) /
+          totalIdeasCount
+        : 0
+
+    // Calculate engagement rate (0-100%)
+    const totalInteractions = totalVotes + totalComments
+    const engagementRate =
+      totalIdeasCount > 0
+        ? Math.min(100, (totalInteractions / totalIdeasCount) * 10)
+        : 0
+
+    // Calculate impact score (based on pay votes and comments)
+    const totalPayVotes = mappedIdeas.reduce(
+      (sum, idea) => sum + idea.votesByType.pay,
+      0
+    )
+    const impactScore =
+      totalIdeasCount > 0
+        ? Math.min(
+            100,
+            ((totalPayVotes * 3 + totalComments) / totalIdeasCount) * 5
+          )
+        : 0
+
+    // Calculate feasibility score (based on use votes vs dislike votes)
+    const totalUseVotes = mappedIdeas.reduce(
+      (sum, idea) => sum + idea.votesByType.use,
+      0
+    )
+    const totalDislikeVotes = mappedIdeas.reduce(
+      (sum, idea) => sum + idea.votesByType.dislike,
+      0
+    )
+    const feasibilityScore =
+      totalVotes > 0
+        ? Math.min(
+            100,
+            ((totalUseVotes - totalDislikeVotes) / (totalVotes + 1)) * 50 + 50
+          )
+        : 0
 
     const voteTypeBreakdown = mappedIdeas.reduce(
       (acc, idea) => ({
@@ -798,17 +861,47 @@ class SupabaseIdeaService implements IIdeaService {
       { use: 0, dislike: 0, pay: 0 }
     )
 
+    // Calculate category breakdown
+    const categoryBreakdown: Record<string, number> = {}
+    mappedIdeas.forEach(idea => {
+      idea.tags.forEach(tag => {
+        categoryBreakdown[tag] = (categoryBreakdown[tag] || 0) + 1
+      })
+    })
+
+    // Simple sentiment analysis based on score distribution
+    const positiveIdeas = mappedIdeas.filter(idea => idea.score > 50).length
+    const neutralIdeas = mappedIdeas.filter(
+      idea => idea.score >= 20 && idea.score <= 50
+    ).length
+    const negativeIdeas = mappedIdeas.filter(idea => idea.score < 20).length
+
+    const sentimentAnalysis = {
+      positive:
+        totalIdeasCount > 0 ? (positiveIdeas / totalIdeasCount) * 100 : 0,
+      neutral: totalIdeasCount > 0 ? (neutralIdeas / totalIdeasCount) * 100 : 0,
+      negative:
+        totalIdeasCount > 0 ? (negativeIdeas / totalIdeasCount) * 100 : 0,
+    }
+
     const ideasWithStats = mappedIdeas.map(idea => {
-      const totalInteractions = idea.votes + idea.commentCount
-      const engagementRate =
-        totalInteractions > 0
-          ? (totalInteractions / (idea.votes + idea.commentCount)) * 100
+      const ideaInteractions = idea.votes + idea.commentCount
+      const ideaEngagementRate =
+        ideaInteractions > 0
+          ? Math.min(100, (ideaInteractions / (totalInteractions + 1)) * 100)
           : 0
+
+      // Calculate category distribution for this idea
+      const ideaCategoryDistribution: Record<string, number> = {}
+      idea.tags.forEach(tag => {
+        ideaCategoryDistribution[tag] = 1
+      })
 
       return {
         idea,
-        engagementRate,
+        engagementRate: ideaEngagementRate,
         voteDistribution: idea.votesByType,
+        categoryDistribution: ideaCategoryDistribution,
       }
     })
 
@@ -818,15 +911,20 @@ class SupabaseIdeaService implements IIdeaService {
     )
 
     return {
-      totalIdeas: mappedIdeas.length,
+      totalIdeas: totalIdeasCount,
       totalVotes,
       totalComments,
       averageScore,
+      engagementRate,
+      impactScore,
+      feasibilityScore,
       ideasWithStats,
       topPerformingIdeas: sortedByScore.slice(0, 5),
       worstPerformingIdeas: sortedByScore.slice(-3).reverse(),
       mostDiscussedIdeas: sortedByComments.slice(0, 3),
       voteTypeBreakdown,
+      categoryBreakdown,
+      sentimentAnalysis,
     }
   }
 
@@ -879,6 +977,11 @@ class SupabaseIdeaService implements IIdeaService {
     }
 
     // Backward compatibility: check other blocks for media (for old data)
+    // Include creator email for ownership verification
+    const creatorEmail = dbIdea.users?.email || null
+
+    const content = dbIdea.content as ContentBlock[] | undefined
+
     const video =
       heroVideo ||
       contentBlocks?.find(block => block.type === 'video')?.src ||
@@ -889,7 +992,7 @@ class SupabaseIdeaService implements IIdeaService {
     const commentCount = dbIdea.comments?.length || 0
 
     // Backward compatibility: extract image from blocks (for old data)
-    const image = 
+    const image =
       heroImage ||
       contentBlocks?.find(block => block.type === 'image')?.src ||
       contentBlocks
@@ -912,6 +1015,7 @@ class SupabaseIdeaService implements IIdeaService {
       content: contentBlocks, // Only content blocks, hero media is stored separately
       status_flag: dbIdea.status_flag,
       anonymous: dbIdea.anonymous || false,
+      creatorEmail, // Add creator email for ownership verification
     }
   }
 
@@ -923,7 +1027,7 @@ class SupabaseIdeaService implements IIdeaService {
 
     // Prepare content with hero media metadata
     const contentWithMetadata = ideaData.content || []
-    
+
     // Store hero media in content metadata (first element if it's image/video, or add metadata)
     let finalContent = contentWithMetadata
     if (ideaData.image || ideaData.video) {
@@ -994,20 +1098,32 @@ class SupabaseIdeaService implements IIdeaService {
     // Build update object
     const updateData: any = {}
     if (updates.title !== undefined) updateData.title = updates.title
-    if (updates.status_flag !== undefined) updateData.status_flag = updates.status_flag
-    if (updates.anonymous !== undefined) updateData.anonymous = updates.anonymous
-    
+    if (updates.status_flag !== undefined)
+      updateData.status_flag = updates.status_flag
+    if (updates.anonymous !== undefined)
+      updateData.anonymous = updates.anonymous
+
     // Handle content update with hero media
-    if (updates.content !== undefined || updates.image !== undefined || updates.video !== undefined || updates.description !== undefined) {
+    if (
+      updates.content !== undefined ||
+      updates.image !== undefined ||
+      updates.video !== undefined ||
+      updates.description !== undefined
+    ) {
       // Get current idea to merge content
       const currentIdea = await this.getIdeaById(ideaId)
       const currentContent = currentIdea?.content || []
-      
+
       updateData.content = {
         blocks: updates.content || currentContent,
-        hero_image: updates.image !== undefined ? updates.image : currentIdea?.image,
-        hero_video: updates.video !== undefined ? updates.video : currentIdea?.video,
-        description: updates.description !== undefined ? updates.description : currentIdea?.description,
+        hero_image:
+          updates.image !== undefined ? updates.image : currentIdea?.image,
+        hero_video:
+          updates.video !== undefined ? updates.video : currentIdea?.video,
+        description:
+          updates.description !== undefined
+            ? updates.description
+            : currentIdea?.description,
       }
     }
 
@@ -1081,18 +1197,18 @@ class SupabaseIdeaService implements IIdeaService {
 
     if (!user) {
       // If not authenticated, return only public spaces
-    const { data, error } = await supabase
-      .from('enterprise_spaces')
-      .select('id, name, team_id')
+      const { data, error } = await supabase
+        .from('enterprise_spaces')
+        .select('id, name, team_id')
         .eq('visibility', 'public')
-      .order('name')
+        .order('name')
 
-    if (error) {
-      console.error('Error fetching spaces:', error)
-      throw error
-    }
+      if (error) {
+        console.error('Error fetching spaces:', error)
+        throw error
+      }
 
-    return data || []
+      return data || []
     }
 
     // Get public spaces

@@ -17,7 +17,11 @@ import { formatDate } from '@/lib/utils/date'
 import { Idea } from '@/lib/types/idea'
 import { Comment } from '@/lib/types/comment'
 import { ideaService } from '@/lib/services/ideaService'
-import { toggleVote, fetchUserVotes } from '@/lib/slices/ideasSlice'
+import {
+  toggleVote,
+  fetchUserVotes,
+  setCurrentIdea,
+} from '@/lib/slices/ideasSlice'
 import { useVideoPlayer } from '@/hooks/useVideoPlayer'
 import { CommentsBlock } from './CommentsBlock'
 import { IdeaActions } from './IdeaActions'
@@ -27,6 +31,7 @@ import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 import { getCardMedia } from '@/lib/utils/media'
 import { useTranslations, useLocale } from '@/components/providers/I18nProvider'
 import { Button } from '@/components/ui/Button'
+import { IdeaAnalytics } from './IdeaAnalytics'
 
 interface IdeaDetailProps {
   ideaId: string
@@ -45,7 +50,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const commentsSectionRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const { isAuthenticated } = useAppSelector(state => state.auth)
+  const { isAuthenticated, user } = useAppSelector(state => state.auth)
 
   const handleBack = () => {
     // Get the previous path from sessionStorage (set when navigating to idea)
@@ -75,6 +80,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         const loadedIdea = await ideaService.getIdeaById(ideaId)
         if (loadedIdea) {
           setIdea(loadedIdea)
+          dispatch(setCurrentIdea(loadedIdea))
           setCommentCount(loadedIdea.commentCount)
 
           // Fetch user votes if authenticated
@@ -92,15 +98,12 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     loadIdea()
   }, [ideaId, isAuthenticated])
 
-  // Use only hero media (image/video fields) for hero section, not content blocks
-  const heroMedia = idea ? {
-    video: idea.video,
-    image: idea.image,
-  } : {}
+  const ideaData = currentIdea || idea
+  const cardMedia = ideaData ? getCardMedia(ideaData) : {}
 
   // Use video player hook - auto-play when in viewport
   const videoPlayerRef = useVideoPlayer({
-    videoSrc: heroMedia.video,
+    videoSrc: cardMedia.video,
     containerRef: containerRef,
     startTime: 35,
     threshold: 0.1, // Start playing when 10% visible
@@ -111,9 +114,9 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
       alert(t('auth.sign_in_to_vote'))
       return
     }
-    if (!idea || isVoting) return
+    if (!ideaData || isVoting) return
 
-    dispatch(toggleVote({ ideaId: idea.id, voteType: 'use' }))
+    dispatch(toggleVote({ ideaId: ideaData.id, voteType: 'use' }))
   }
 
   const handleVoteDown = () => {
@@ -121,9 +124,9 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
       alert(t('auth.sign_in_to_vote'))
       return
     }
-    if (!idea || isVoting) return
+    if (!ideaData || isVoting) return
 
-    dispatch(toggleVote({ ideaId: idea.id, voteType: 'dislike' }))
+    dispatch(toggleVote({ ideaId: ideaData.id, voteType: 'dislike' }))
   }
 
   const handleLike = () => {
@@ -131,9 +134,9 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
       alert(t('auth.sign_in_to_vote'))
       return
     }
-    if (isVoting) return
+    if (!ideaData || isVoting) return
 
-    dispatch(toggleVote({ ideaId: idea.id, voteType: 'pay' }))
+    dispatch(toggleVote({ ideaId: ideaData.id, voteType: 'pay' }))
   }
 
   const handleCommentsClick = () => {
@@ -174,11 +177,11 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
       {/* Hero Section - Main content at the top */}
       <div className="relative w-full bg-black">
         {/* Media Section */}
-        {heroMedia.video ? (
+        {cardMedia.video ? (
           <div ref={containerRef} className="relative w-full aspect-video">
             <video
               ref={videoPlayerRef}
-              src={heroMedia.video}
+              src={cardMedia.video}
               className="w-full h-full object-cover pointer-events-none"
               loop
               muted
@@ -201,10 +204,10 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
               style={{ pointerEvents: 'none' }}
             />
           </div>
-        ) : heroMedia.image ? (
+        ) : cardMedia.image ? (
           <div className="relative w-full aspect-video">
             <Image
-              src={heroMedia.image}
+              src={cardMedia.image}
               alt={idea.title}
               fill
               className="object-cover"
@@ -273,13 +276,13 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
       <article className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-12">
         {/* Actions Bar */}
         <IdeaActions
-          idea={idea}
+          idea={ideaData}
           upvoted={userVotes.use}
           downvoted={userVotes.dislike}
           liked={userVotes.pay}
-          useCount={idea.votesByType.use}
-          dislikeCount={idea.votesByType.dislike}
-          likeCount={idea.votesByType.pay}
+          useCount={ideaData.votesByType.use}
+          dislikeCount={ideaData.votesByType.dislike}
+          likeCount={ideaData.votesByType.pay}
           commentCount={commentCount}
           onUpvote={handleVoteUp}
           onDownvote={handleVoteDown}
@@ -288,29 +291,32 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         />
 
         {/* Rich Content - filter out hero media if it's the first block */}
-        {idea.content && idea.content.length > 0 && (() => {
-          // Filter out first block if it's the same as hero media
-          const filteredContent = idea.content.filter((block, index) => {
-            if (index === 0) {
-              // Skip first block if it matches hero media
-              if (block.type === 'video' && block.src === idea.video) return false
-              if (block.type === 'image' && block.src === idea.image) return false
-            }
-            return true
-          })
-          
-          return filteredContent.length > 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="mb-12"
-            >
-              <ContentRenderer content={filteredContent} />
-            </motion.div>
-          ) : null
-        })()}
+        {idea.content &&
+          idea.content.length > 0 &&
+          (() => {
+            // Filter out first block if it's the same as hero media
+            const filteredContent = idea.content.filter((block, index) => {
+              if (index === 0) {
+                // Skip first block if it matches hero media
+                if (block.type === 'video' && block.src === idea.video)
+                  return false
+                if (block.type === 'image' && block.src === idea.image)
+                  return false
+              }
+              return true
+            })
 
+            return filteredContent.length > 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="mb-12"
+              >
+                <ContentRenderer content={filteredContent} />
+              </motion.div>
+            ) : null
+          })()}
 
         {/* Comments Section */}
         <motion.div
@@ -321,6 +327,21 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         >
           <CommentsBlock ideaId={ideaId} />
         </motion.div>
+
+        {/* Idea Analytics Section - Only show for idea owner */}
+        {isAuthenticated && ideaData && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <IdeaAnalytics
+              ideaId={ideaId}
+              idea={ideaData}
+              isOwner={user?.email === ideaData.creatorEmail}
+            />
+          </motion.div>
+        )}
       </article>
     </div>
   )

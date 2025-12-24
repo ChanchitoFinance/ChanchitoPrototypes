@@ -26,6 +26,10 @@ import {
   ThumbsUp,
   BarChart3,
   RefreshCw,
+  Users,
+  Target,
+  Lightbulb,
+  PieChart as PieChartIcon,
 } from 'lucide-react'
 
 interface AnalyticsData {
@@ -33,15 +37,20 @@ interface AnalyticsData {
   totalVotes: number
   totalComments: number
   averageScore: number
+  engagementRate: number
+  impactScore: number
+  feasibilityScore: number
   ideasWithStats: Array<{
     idea: Idea
     engagementRate: number
     voteDistribution: { use: number; dislike: number; pay: number }
+    categoryDistribution: Record<string, number>
   }>
   topPerformingIdeas: Idea[]
   worstPerformingIdeas: Idea[]
   mostDiscussedIdeas: Idea[]
   voteTypeBreakdown: { use: number; dislike: number; pay: number }
+  categoryBreakdown: Record<string, number>
 }
 
 export function UserAnalytics() {
@@ -235,6 +244,72 @@ export function UserAnalytics() {
             <TrendingUp className="w-8 h-8 text-orange-500" />
           </div>
         </div>
+
+        {/* New Metrics Row */}
+        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-text-secondary mb-1">
+                {translate(
+                  'activity.analytics.overview.engagement_rate',
+                  'Engagement Rate'
+                )}
+              </p>
+              <p className="text-2xl font-bold text-text-primary">
+                {Math.round(data.engagementRate)}%
+              </p>
+            </div>
+            <Users className="w-8 h-8 text-blue-500" />
+          </div>
+        </div>
+
+        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-text-secondary mb-1">
+                {translate(
+                  'activity.analytics.overview.impact_score',
+                  'Impact Score'
+                )}
+              </p>
+              <p className="text-2xl font-bold text-text-primary">
+                {Math.round(data.impactScore)}
+              </p>
+            </div>
+            <Target className="w-8 h-8 text-red-500" />
+          </div>
+        </div>
+
+        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-text-secondary mb-1">
+                {translate(
+                  'activity.analytics.overview.feasibility_score',
+                  'Feasibility Score'
+                )}
+              </p>
+              <p className="text-2xl font-bold text-text-primary">
+                {Math.round(data.feasibilityScore)}%
+              </p>
+            </div>
+            <Lightbulb className="w-8 h-8 text-yellow-500" />
+          </div>
+        </div>
+
+        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-text-secondary mb-1">
+                {translate('common.total_interactions', 'Total Interactions')}
+              </p>
+              <p className="text-2xl font-bold text-text-primary">
+                {data.totalVotes + data.totalComments}
+              </p>
+            </div>
+            <PieChartIcon className="w-8 h-8 text-indigo-500" />
+          </div>
+        </div>
       </div>
 
       {/* Charts Section */}
@@ -296,42 +371,68 @@ export function UserAnalytics() {
           </ResponsiveContainer>
         </div>
 
-        {/* Ideas Performance Bar Chart */}
+        {/* Category Distribution Chart */}
         <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
           <h3 className="text-lg font-semibold text-text-primary mb-4">
             {translate(
-              'activity.analytics.charts.ideas_performance',
-              'Ideas Performance'
+              'activity.analytics.charts.category_distribution',
+              'Category Distribution'
             )}
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={data.ideasWithStats.slice(0, 5).map((item, index) => ({
-                name: `Idea ${index + 1}`,
-                score: item.idea.score,
-                votes: item.idea.votes,
-                comments: item.idea.commentCount,
-              }))}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-200)" />
-              <XAxis
-                dataKey="name"
-                stroke="var(--text-secondary)"
-                fontSize={12}
-              />
-              <YAxis stroke="var(--text-secondary)" fontSize={12} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'var(--gray-100)',
-                  border: '2px solid var(--border-color)',
-                  borderRadius: 'var(--border-radius-md)',
-                }}
-              />
-              <Bar dataKey="score" fill="var(--accent)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="votes" fill="#10B981" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="comments" fill="#A78BFA" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {Object.keys(data.categoryBreakdown).length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={Object.entries(data.categoryBreakdown).map(
+                    ([name, value]) => ({
+                      name,
+                      value,
+                    })
+                  )}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {Object.entries(data.categoryBreakdown).map((_, index) => {
+                    const colors = [
+                      '#3B82F6',
+                      '#10B981',
+                      '#EF4444',
+                      '#F59E0B',
+                      '#8B5CF6',
+                      '#EC4899',
+                    ]
+                    return (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={colors[index % colors.length]}
+                      />
+                    )
+                  })}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--gray-100)',
+                    border: '2px solid var(--border-color)',
+                    borderRadius: 'var(--border-radius-md)',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-text-secondary text-center py-8">
+              {translate(
+                'activity.analytics.no_data',
+                'No category data available'
+              )}
+            </p>
+          )}
         </div>
       </div>
 

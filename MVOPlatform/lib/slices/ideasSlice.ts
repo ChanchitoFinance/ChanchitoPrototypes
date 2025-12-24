@@ -87,11 +87,18 @@ const ideasSlice = createSlice({
         state.currentIdea = action.payload
 
         const voteType = action.meta.arg.voteType
-        state.userVotes = {
-          ...state.userVotes,
-          [voteType]: !state.userVotes[voteType],
-          use: voteType === 'use' ? !state.userVotes.use : false,
-          dislike: voteType === 'dislike' ? !state.userVotes.dislike : false,
+        if (voteType === 'use' || voteType === 'dislike') {
+          state.userVotes = {
+            ...state.userVotes,
+            use: voteType === 'use' ? !state.userVotes.use : false,
+            dislike: voteType === 'dislike' ? !state.userVotes.dislike : false,
+            pay: state.userVotes.pay,
+          }
+        } else if (voteType === 'pay') {
+          state.userVotes = {
+            ...state.userVotes,
+            pay: !state.userVotes.pay,
+          }
         }
       })
       .addCase(toggleVote.rejected, (state, action) => {
