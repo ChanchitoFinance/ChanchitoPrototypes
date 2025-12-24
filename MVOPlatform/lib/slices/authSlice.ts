@@ -41,10 +41,15 @@ export const signInWithGoogle = createAsyncThunk(
   'auth/signInWithGoogle',
   async (_, { rejectWithValue }) => {
     try {
+      // Get the current locale from the URL using regex to match any locale
+      const pathname = window.location.pathname
+      const localeMatch = pathname.match(/^\/([a-z]{2})/)
+      const locale = localeMatch ? localeMatch[1] : 'en'
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/${locale}/auth/callback`,
         },
       })
 
