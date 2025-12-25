@@ -7,7 +7,7 @@
   "navigation": {
     "home": "Home",
     "for_you": "For You",
-    "explore": "Explore",
+    "spaces": "Spaces",
     "activity": "Activity",
     "upload": "Upload",
     "profile": "Profile",
@@ -33,7 +33,10 @@
     "down": "Down",
     "id_pay": "I'd pay",
     "comments": "Comments",
-    "share": "Share"
+    "share": "Share",
+    "back": "Back",
+    "delete": "Delete",
+    "ok": "OK"
   },
   "status": {
     "loading": "Loading...",
@@ -133,6 +136,8 @@
     "score": "Score"
   },
   "validation": {
+    "error": "Error",
+    "please_fill_required_fields": "Please fill in all required fields correctly",
     "title_min_length": "Title must be at least 10 characters",
     "space_required": "You must select a space",
     "content_required": "Please add at least one content block with content",
@@ -140,11 +145,14 @@
   },
   "form": {
     "create_idea": "Create Idea",
+    "edit_idea": "Edit Idea",
     "enter_title": "Enter your idea title...",
     "add_tags_hint": "Add tags below to categorize your idea",
     "space_label": "Space",
     "required": "Required",
     "select_space": "Select a space",
+    "search_spaces": "Search spaces...",
+    "no_spaces_found": "No spaces found",
     "tags": "Tags",
     "type_tag_placeholder": "Type a tag and press Enter",
     "upload_image": "Upload Image",
@@ -251,5 +259,85 @@
       "change_video": "Change Video",
       "change_url": "Change URL"
     }
+  },
+  "spaces": {
+    "title": "Spaces",
+    "create_space": "Create Space",
+    "create_team": "Create Team",
+    "no_spaces": "No spaces available",
+    "no_spaces_description": "Create your first space to start organizing ideas",
+    "members": "members",
+    "ideas": "ideas",
+    "public": "Public",
+    "private": "Private",
+    "invite_only": "Invite Only",
+    "join_space": "Join Space",
+    "leave_space": "Leave Space",
+    "space_name": "Space Name",
+    "space_description": "Space Description",
+    "team_name": "Team Name",
+    "team_description": "Team Description",
+    "select_team": "Select Team",
+    "create_new_team": "Create New Team",
+    "visibility": "Visibility",
+    "select_visibility": "Select visibility",
+    "share_space": "Share Space",
+    "invite_members": "Invite Members",
+    "confirm_delete_idea": "Are you sure you want to delete this idea? This action cannot be undone.",
+    "error_deleting_idea": "Error deleting idea. Please try again.",
+    "delete_idea": "Delete Idea",
+    "error": "Error",
+    "link_copied": "Link copied to clipboard!",
+    "copy_link": "Copy this link to share the space:",
+    "tags": "Tags",
+    "topics": "Topics",
+    "select_tags": "Select tags",
+    "select_topics": "Select topics",
+    "space_image": "Space Image",
+    "space_video": "Space Video",
+    "header_image": "Header Image",
+    "header_video": "Header Video",
+    "add_header": "Add Header",
+    "creating_space": "Creating space...",
+    "space_created": "Space created successfully",
+    "space_creation_error": "Error creating space",
+    "team_created": "Team created successfully",
+    "team_creation_error": "Error creating team",
+    "invite_link": "Invite Link",
+    "copy_link": "Copy Link",
+    "link_copied": "Link copied to clipboard",
+    "space_settings": "Space Settings",
+    "team_settings": "Team Settings",
+    "manage_members": "Manage Members",
+    "view_ideas": "View Ideas",
+    "invite_members": "Invite Team Members",
+    "invite_members_description": "Invite users by username or email to join your team",
+    "username_or_email": "Username or Email",
+    "invite": "Invite"
+  },
+  "premium": {
+    "title": "Upgrade to Premium",
+    "description": "Unlock advanced features for your teams and spaces",
+    "features": {
+      "title": "Premium Features",
+      "private_spaces": "Create private spaces",
+      "invite_members": "Invite team members by username or email",
+      "advanced_analytics": "Advanced analytics and insights"
+    },
+    "pricing": {
+      "title": "Pricing",
+      "description": "All premium features included"
+    },
+    "subscribe": "Subscribe Now"
+  },
+  "teams": {
+    "title": "Teams",
+    "my_teams": "My Teams",
+    "create_team": "Create Team",
+    "team_members": "Team Members",
+    "invite_member": "Invite Member",
+    "invite_link": "Invite Link",
+    "copy_link": "Copy Link",
+    "link_copied": "Link copied to clipboard"
   }
 }

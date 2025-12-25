@@ -17,6 +17,7 @@ import {
   MoreHorizontal,
   X,
   LogIn,
+  FolderKanban,
 } from 'lucide-react'
 import { clientEnv } from '@/config/env'
 import { UserMenu } from '@/components/ui/UserMenu'
@@ -198,6 +199,13 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       active: pathname === `/${currentLocale}/for-you`,
     },
     {
+      id: 'spaces',
+      label: t('navigation.spaces'),
+      icon: FolderKanban,
+      href: `/${currentLocale}/spaces`,
+      active: pathname === `/${currentLocale}/spaces` || pathname?.startsWith(`/${currentLocale}/spaces/`),
+    },
+    {
       id: 'activity',
       label: t('navigation.activity'),
       icon: Activity,
@@ -296,7 +304,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
 
       {/* Navigation Items */}
       <nav
-        className={`flex-1 ${SIDEBAR_STYLES.container.padding.nav.vertical} overflow-y-auto`}
+        className={`flex-1 ${SIDEBAR_STYLES.container.padding.nav.vertical} overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}
       >
         <div
           className={`${SIDEBAR_STYLES.container.spacing.items} ${showExpanded ? SIDEBAR_STYLES.container.padding.nav.horizontal.expanded : SIDEBAR_STYLES.container.padding.nav.horizontal.collapsed}`}
@@ -516,7 +524,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
 
       {/* Sidebar */}
       <aside
-        className={`${isDetailPage ? 'fixed left-0 top-0' : 'relative'} h-screen z-50 transition-all duration-300 flex-shrink-0 ${
+        className={`fixed left-0 top-0 h-screen z-50 transition-all duration-300 flex-shrink-0 ${
           showExpanded
             ? SIDEBAR_STYLES.width.expanded
             : SIDEBAR_STYLES.width.collapsed

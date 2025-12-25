@@ -257,7 +257,7 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
   return (
     <div
       ref={containerRef}
-      className="h-screen w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
+      className="h-screen w-full overflow-y-scroll snap-y snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       style={{
         scrollSnapType: 'y mandatory',
         WebkitOverflowScrolling: 'touch',

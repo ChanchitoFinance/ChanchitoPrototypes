@@ -156,6 +156,18 @@ class SupabaseAdminService implements IAdminService {
 
     if (error) throw error
   }
+
+  async getTopics(): Promise<
+    Array<{ id: string; name: string; description?: string }>
+  > {
+    const { data, error } = await supabase
+      .from('topics')
+      .select('id, name, description')
+      .order('name')
+
+    if (error) throw error
+    return data || []
+  }
 }
 
 export const adminService = new SupabaseAdminService()

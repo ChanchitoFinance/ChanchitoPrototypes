@@ -24,4 +24,6 @@ export interface IAdminService {
   ): Promise<MediaAsset>
   getMediaAssets(type?: MediaAsset['type']): Promise<MediaAsset[]>
   deleteMediaAsset(id: string): Promise<void>
+
+  getTopics(): Promise<Array<{ id: string; name: string; description?: string }>>
 }

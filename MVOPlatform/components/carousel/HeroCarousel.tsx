@@ -196,7 +196,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
     return (
       <div className="relative w-full h-[500px] md:h-[600px] bg-black flex">
         <div className="relative flex-1 h-full overflow-hidden">
-          <div className="carousel-scroll-container flex h-full overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+          <div className="carousel-scroll-container flex h-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory">
             {[1, 2, 3, 4, 5].map(i => (
               <CarouselItemSkeleton key={i} />
             ))}
@@ -230,7 +230,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
         className="relative flex-1 h-full overflow-hidden"
       >
         <div
-          className="carousel-scroll-container flex h-full overflow-x-auto scrollbar-hide snap-x snap-mandatory"
+          className="carousel-scroll-container flex h-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory"
           style={{ scrollBehavior: 'smooth' }}
           onScroll={e => {
             const container = e.currentTarget
@@ -369,7 +369,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
 
       {/* Sidebar Thumbnails - All ideas visible, compact layout */}
       <div className="hidden md:block absolute right-0 top-0 bottom-0 w-64 lg:w-72 bg-black z-30 border-l border-gray-800 flex-col">
-        <div className="flex-1 flex flex-col p-2 md:p-3 space-y-1.5 md:space-y-2 overflow-y-auto scrollbar-hide">
+        <div className="flex-1 flex flex-col p-2 md:p-3 space-y-1.5 md:space-y-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {ideas.slice(0, 5).map((idea, index) => (
             <button
               key={idea.id}

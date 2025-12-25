@@ -12,7 +12,9 @@ import { ContentBlock } from '@/lib/types/content'
 import { useAppSelector } from '@/lib/hooks'
 import { ContentRenderer } from '@/components/ideas/ContentRenderer'
 import { ideaService } from '@/lib/services/ideaService'
+import { teamService, SpaceWithTeam } from '@/lib/services/teamService'
 import { Idea } from '@/lib/types/idea'
+import { supabase } from '@/lib/supabase'
 import { useTranslations, useLocale } from '@/components/providers/I18nProvider'
 import {
   X,
@@ -30,6 +32,9 @@ import {
   Loader2,
   UserX,
   Check,
+  Globe,
+  Lock,
+  Search,
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -42,15 +47,23 @@ type IdeaFormData = {
 // LocalStorage key for form persistence
 const FORM_STORAGE_KEY = 'idea_form_draft'
 
-export function IdeaForm() {
+interface IdeaFormProps {
+  defaultSpaceId?: string
+  ideaId?: string // For editing existing ideas
+  onSuccess?: () => void
+  onCancel?: () => void
+}
+
+export function IdeaForm({ defaultSpaceId, ideaId, onSuccess, onCancel }: IdeaFormProps = {}) {
   const router = useRouter()
   const t = useTranslations()
   const { locale } = useLocale()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitProgress, setSubmitProgress] = useState('')
-  const [spaces, setSpaces] = useState<
-    Array<{ id: string; name: string; team_id: string }>
-  >([])
+  const [spaces, setSpaces] = useState<SpaceWithTeam[]>([])
+  const [spaceSearchQuery, setSpaceSearchQuery] = useState('')
+  const [isSpaceDropdownOpen, setIsSpaceDropdownOpen] = useState(false)
+  const spaceDropdownRef = useRef<HTMLDivElement>(null)
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
@@ -69,9 +82,11 @@ export function IdeaForm() {
   const [showHeroCrop, setShowHeroCrop] = useState(false)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [isAnonymous, setIsAnonymous] = useState(false)
+  const [isUploadingHeroImage, setIsUploadingHeroImage] = useState(false)
+  const [isUploadingHeroVideo, setIsUploadingHeroVideo] = useState(false)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
-  const { profile } = useAppSelector(state => state.auth)
+  const { profile, user } = useAppSelector(state => state.auth)
 
   const ideaSchema = z.object({
     title: z.string().min(10, t('validation.title_min_length')),
@@ -92,21 +107,98 @@ export function IdeaForm() {
   const selectedSpaceId = watch('space_id')
   const titleValue = watch('title')
 
-  // Load saved form data from localStorage on mount
+  // Load idea data when editing
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (!ideaId) return
+
+    const loadIdea = async () => {
+      try {
+        // Fetch idea with space_id from database
+        const { data: dbData, error: dbError } = await supabase
+          .from('ideas')
+          .select('id, title, content, anonymous, space_id, status_flag')
+          .eq('id', ideaId)
+          .single()
+
+        if (dbError || !dbData) {
+          console.error('Error loading idea from database:', dbError)
+          return
+        }
+
+        const idea = await ideaService.getIdeaById(ideaId)
+        if (!idea) return
+
+        // Set title
+        setValue('title', idea.title)
+
+        // Set space_id from database
+        if (dbData.space_id) {
+          setValue('space_id', dbData.space_id)
+        } else if (defaultSpaceId) {
+          setValue('space_id', defaultSpaceId)
+        }
+
+        // Set tags
+        if (idea.tags && idea.tags.length > 0) {
+          setSelectedTags(idea.tags)
+          setValue('tags', idea.tags.join(','))
+        }
+
+        // Set anonymous flag
+        setIsAnonymous(idea.anonymous || false)
+
+        // Set content blocks
+        if (idea.content && idea.content.length > 0) {
+          // Extract hero media from first block if it's image/video
+          const firstBlock = idea.content[0]
+          if (firstBlock.type === 'image') {
+            setHeroImage(firstBlock.src)
+            if (firstBlock.crop) {
+              setHeroCrop(firstBlock.crop)
+            }
+          } else if (firstBlock.type === 'video') {
+            setHeroVideo(firstBlock.src)
+            if (firstBlock.crop) {
+              setHeroCrop(firstBlock.crop)
+            }
+          }
+
+          // Set remaining content blocks (skip first if it's hero media)
+          const remainingBlocks = firstBlock.type === 'image' || firstBlock.type === 'video'
+            ? idea.content.slice(1)
+            : idea.content
+          setContentBlocks(remainingBlocks)
+        } else {
+          // Fallback to image/video from idea root
+          if (idea.image) {
+            setHeroImage(idea.image)
+          }
+          if (idea.video) {
+            setHeroVideo(idea.video)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading idea:', error)
+      }
+    }
+
+    loadIdea()
+  }, [ideaId, setValue, defaultSpaceId])
+
+  // Load saved form data from localStorage on mount (only if not editing)
+  useEffect(() => {
+    if (typeof window === 'undefined' || ideaId) return
 
     try {
       const savedData = localStorage.getItem(FORM_STORAGE_KEY)
+      let parsed: any = null
+      
       if (savedData) {
-        const parsed = JSON.parse(savedData)
+        parsed = JSON.parse(savedData)
 
         // Restore form values
         if (parsed.title) {
           setValue('title', parsed.title)
-        }
-        if (parsed.space_id) {
-          setValue('space_id', parsed.space_id)
         }
         if (parsed.tags && Array.isArray(parsed.tags)) {
           setSelectedTags(parsed.tags)
@@ -171,16 +263,24 @@ export function IdeaForm() {
           setIsAnonymous(parsed.isAnonymous)
         }
       }
+      
+      // Set default space if provided (prioritize defaultSpaceId over saved data)
+      if (defaultSpaceId) {
+        setValue('space_id', defaultSpaceId)
+      } else if (parsed?.space_id) {
+        // Only use saved space_id if no defaultSpaceId is provided
+        setValue('space_id', parsed.space_id)
+      }
     } catch (error) {
       console.error('Error loading saved form data:', error)
     }
-  }, [setValue])
+  }, [setValue, defaultSpaceId, ideaId])
 
   // Fetch available spaces from Supabase
   useEffect(() => {
     const loadSpaces = async () => {
       try {
-        const spacesData = await ideaService.getSpaces()
+        const spacesData = await teamService.getVisibleSpaces(user?.id)
         setSpaces(spacesData)
       } catch (error) {
         console.error('Error loading spaces:', error)
@@ -188,6 +288,23 @@ export function IdeaForm() {
     }
 
     loadSpaces()
+  }, [user?.id])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        spaceDropdownRef.current &&
+        !spaceDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsSpaceDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [])
 
   // Save form data to localStorage whenever it changes
@@ -357,12 +474,15 @@ export function IdeaForm() {
     const file = e.target.files?.[0]
     if (file) {
       try {
+        setIsUploadingHeroImage(true)
         const url = await uploadFile(file, 'images')
         setHeroImage(url)
         setHeroVideo(null)
         setShowImageUpload(false)
       } catch (error) {
         alert(error instanceof Error ? error.message : 'Upload failed')
+      } finally {
+        setIsUploadingHeroImage(false)
       }
     }
   }
@@ -371,12 +491,15 @@ export function IdeaForm() {
     const file = e.target.files?.[0]
     if (file) {
       try {
+        setIsUploadingHeroVideo(true)
         const url = await uploadFile(file, 'videos')
         setHeroVideo(url)
         setHeroImage(null)
         setShowVideoUpload(false)
       } catch (error) {
         alert(error instanceof Error ? error.message : 'Upload failed')
+      } finally {
+        setIsUploadingHeroVideo(false)
       }
     }
   }
@@ -490,15 +613,31 @@ export function IdeaForm() {
         createdAt: createdAt, // Today's date
         image: heroImage || undefined,
         video: heroVideo || undefined,
-        content: serializedContentBlocks, // Include all properly serialized content blocks
+        content: serializedContentBlocks, // Only include user-added content blocks, hero media is stored separately in image/video fields
         status_flag: 'new', // New ideas have 'new' status
         anonymous: isAnonymous, // Anonymous flag
       }
 
       setSubmitProgress('Uploading to Supabase...')
 
-      // Save the idea using the service
-      const createdIdea = await ideaService.createIdea(newIdea, data.space_id)
+      let resultIdea: Idea
+
+      if (ideaId) {
+        // Update existing idea
+        resultIdea = await ideaService.updateIdea(ideaId, {
+          title: newIdea.title,
+          description: newIdea.description,
+          content: newIdea.content,
+          image: newIdea.image,
+          video: newIdea.video,
+          tags: newIdea.tags,
+          anonymous: newIdea.anonymous,
+          status_flag: newIdea.status_flag,
+        })
+      } else {
+        // Create new idea
+        resultIdea = await ideaService.createIdea(newIdea, data.space_id)
+      }
 
       setSubmitProgress('Finalizing...')
 
@@ -511,8 +650,28 @@ export function IdeaForm() {
         }
       }
 
-      // Redirect to the created idea page
-      router.push(`/${locale}/ideas/${createdIdea.id}`)
+      // Reset all form fields after successful creation (only if not editing)
+      if (!ideaId) {
+        setValue('title', '')
+        setValue('space_id', defaultSpaceId || '')
+        setValue('tags', '')
+        setSelectedTags([])
+        setContentBlocks([])
+        setHeroImage(null)
+        setHeroVideo(null)
+        setHeroCrop(null)
+        setIsAnonymous(false)
+        setShowImageUpload(false)
+        setShowVideoUpload(false)
+        setShowHeroCrop(false)
+      }
+
+      // Call onSuccess callback if provided, otherwise redirect
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        router.push(`/${locale}/ideas/${resultIdea.id}`)
+      }
     } catch (error) {
       console.error('Error creating idea:', error)
       setSubmitProgress('')
@@ -648,7 +807,7 @@ export function IdeaForm() {
       {/* Edit Mode Header */}
       <div className="sticky top-0 z-50 bg-background border-b border-border-color px-4 py-3 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-text-primary truncate flex-1 min-w-0 mr-4">
-          {t('form.create_idea')}
+          {ideaId ? t('form.edit_idea') : t('form.create_idea')}
         </h2>
         <button
           type="button"
@@ -708,14 +867,19 @@ export function IdeaForm() {
             <div className="text-center px-6 max-w-2xl z-10">
               {showImageUpload ? (
                 <div className="space-y-4">
-                  <label className="flex flex-col items-center gap-2 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-white transition-colors cursor-pointer">
+                  <label className={`flex flex-col items-center gap-2 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-white transition-colors ${isUploadingHeroImage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                    {isUploadingHeroImage ? (
+                      <Loader2 className="w-8 h-8 animate-spin" />
+                    ) : (
                     <Upload className="w-8 h-8" />
-                    <span>{t('form.upload_image')} (max 50MB)</span>
+                    )}
+                    <span>{isUploadingHeroImage ? t('status.loading') : `${t('form.upload_image')} (max 50MB)`}</span>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleImageUpload}
                       className="hidden"
+                      disabled={isUploadingHeroImage}
                     />
                   </label>
                   <div className="flex gap-2 justify-center">
@@ -744,14 +908,19 @@ export function IdeaForm() {
                 </div>
               ) : showVideoUpload ? (
                 <div className="space-y-4">
-                  <label className="flex flex-col items-center gap-2 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-white transition-colors cursor-pointer">
+                  <label className={`flex flex-col items-center gap-2 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-white transition-colors ${isUploadingHeroVideo ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                    {isUploadingHeroVideo ? (
+                      <Loader2 className="w-8 h-8 animate-spin" />
+                    ) : (
                     <Upload className="w-8 h-8" />
-                    <span>{t('form.upload_video')} (max 50MB)</span>
+                    )}
+                    <span>{isUploadingHeroVideo ? t('status.loading') : `${t('form.upload_video')} (max 50MB)`}</span>
                     <input
                       type="file"
                       accept="video/*"
                       onChange={handleVideoUpload}
                       className="hidden"
+                      disabled={isUploadingHeroVideo}
                     />
                   </label>
                   <div className="flex gap-2 justify-center">
@@ -928,25 +1097,113 @@ export function IdeaForm() {
           }}
         >
           {/* Space Selection */}
-          <div className="mb-8">
+          <div className="mb-8" ref={spaceDropdownRef}>
             <label
               htmlFor="space_id"
               className="text-sm font-medium text-text-secondary mb-2 block"
             >
               {t('form.space_label')} <span className="text-red-500">*</span>
             </label>
-            <select
+            <div className="relative">
+              {/* Hidden input for form validation */}
+              <input
+                type="hidden"
               {...register('space_id')}
               id="space_id"
-              className="w-full px-4 py-2 bg-background border border-border-color rounded-lg text-text-primary"
+              />
+              
+              {/* Custom Dropdown Button */}
+              <button
+                type="button"
+                onClick={() => setIsSpaceDropdownOpen(!isSpaceDropdownOpen)}
+                className="w-full px-4 py-2 bg-background border border-border-color rounded-lg text-text-primary text-left flex items-center justify-between hover:border-accent/30 transition-colors"
             >
-              <option value="">{t('form.select_space')}</option>
-              {spaces.map(space => (
-                <option key={space.id} value={space.id}>
+                <span className="truncate">
+                  {selectedSpaceId
+                    ? spaces.find(s => s.id === selectedSpaceId)?.name ||
+                      t('form.select_space')
+                    : t('form.select_space')}
+                </span>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform ${
+                    isSpaceDropdownOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isSpaceDropdownOpen && (
+                <div className="absolute z-50 w-full mt-2 bg-background border border-border-color rounded-lg shadow-lg max-h-96 overflow-hidden flex flex-col">
+                  {/* Search Bar */}
+                  <div className="p-3 border-b border-border-color">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                      <input
+                        type="text"
+                        placeholder={t('form.search_spaces') || 'Search spaces...'}
+                        value={spaceSearchQuery}
+                        onChange={e => setSpaceSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-background border border-border-color rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
+                        onClick={e => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Spaces List */}
+                  <div className="overflow-y-auto max-h-64 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    {spaces
+                      .filter(space =>
+                        space.name
+                          .toLowerCase()
+                          .includes(spaceSearchQuery.toLowerCase())
+                      )
+                      .map(space => {
+                        const VisibilityIcon =
+                          space.visibility === 'public' ? Globe : Lock
+                        const isSelected = selectedSpaceId === space.id
+
+                        return (
+                          <button
+                            key={space.id}
+                            type="button"
+                            onClick={() => {
+                              setValue('space_id', space.id)
+                              setIsSpaceDropdownOpen(false)
+                              setSpaceSearchQuery('')
+                            }}
+                            className={`w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-accent/10 transition-colors ${
+                              isSelected ? 'bg-accent/20' : ''
+                            }`}
+                          >
+                            <VisibilityIcon
+                              className={`w-4 h-4 flex-shrink-0 ${
+                                space.visibility === 'public'
+                                  ? 'text-green-500'
+                                  : 'text-gray-500'
+                              }`}
+                            />
+                            <span className="flex-1 truncate text-text-primary">
                   {space.name}
-                </option>
-              ))}
-            </select>
+                            </span>
+                            {isSelected && (
+                              <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                            )}
+                          </button>
+                        )
+                      })}
+                    {spaces.filter(space =>
+                      space.name
+                        .toLowerCase()
+                        .includes(spaceSearchQuery.toLowerCase())
+                    ).length === 0 && (
+                      <div className="px-4 py-8 text-center text-text-secondary">
+                        {t('form.no_spaces_found') || 'No spaces found'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             {errors.space_id && (
               <p className="mt-1 text-sm text-red-500">
                 {errors.space_id.message}

@@ -21,7 +21,7 @@ export function Button({
   const variantStyles = {
     primary: 'bg-accent text-text-primary hover:bg-accent/90 focus:ring-accent',
     secondary: 'bg-accent-alt text-text-primary hover:bg-accent-alt/90 focus:ring-accent-alt',
-    outline: 'border-2 border-text-primary text-text-primary hover:bg-text-primary hover:text-white focus:ring-text-primary',
+    outline: 'border-2 border-text-primary text-text-primary hover:bg-text-primary hover:text-black focus:ring-text-primary',
   }
   
   const sizeStyles = {
@@ -35,7 +35,7 @@ export function Button({
     <motion.button
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} inline-flex items-center justify-center gap-2 ${className}`}
       {...(props as any)}
     >
       {children}

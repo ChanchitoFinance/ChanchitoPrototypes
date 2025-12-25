@@ -13,7 +13,7 @@ export interface EnterpriseSpace {
   id: string
   team_id: string
   name: string
-  visibility: 'public' | 'invite_only' | 'private'
+  visibility: 'public' | 'private'
   settings?: any
   created_at: string
   updated_at: string
@@ -37,19 +37,28 @@ export interface SpaceMembership {
   created_at: string
 }
 
+export interface SpaceWithTeam extends EnterpriseSpace {
+  team?: Team
+  member_count?: number
+  idea_count?: number
+}
+
 export interface ITeamService {
   createTeam(
-    team: Omit<Team, 'id' | 'created_at' | 'updated_at'>
+    team: Omit<Team, 'id' | 'created_at' | 'updated_at'>,
+    creatorUserId?: string
   ): Promise<Team>
   getTeams(): Promise<Team[]>
   getTeamById(id: string): Promise<Team | null>
+  getUserTeams(userId: string): Promise<Team[]>
   updateTeam(id: string, updates: Partial<Team>): Promise<Team>
 
   createSpace(
     space: Omit<EnterpriseSpace, 'id' | 'created_at' | 'updated_at'>
   ): Promise<EnterpriseSpace>
   getSpaces(teamId?: string): Promise<EnterpriseSpace[]>
-  getSpaceById(id: string): Promise<EnterpriseSpace | null>
+  getVisibleSpaces(userId?: string): Promise<SpaceWithTeam[]>
+  getSpaceById(id: string): Promise<SpaceWithTeam | null>
   updateSpace(
     id: string,
     updates: Partial<EnterpriseSpace>
@@ -66,6 +75,7 @@ export interface ITeamService {
     userId: string,
     updates: Partial<TeamMembership>
   ): Promise<TeamMembership>
+  generateTeamInviteLink(teamId: string): string
 
   addSpaceMember(
     spaceId: string,
@@ -78,20 +88,37 @@ export interface ITeamService {
     userId: string,
     updates: Partial<SpaceMembership>
   ): Promise<SpaceMembership>
+  getUserSpaceRole(spaceId: string, userId: string): Promise<SpaceMembership['role'] | null>
+  isSpaceAdmin(spaceId: string, userId: string): Promise<boolean>
 }
 
 class SupabaseTeamService implements ITeamService {
   async createTeam(
-    team: Omit<Team, 'id' | 'created_at' | 'updated_at'>
+    team: Omit<Team, 'id' | 'created_at' | 'updated_at'>,
+    creatorUserId?: string
   ): Promise<Team> {
-    const { data, error } = await supabase
+    const { data: teamData, error: insertError } = await supabase
       .from('teams')
       .insert(team)
       .select()
       .single()
 
-    if (error) throw error
-    return data
+    if (insertError) throw insertError
+
+    if (creatorUserId) {
+      try {
+        await this.addTeamMember(teamData.id, creatorUserId, 'admin')
+      } catch (membershipError: any) {
+        if (membershipError?.code === '42501') {
+          throw new Error(
+            'RLS policy missing: Please run the SQL in sql/add_team_membership_rls.sql in your Supabase SQL editor to allow users to add themselves to teams.'
+          )
+        }
+        throw membershipError
+      }
+    }
+
+    return teamData
   }
 
   async getTeams(): Promise<Team[]> {
@@ -113,6 +140,28 @@ class SupabaseTeamService implements ITeamService {
 
     if (error) return null
     return data
+  }
+
+  async getUserTeams(userId: string): Promise<Team[]> {
+    const { data, error } = await supabase
+      .from('team_memberships')
+      .select(
+        `
+        teams!team_memberships_team_id_fkey (
+          id,
+          name,
+          description,
+          avatar_media_id,
+          created_at,
+          updated_at
+        )
+      `
+      )
+      .eq('user_id', userId)
+      .eq('status', 'active')
+
+    if (error) throw error
+    return data?.map((item: any) => item.teams).filter(Boolean) || []
   }
 
   async updateTeam(id: string, updates: Partial<Team>): Promise<Team> {
@@ -155,15 +204,134 @@ class SupabaseTeamService implements ITeamService {
     return data || []
   }
 
-  async getSpaceById(id: string): Promise<EnterpriseSpace | null> {
+  async getVisibleSpaces(userId?: string): Promise<SpaceWithTeam[]> {
+    // Get public spaces
+    const { data: publicSpaces, error: publicError } = await supabase
+      .from('enterprise_spaces')
+      .select(
+        `
+        *,
+        teams!enterprise_spaces_team_id_fkey (
+          id,
+          name,
+          description,
+          avatar_media_id
+        )
+      `
+      )
+      .eq('visibility', 'public')
+      .order('created_at', { ascending: false })
+
+    if (publicError) throw publicError
+
+    // Get spaces user is member of (if userId provided)
+    let userSpaces: SpaceWithTeam[] = []
+    if (userId) {
+      const { data: memberships, error: membershipError } = await supabase
+        .from('space_memberships')
+        .select(
+          `
+          enterprise_spaces!space_memberships_space_id_fkey (
+            *,
+            teams!enterprise_spaces_team_id_fkey (
+              id,
+              name,
+              description,
+              avatar_media_id
+            )
+          )
+        `
+        )
+        .eq('user_id', userId)
+        .eq('status', 'active')
+
+      if (!membershipError && memberships) {
+        userSpaces =
+          memberships
+            ?.map((m: any) => m.enterprise_spaces)
+            .filter(Boolean)
+            .map((space: any) => ({
+              ...space,
+              team: space.teams,
+            })) || []
+      }
+    }
+
+    // Combine and deduplicate
+    const allSpaces = [...(publicSpaces || []), ...userSpaces]
+    const uniqueSpaces = Array.from(
+      new Map(allSpaces.map(space => [space.id, space])).values()
+    )
+
+    // Get member and idea counts for each space
+    const spacesWithCounts = await Promise.all(
+      uniqueSpaces.map(async space => {
+        const [memberCount, ideaCount] = await Promise.all([
+          supabase
+            .from('space_memberships')
+            .select('id', { count: 'exact', head: true })
+            .eq('space_id', space.id)
+            .eq('status', 'active')
+            .then(({ count }) => count || 0),
+          supabase
+            .from('ideas')
+            .select('id', { count: 'exact', head: true })
+            .eq('space_id', space.id)
+            .then(({ count }) => count || 0),
+        ])
+
+        return {
+          ...space,
+          team: space.teams || space.team,
+          member_count: memberCount,
+          idea_count: ideaCount,
+        }
+      })
+    )
+
+    return spacesWithCounts
+  }
+
+  async getSpaceById(id: string): Promise<SpaceWithTeam | null> {
     const { data, error } = await supabase
       .from('enterprise_spaces')
-      .select('*')
+      .select(
+        `
+        *,
+        teams!enterprise_spaces_team_id_fkey (
+          id,
+          name,
+          description,
+          avatar_media_id
+        )
+      `
+      )
       .eq('id', id)
       .single()
 
     if (error) return null
-    return data
+
+    // Get counts
+    const [memberCount, ideaCount] = await Promise.all([
+      supabase
+        .from('space_memberships')
+        .select('id', { count: 'exact', head: true })
+        .eq('space_id', id)
+        .eq('status', 'active')
+        .then(({ count }) => count || 0),
+      supabase
+        .from('ideas')
+        .select('id', { count: 'exact', head: true })
+        .eq('space_id', id)
+        .then(({ count }) => count || 0),
+    ])
+
+    return {
+      ...data,
+      team: data.teams,
+      member_count: memberCount,
+      idea_count: ideaCount,
+    }
   }
 
   async updateSpace(
@@ -291,6 +459,33 @@ class SupabaseTeamService implements ITeamService {
 
     if (error) throw error
     return data
+  }
+
+  async getUserSpaceRole(
+    spaceId: string,
+    userId: string
+  ): Promise<SpaceMembership['role'] | null> {
+    const { data, error } = await supabase
+      .from('space_memberships')
+      .select('role')
+      .eq('space_id', spaceId)
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .maybeSingle()
+
+    if (error || !data) return null
+    return data.role
+  }
+
+  async isSpaceAdmin(spaceId: string, userId: string): Promise<boolean> {
+    const role = await this.getUserSpaceRole(spaceId, userId)
+    return role === 'admin' || role === 'moderator'
+  }
+
+  generateTeamInviteLink(teamId: string): string {
+    if (typeof window === 'undefined') return ''
+    const baseUrl = window.location.origin
+    return `${baseUrl}/teams/${teamId}/join`
   }
 }
 

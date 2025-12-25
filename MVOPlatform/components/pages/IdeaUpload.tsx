@@ -58,7 +58,7 @@ export function IdeaUpload() {
     <div className="h-screen w-full overflow-hidden bg-background flex">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <IdeaForm />
           <Footer />
         </main>
