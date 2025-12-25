@@ -35,7 +35,7 @@ export function Button({
     <motion.button
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} inline-flex items-center justify-center gap-2 ${className}`}
       {...(props as any)}
     >
       {children}

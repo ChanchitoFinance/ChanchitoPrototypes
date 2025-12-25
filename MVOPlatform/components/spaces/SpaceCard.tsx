@@ -61,7 +61,8 @@ export function SpaceCard({ space }: SpaceCardProps) {
                 loop
                 muted
                 playsInline
-                preload="metadata"
+                autoPlay
+                preload="auto"
               />
             ) : space.settings?.space_image ? (
               <Image

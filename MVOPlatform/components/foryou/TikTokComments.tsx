@@ -498,7 +498,7 @@ export function TikTokComments({
             {/* Comments List */}
             <div
               ref={commentsListRef}
-              className="flex-1 overflow-y-auto px-4 py-2 scrollbar-hide"
+              className="flex-1 overflow-y-auto px-4 py-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
               onTouchStart={e => {
                 // Prevent drag when scrolling in comments list
                 e.stopPropagation()

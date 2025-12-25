@@ -45,7 +45,7 @@ export function SpacesPage() {
       <div className="h-screen w-full overflow-hidden bg-background flex">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <SpaceForm onSuccess={handleSpaceCreated} onCancel={() => setShowCreateForm(false)} />
             <Footer />
           </main>
@@ -58,7 +58,7 @@ export function SpacesPage() {
     <div className="h-screen w-full overflow-hidden bg-background flex">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto flex flex-col">
+        <main className="flex-1 overflow-y-auto flex flex-col [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="flex-1">
             <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
               {/* Header */}
@@ -76,23 +76,27 @@ export function SpacesPage() {
                     onClick={() => setShowCreateForm(true)}
                     variant="primary"
                   >
-                    <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="w-4 h-4" />
                     {t('spaces.create_space')}
                   </Button>
                 )}
               </div>
 
-              {/* Spaces Grid */}
+              {/* Spaces Grid - Masonry Layout */}
               {loading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
+                <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 pb-8">
                   {[1, 2, 3, 4, 5, 6].map(i => (
-                    <SpaceCardSkeleton key={`skeleton-${i}`} />
+                    <div key={`skeleton-${i}`} className="break-inside-avoid mb-6">
+                      <SpaceCardSkeleton />
+                    </div>
                   ))}
                 </div>
               ) : spaces.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
+                <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 pb-8">
                   {spaces.map(space => (
-                    <SpaceCard key={space.id} space={space} />
+                    <div key={space.id} className="break-inside-avoid mb-6">
+                      <SpaceCard space={space} />
+                    </div>
                   ))}
                 </div>
               ) : null}

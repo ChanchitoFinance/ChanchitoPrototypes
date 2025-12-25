@@ -25,7 +25,8 @@ import { ContentRenderer } from './ContentRenderer'
 import { IdeaDetailSkeleton } from '@/components/ui/Skeleton'
 import { useAppSelector, useAppDispatch } from '@/lib/hooks'
 import { getCardMedia } from '@/lib/utils/media'
-import { useTranslations } from '@/components/providers/I18nProvider'
+import { useTranslations, useLocale } from '@/components/providers/I18nProvider'
+import { Button } from '@/components/ui/Button'
 
 interface IdeaDetailProps {
   ideaId: string
@@ -33,6 +34,7 @@ interface IdeaDetailProps {
 
 export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   const t = useTranslations()
+  const { locale } = useLocale()
   const [idea, setIdea] = useState<Idea | null>(null)
   const [loading, setLoading] = useState(true)
   const [commentCount, setCommentCount] = useState(0)
@@ -47,7 +49,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
 
   const handleBack = () => {
     // Get the previous path from sessionStorage (set when navigating to idea)
-    const previousPath = sessionStorage.getItem('previousPath') || '/'
+    const previousPath = sessionStorage.getItem('previousPath') || `/${locale}`
     const scrollPosition = sessionStorage.getItem('previousScrollPosition')
 
     // Save scroll position to localStorage before navigating
@@ -90,11 +92,15 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     loadIdea()
   }, [ideaId, isAuthenticated])
 
-  const cardMedia = idea ? getCardMedia(idea) : {}
+  // Use only hero media (image/video fields) for hero section, not content blocks
+  const heroMedia = idea ? {
+    video: idea.video,
+    image: idea.image,
+  } : {}
 
   // Use video player hook - auto-play when in viewport
   const videoPlayerRef = useVideoPlayer({
-    videoSrc: cardMedia.video,
+    videoSrc: heroMedia.video,
     containerRef: containerRef,
     startTime: 35,
     threshold: 0.1, // Start playing when 10% visible
@@ -152,15 +158,27 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Back Button - Top Left, next to sidebar - fixed on scroll */}
+      <div className="fixed top-4 left-20 md:left-[272px] z-50">
+        <Button
+          onClick={handleBack}
+          variant="outline"
+          className="flex items-center gap-2 bg-background/90 backdrop-blur-sm shadow-lg"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {t('actions.back')}
+        </Button>
+      </div>
+
       {/* Hero Section - Main content at the top */}
       <div className="relative w-full bg-black">
         {/* Media Section */}
-        {cardMedia.video ? (
+        {heroMedia.video ? (
           <div ref={containerRef} className="relative w-full aspect-video">
             <video
               ref={videoPlayerRef}
-              src={cardMedia.video}
+              src={heroMedia.video}
               className="w-full h-full object-cover pointer-events-none"
               loop
               muted
@@ -183,10 +201,10 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
               style={{ pointerEvents: 'none' }}
             />
           </div>
-        ) : cardMedia.image ? (
+        ) : heroMedia.image ? (
           <div className="relative w-full aspect-video">
             <Image
-              src={cardMedia.image}
+              src={heroMedia.image}
               alt={idea.title}
               fill
               className="object-cover"
@@ -269,55 +287,30 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           onCommentsClick={handleCommentsClick}
         />
 
-        {/* Description */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="prose prose-invert max-w-none mb-12"
-        >
-          <div
-            className="text-body-large text-text-secondary leading-relaxed whitespace-pre-line break-words"
-            style={{
-              overflowWrap: 'break-word',
-              wordBreak: 'break-word',
-              maxWidth: '100%',
-            }}
-          >
-            {idea.description}
-          </div>
-        </motion.div>
+        {/* Rich Content - filter out hero media if it's the first block */}
+        {idea.content && idea.content.length > 0 && (() => {
+          // Filter out first block if it's the same as hero media
+          const filteredContent = idea.content.filter((block, index) => {
+            if (index === 0) {
+              // Skip first block if it matches hero media
+              if (block.type === 'video' && block.src === idea.video) return false
+              if (block.type === 'image' && block.src === idea.image) return false
+            }
+            return true
+          })
+          
+          return filteredContent.length > 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="mb-12"
+            >
+              <ContentRenderer content={filteredContent} />
+            </motion.div>
+          ) : null
+        })()}
 
-        {/* Rich Content */}
-        {idea.content && idea.content.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mb-12"
-          >
-            <ContentRenderer content={idea.content} />
-          </motion.div>
-        )}
-
-        {/* Additional Images Section - Show image if there's a video being displayed and an image is available */}
-        {cardMedia.video && idea.image && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-12"
-          >
-            <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-              <Image
-                src={idea.image}
-                alt={idea.title}
-                fill
-                className="object-cover"
-              />
-            </div>
-          </motion.div>
-        )}
 
         {/* Comments Section */}
         <motion.div

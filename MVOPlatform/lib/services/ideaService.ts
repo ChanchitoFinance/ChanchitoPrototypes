@@ -67,6 +67,16 @@ export interface IIdeaService {
   createIdea(idea: Omit<Idea, 'id'>, spaceId: string): Promise<Idea>
 
   /**
+   * Update an existing idea
+   */
+  updateIdea(ideaId: string, updates: Partial<Idea>): Promise<Idea>
+
+  /**
+   * Delete an idea
+   */
+  deleteIdea(ideaId: string): Promise<boolean>
+
+  /**
    * Get available spaces for idea creation
    */
   getSpaces(): Promise<Array<{ id: string; name: string; team_id: string }>>
@@ -338,7 +348,7 @@ class SupabaseIdeaService implements IIdeaService {
     limit?: number,
     offset = 0
   ): Promise<Idea[]> {
-    const { data, error } = await supabase
+    let query = supabase
       .from('ideas')
       .select(
         `
@@ -367,9 +377,17 @@ class SupabaseIdeaService implements IIdeaService {
       )
       .eq('space_id', spaceId)
       .order('created_at', { ascending: false })
-      .range(offset, limit ? offset + limit - 1 : undefined)
 
-    if (error) throw error
+    if (limit) {
+      query = query.range(offset, offset + limit - 1)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching ideas by space:', error)
+      throw error
+    }
 
     return data?.map(this.mapDbIdeaToIdea) || []
   }
@@ -544,20 +562,61 @@ class SupabaseIdeaService implements IIdeaService {
     const author =
       dbIdea.users?.username || dbIdea.users?.full_name || 'Anonymous'
 
-    const content = dbIdea.content as ContentBlock[] | undefined
+    // Handle both old format (array) and new format (object with blocks)
+    let contentBlocks: ContentBlock[] | undefined
+    let heroImage: string | undefined
+    let heroVideo: string | undefined
+    let description: string | undefined
 
+    if (Array.isArray(dbIdea.content)) {
+      // Old format: content is directly an array of blocks
+      contentBlocks = dbIdea.content as ContentBlock[]
+    } else if (dbIdea.content && typeof dbIdea.content === 'object') {
+      // New format: content is an object with blocks, hero_image, hero_video, description
+      contentBlocks = dbIdea.content.blocks as ContentBlock[] | undefined
+      heroImage = dbIdea.content.hero_image
+      heroVideo = dbIdea.content.hero_video
+      description = dbIdea.content.description
+    }
+
+    // Backward compatibility: extract from first block if hero media not in metadata
+    if (!heroImage && !heroVideo && contentBlocks && contentBlocks.length > 0) {
+      const firstBlock = contentBlocks[0]
+      if (firstBlock.type === 'video') {
+        heroVideo = firstBlock.src
+      } else if (firstBlock.type === 'image') {
+        heroImage = firstBlock.src
+      }
+    }
+
+    // Backward compatibility: extract description from first text block if not in metadata
+    if (!description && contentBlocks) {
+      const firstTextBlock = contentBlocks.find(block => block.type === 'text')
+      description = firstTextBlock?.content || ''
+    }
+
+    // Backward compatibility: check other blocks for media (for old data)
     const video =
-      content?.find(block => block.type === 'video')?.src ||
-      content
+      heroVideo ||
+      contentBlocks?.find(block => block.type === 'video')?.src ||
+      contentBlocks
         ?.find(block => block.type === 'carousel')
         ?.slides?.find(slide => slide.video)?.video
 
     const commentCount = dbIdea.comments?.length || 0
 
+    // Backward compatibility: extract image from blocks (for old data)
+    const image = 
+      heroImage ||
+      contentBlocks?.find(block => block.type === 'image')?.src ||
+      contentBlocks
+        ?.find(block => block.type === 'carousel')
+        ?.slides?.find(slide => slide.image)?.image
+
     return {
       id: dbIdea.id,
       title: dbIdea.title,
-      description: content?.find(block => block.type === 'text')?.content || '',
+      description: description || '',
       author,
       score,
       votes: totalVotes,
@@ -565,8 +624,9 @@ class SupabaseIdeaService implements IIdeaService {
       commentCount,
       tags,
       createdAt: dbIdea.created_at,
-      video,
-      content,
+      image: image,
+      video: video,
+      content: contentBlocks, // Only content blocks, hero media is stored separately
       status_flag: dbIdea.status_flag,
       anonymous: dbIdea.anonymous || false,
     }
@@ -578,13 +638,29 @@ class SupabaseIdeaService implements IIdeaService {
     } = await supabase.auth.getUser()
     if (!user) throw new Error('User not authenticated')
 
+    // Prepare content with hero media metadata
+    const contentWithMetadata = ideaData.content || []
+    
+    // Store hero media in content metadata (first element if it's image/video, or add metadata)
+    let finalContent = contentWithMetadata
+    if (ideaData.image || ideaData.video) {
+      // Add hero media as metadata in content structure
+      // We'll store it separately but also ensure it's accessible
+      finalContent = contentWithMetadata
+    }
+
     const { data, error } = await supabase
       .from('ideas')
       .insert({
         space_id: spaceId,
         creator_id: user.id,
         title: ideaData.title,
-        content: ideaData.content,
+        content: {
+          blocks: finalContent,
+          hero_image: ideaData.image,
+          hero_video: ideaData.video,
+          description: ideaData.description,
+        },
         status_flag: ideaData.status_flag || 'new',
         anonymous: ideaData.anonymous || false,
       })
@@ -626,6 +702,93 @@ class SupabaseIdeaService implements IIdeaService {
     })
   }
 
+  async updateIdea(ideaId: string, updates: Partial<Idea>): Promise<Idea> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    // Build update object
+    const updateData: any = {}
+    if (updates.title !== undefined) updateData.title = updates.title
+    if (updates.status_flag !== undefined) updateData.status_flag = updates.status_flag
+    if (updates.anonymous !== undefined) updateData.anonymous = updates.anonymous
+    
+    // Handle content update with hero media
+    if (updates.content !== undefined || updates.image !== undefined || updates.video !== undefined || updates.description !== undefined) {
+      // Get current idea to merge content
+      const currentIdea = await this.getIdeaById(ideaId)
+      const currentContent = currentIdea?.content || []
+      
+      updateData.content = {
+        blocks: updates.content || currentContent,
+        hero_image: updates.image !== undefined ? updates.image : currentIdea?.image,
+        hero_video: updates.video !== undefined ? updates.video : currentIdea?.video,
+        description: updates.description !== undefined ? updates.description : currentIdea?.description,
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('ideas')
+      .update(updateData)
+      .eq('id', ideaId)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    // Update tags if provided
+    if (updates.tags && updates.tags.length >= 0) {
+      // Delete existing tags
+      await supabase.from('idea_tags').delete().eq('idea_id', ideaId)
+
+      // Add new tags
+      if (updates.tags.length > 0) {
+        for (const tagName of updates.tags) {
+          let { data: tag } = await supabase
+            .from('tags')
+            .select('id')
+            .eq('name', tagName)
+            .maybeSingle()
+
+          if (!tag) {
+            const { data: newTag, error: tagError } = await supabase
+              .from('tags')
+              .insert({ name: tagName })
+              .select('id')
+              .single()
+
+            if (tagError) throw tagError
+            tag = newTag
+          }
+
+          await supabase.from('idea_tags').insert({
+            idea_id: ideaId,
+            tag_id: tag.id,
+          })
+        }
+      }
+    }
+
+    return this.getIdeaById(ideaId).then(idea => {
+      if (!idea) throw new Error('Idea not found after update')
+      return idea
+    })
+  }
+
+  async deleteIdea(ideaId: string): Promise<boolean> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    // Delete idea (cascade will handle related records)
+    const { error } = await supabase.from('ideas').delete().eq('id', ideaId)
+
+    if (error) throw error
+    return true
+  }
+
   async getSpaces(): Promise<
     Array<{ id: string; name: string; team_id: string }>
   > {
@@ -635,18 +798,18 @@ class SupabaseIdeaService implements IIdeaService {
 
     if (!user) {
       // If not authenticated, return only public spaces
-      const { data, error } = await supabase
-        .from('enterprise_spaces')
-        .select('id, name, team_id')
+    const { data, error } = await supabase
+      .from('enterprise_spaces')
+      .select('id, name, team_id')
         .eq('visibility', 'public')
-        .order('name')
+      .order('name')
 
-      if (error) {
-        console.error('Error fetching spaces:', error)
-        throw error
-      }
+    if (error) {
+      console.error('Error fetching spaces:', error)
+      throw error
+    }
 
-      return data || []
+    return data || []
     }
 
     // Get public spaces
