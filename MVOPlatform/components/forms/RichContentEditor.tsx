@@ -472,6 +472,68 @@ function BlockEditor({
       onUpdate({ text })
     }
   }
+
+  /**
+   * Validates media URL to ensure it's safe and performant
+   * Blocks: base64, blob URLs, local file paths
+   * Allows: HTTPS CDN URLs, YouTube/Vimeo embeds
+   */
+  const validateMediaUrl = (url: string, type: 'image' | 'video'): { valid: boolean; error?: string } => {
+    // Block base64 data URIs
+    if (url.startsWith('data:')) {
+      return {
+        valid: false,
+        error: '⚠️ Base64 data URIs cause severe performance issues!\n\nPlease use the "Upload" button to upload files to CDN.\n\nThis ensures fast loading and better user experience.'
+      }
+    }
+
+    // Block blob URLs (temporary browser URLs)
+    if (url.startsWith('blob:')) {
+      return {
+        valid: false,
+        error: '⚠️ Blob URLs are temporary and won\'t work after page reload!\n\nPlease use the "Upload" button to permanently store your file.'
+      }
+    }
+
+    // Block local file paths
+    if (url.startsWith('file://') || url.match(/^[A-Za-z]:\\/)) {
+      return {
+        valid: false,
+        error: '⚠️ Local file paths don\'t work for other users!\n\nPlease use the "Upload" button to upload the file to CDN.'
+      }
+    }
+
+    // Must be a valid URL
+    try {
+      const urlObj = new URL(url)
+      
+      // For production, enforce HTTPS (allow HTTP only for localhost/development)
+      if (urlObj.protocol !== 'https:' && urlObj.protocol !== 'http:') {
+        return {
+          valid: false,
+          error: '⚠️ Invalid URL protocol.\n\nPlease use HTTPS URLs or upload the file directly.'
+        }
+      }
+
+      // Warn about non-HTTPS in production (but allow it)
+      if (urlObj.protocol === 'http:' && !urlObj.hostname.includes('localhost') && !urlObj.hostname.includes('127.0.0.1')) {
+        const proceed = confirm(
+          '⚠️ Warning: HTTP URLs are not secure.\n\nFor better security and performance, consider using HTTPS URLs or uploading the file to CDN.\n\nDo you want to proceed anyway?'
+        )
+        if (!proceed) {
+          return { valid: false }
+        }
+      }
+
+      return { valid: true }
+    } catch (e) {
+      return {
+        valid: false,
+        error: '⚠️ Invalid URL format.\n\nPlease enter a valid URL or use the "Upload" button.'
+      }
+    }
+  }
+
   const uploadFile = async (
     file: File,
     folder: string = 'content'
@@ -798,8 +860,17 @@ function BlockEditor({
               <button
                 type="button"
                 onClick={() => {
-                  if (urlInputValue.trim()) {
-                    onUpdate({ src: urlInputValue.trim() })
+                  const url = urlInputValue.trim()
+                  if (url) {
+                    // Validate URL
+                    const validation = validateMediaUrl(url, showUrlModal!)
+                    if (!validation.valid) {
+                      if (validation.error) {
+                        alert(validation.error)
+                      }
+                      return
+                    }
+                    onUpdate({ src: url })
                     setShowUrlModal(null)
                     setUrlInputValue('')
                   }
@@ -1002,6 +1073,12 @@ function BlockEditor({
                   <button
                     type="button"
                     onClick={() => {
+                      // Validate current URL - if invalid, suggest re-uploading
+                      const validation = validateMediaUrl(block.src, 'image')
+                      if (!validation.valid) {
+                        alert('⚠️ This image uses an invalid or inefficient format.\n\nPlease upload a new image using the "Upload New" button instead.')
+                        return
+                      }
                       setShowUrlModal('image')
                       setUrlInputValue(block.src)
                     }}
@@ -1151,6 +1228,12 @@ function BlockEditor({
                   <button
                     type="button"
                     onClick={() => {
+                      // Validate current URL - if invalid, suggest re-uploading
+                      const validation = validateMediaUrl(block.src, 'video')
+                      if (!validation.valid) {
+                        alert('⚠️ This video uses an invalid or inefficient format.\n\nPlease upload a new video using the "Upload New" button instead.')
+                        return
+                      }
                       setShowUrlModal('video')
                       setUrlInputValue(block.src)
                     }}

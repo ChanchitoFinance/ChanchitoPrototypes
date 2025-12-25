@@ -142,6 +142,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
               muted
               playsInline
               autoPlay
+              preload="metadata"
               onPause={e => {
                 // Prevent pausing - immediately resume playback
                 e.preventDefault()

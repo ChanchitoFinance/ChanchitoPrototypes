@@ -213,6 +213,7 @@ function VideoBlock({ video, index }: { video: VideoContent; index: number }) {
           }}
           controls
           playsInline
+          preload="metadata"
         />
       </div>
       {video.description && (
@@ -356,6 +357,7 @@ function VideoSlide({ src }: { src: string }) {
         controls
         loop
         playsInline
+        preload="metadata"
         style={{ zIndex: 2 }}
       />
     </div>

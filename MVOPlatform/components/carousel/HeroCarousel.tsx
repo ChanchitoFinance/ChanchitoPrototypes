@@ -104,6 +104,7 @@ function CarouselVideoItem({
         loop
         muted
         playsInline
+        preload="metadata"
       />
       <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 via-black/40 to-transparent" />
     </div>
