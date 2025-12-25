@@ -268,7 +268,50 @@ class SupabaseIdeaService implements IIdeaService {
   }
 
   async getTrendingIdeas(limit = 5): Promise<Idea[]> {
-    return this.getFeaturedIdeas(limit)
+    const { data, error } = await supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        status_flag,
+        content,
+        created_at,
+        anonymous,
+        users!ideas_creator_id_fkey (
+          username,
+          full_name,
+          email
+        ),
+        idea_votes (
+          vote_type
+        ),
+        idea_tags (
+          tags (
+            name
+          )
+        ),
+        comments!left (
+          id
+        )
+      `
+      )
+      .neq('status_flag', 'validated')
+      .order('created_at', { ascending: false })
+      .limit(limit * 10) // Fetch more to filter later
+
+    if (error) throw error
+
+    const ideas = data?.map(this.mapDbIdeaToIdea) || []
+
+    // Filter ideas with at least one video or image
+    const ideasWithMedia = ideas.filter(idea => idea.video || idea.image)
+
+    // Sort by total votes (descending)
+    const sortedIdeas = ideasWithMedia.sort((a, b) => b.votes - a.votes)
+
+    // Return top ideas up to the limit
+    return sortedIdeas.slice(0, limit)
   }
 
   async getNewIdeas(limit = 2): Promise<Idea[]> {

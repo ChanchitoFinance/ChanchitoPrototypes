@@ -50,7 +50,7 @@ export default function ActivityPage() {
 
   if (!initialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background ml-64">
         <div className="text-center space-y-4 max-w-md mx-auto p-6">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
             <div className="w-8 h-8 border-4 border-gray-300 border-t-accent rounded-full animate-spin"></div>
@@ -71,7 +71,7 @@ export default function ActivityPage() {
       <div className="h-screen w-full overflow-hidden bg-background flex">
         <Sidebar />
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto ml-64">
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="mb-8">
               <div className="flex items-center gap-4 mb-6">
@@ -733,7 +733,7 @@ export default function ActivityPage() {
     <div className="h-screen w-full overflow-hidden bg-background flex">
       <Sidebar />
 
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto ml-64">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="mb-8">
             <div className="flex items-center gap-4 mb-6">

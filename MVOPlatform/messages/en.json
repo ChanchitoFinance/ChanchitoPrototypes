@@ -117,7 +117,7 @@
       },
       "charts": {
         "votes_distribution": "Votes Distribution",
-        "ideas_performance": "Ideas Performance",
+        "ideas_performance": "Idea Performance",
         "interaction_timeline": "Interaction Timeline",
         "top_performing_ideas": "Top Performing Ideas",
         "vote_types_breakdown": "Vote Types Breakdown",

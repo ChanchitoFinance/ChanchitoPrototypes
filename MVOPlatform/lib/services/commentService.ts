@@ -67,10 +67,7 @@ class SupabaseCommentService implements ICommentService {
         public_user_profiles!comments_user_id_fkey (
           username,
           full_name,
-          profile_media_id,
-          media_assets (
-            url
-          )
+          profile_image_url
         ),
         comment_votes (
           reaction_type
@@ -131,10 +128,7 @@ class SupabaseCommentService implements ICommentService {
         public_user_profiles!comments_user_id_fkey (
           username,
           full_name,
-          profile_media_id,
-          media_assets (
-            url
-          )
+          profile_image_url
         )
       `
       )
@@ -291,10 +285,7 @@ class SupabaseCommentService implements ICommentService {
         public_user_profiles!comments_user_id_fkey (
           username,
           full_name,
-          profile_media_id,
-          media_assets (
-            url
-          )
+          profile_image_url
         ),
         comment_votes (
           reaction_type
@@ -351,7 +342,7 @@ class SupabaseCommentService implements ICommentService {
         dbComment.public_user_profiles?.username ||
         dbComment.public_user_profiles?.full_name ||
         'Anonymous',
-      authorImage: dbComment.public_user_profiles?.media_assets?.url,
+      authorImage: dbComment.public_user_profiles?.profile_image_url,
       content: dbComment.content,
       createdAt: dbComment.created_at,
       upvotes,

@@ -39,11 +39,6 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Public user profiles view (safe fields only)
-CREATE VIEW public_user_profiles AS
-  SELECT id, username, full_name, profile_media_id
-  FROM users;
-
 -- Media Assets
 CREATE TABLE media_assets (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -52,6 +47,20 @@ CREATE TABLE media_assets (
   metadata JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add foreign key constraint after both tables are created
+ALTER TABLE users ADD CONSTRAINT fk_users_profile_media_id FOREIGN KEY (profile_media_id) REFERENCES media_assets(id);
+
+-- Public user profiles view (safe fields only) - moved after media_assets table creation
+CREATE VIEW public_user_profiles AS
+  SELECT
+    u.id,
+    u.username,
+    u.full_name,
+    u.profile_media_id,
+    m.url as profile_image_url
+  FROM users u
+  LEFT JOIN media_assets m ON u.profile_media_id = m.id;
 
 -- Teams
 CREATE TABLE teams (
@@ -164,6 +173,7 @@ CREATE TABLE ideas (
   title VARCHAR(255) NOT NULL,
   status_flag idea_status_flag NOT NULL DEFAULT 'new',
   pivot_state pivot_state NOT NULL DEFAULT 'stable',
+  anonymous BOOLEAN NOT NULL DEFAULT FALSE,
   content JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -450,6 +460,15 @@ DROP POLICY IF EXISTS "Users can view their own profile" ON users;
 CREATE POLICY "Users can view their own profile" ON users
   FOR SELECT USING (auth.uid() = id);
 
+-- Allow viewing user profiles for non-anonymous idea creators
+CREATE POLICY "Public read user profiles for idea creators" ON users
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM ideas
+      WHERE ideas.creator_id = users.id
+      AND ideas.anonymous = false
+    )
+  );
 
 DROP POLICY IF EXISTS "Users can update their own profile" ON users;
 CREATE POLICY "Users can update their own profile" ON users

@@ -10,6 +10,7 @@ import { useTranslations, useLocale } from '@/components/providers/I18nProvider'
 import Link from 'next/link'
 import { useVideoPlayer } from '@/hooks/useVideoPlayer'
 import { CarouselItemSkeleton } from '@/components/ui/Skeleton'
+import { getCardMedia } from '@/lib/utils/media'
 
 interface HeroCarouselProps {
   ideas?: Idea[]
@@ -81,25 +82,25 @@ function VideoThumbnail({
 
 // Internal component for carousel video item
 function CarouselVideoItem({
-  idea,
+  videoSrc,
   isActive,
 }: {
-  idea: Idea
+  videoSrc: string
   isActive: boolean
 }) {
   const videoRef = useVideoPlayer({
-    videoSrc: idea.video,
+    videoSrc,
     isActive,
     startTime: 10,
   })
 
-  if (!idea.video) return null
+  if (!videoSrc) return null
 
   return (
     <div className="relative w-full h-full">
       <video
         ref={videoRef}
-        src={idea.video}
+        src={videoSrc}
         className="w-full h-full object-cover"
         loop
         muted
@@ -251,182 +252,191 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
             }
           }}
         >
-          {ideas.map((idea, index) => (
-            <div
-              key={idea.id}
-              className="min-w-full h-full relative flex-shrink-0 snap-start"
-            >
-              {/* Background Image/Video */}
-              <div className="absolute inset-0">
-                {idea.video ? (
-                  <CarouselVideoItem
-                    idea={idea}
-                    isActive={index === activeIndex}
-                  />
-                ) : idea.image ? (
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={idea.image}
-                      alt={idea.title}
-                      fill
-                      className="object-cover"
-                      priority={index === activeIndex}
+          {ideas.map((idea, index) => {
+            const cardMedia = getCardMedia(idea)
+            return (
+              <div
+                key={idea.id}
+                className="min-w-full h-full relative flex-shrink-0 snap-start"
+              >
+                {/* Background Image/Video */}
+                <div className="absolute inset-0">
+                  {cardMedia.video ? (
+                    <CarouselVideoItem
+                      videoSrc={cardMedia.video}
+                      isActive={index === activeIndex}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 via-black/40 to-transparent" />
-                  </div>
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-gray-900 to-black" />
-                )}
-              </div>
+                  ) : cardMedia.image ? (
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={cardMedia.image}
+                        alt={idea.title}
+                        fill
+                        className="object-cover"
+                        priority={index === activeIndex}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 via-black/40 to-transparent" />
+                    </div>
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-400" />
+                  )}
+                </div>
 
-              {/* Content Overlay */}
-              <div className="relative z-10 h-full flex items-center px-4 md:px-8 lg:px-16">
-                <div className="max-w-4xl w-full text-white">
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mb-3 md:mb-4">
-                    {idea.tags.slice(0, 3).map(tag => (
-                      <span
-                        key={tag}
-                        className="px-2 md:px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs md:text-sm font-medium"
-                      >
-                        {tag}
+                {/* Content Overlay */}
+                <div className="relative z-10 h-full flex items-center px-4 md:px-8 lg:px-16">
+                  <div className="max-w-4xl w-full text-white">
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2 mb-3 md:mb-4">
+                      {idea.tags.slice(0, 3).map(tag => (
+                        <span
+                          key={tag}
+                          className="px-2 md:px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs md:text-sm font-medium"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Title */}
+                    <h2 className="text-2xl md:text-4xl lg:text-6xl font-bold mb-3 md:mb-4 leading-tight">
+                      {idea.title}
+                    </h2>
+
+                    {/* Description - Hidden on mobile for simplicity */}
+                    <p className="hidden md:block text-lg lg:text-xl text-gray-300 mb-4 md:mb-6 max-w-2xl line-clamp-3">
+                      {idea.description}
+                    </p>
+
+                    {/* Meta Info - Simplified on mobile */}
+                    <div className="flex flex-wrap items-center gap-2 md:gap-6 mb-4 md:mb-8 text-xs md:text-sm text-gray-400">
+                      <span>
+                        {idea.anonymous ? t('common.anonymous') : idea.author}
                       </span>
-                    ))}
-                  </div>
+                      <span className="hidden md:inline">•</span>
+                      <span className="hidden md:inline">
+                        {formatDate(idea.createdAt)}
+                      </span>
+                      <span className="hidden md:inline">•</span>
+                      <span className="hidden md:flex items-center gap-1">
+                        <ArrowUp className="w-4 h-4" />
+                        {idea.votes} {t('carousel.votes')}
+                      </span>
+                      <span className="hidden md:inline">•</span>
+                      <span className="hidden md:inline text-accent font-semibold">
+                        {t('carousel.score')}: {idea.score}
+                      </span>
+                    </div>
 
-                  {/* Title */}
-                  <h2 className="text-2xl md:text-4xl lg:text-6xl font-bold mb-3 md:mb-4 leading-tight">
-                    {idea.title}
-                  </h2>
+                    {/* Action Buttons - Simplified on mobile */}
+                    <div className="flex items-center gap-2 md:gap-4">
+                      <Link
+                        href={`/${locale}/ideas/${idea.id}`}
+                        onClick={() => {
+                          // Save current path and scroll position before navigating
+                          if (typeof window !== 'undefined') {
+                            // Find the scrollable container (div inside main with overflow-y-auto)
+                            const scrollContainer = document.querySelector(
+                              'main > div.overflow-y-auto'
+                            ) as HTMLElement
+                            const scrollY = scrollContainer
+                              ? scrollContainer.scrollTop
+                              : window.scrollY
 
-                  {/* Description - Hidden on mobile for simplicity */}
-                  <p className="hidden md:block text-lg lg:text-xl text-gray-300 mb-4 md:mb-6 max-w-2xl line-clamp-3">
-                    {idea.description}
-                  </p>
-
-                  {/* Meta Info - Simplified on mobile */}
-                  <div className="flex flex-wrap items-center gap-2 md:gap-6 mb-4 md:mb-8 text-xs md:text-sm text-gray-400">
-                    <span>
-                      {idea.anonymous ? t('common.anonymous') : idea.author}
-                    </span>
-                    <span className="hidden md:inline">•</span>
-                    <span className="hidden md:inline">
-                      {formatDate(idea.createdAt)}
-                    </span>
-                    <span className="hidden md:inline">•</span>
-                    <span className="hidden md:flex items-center gap-1">
-                      <ArrowUp className="w-4 h-4" />
-                      {idea.votes} {t('carousel.votes')}
-                    </span>
-                    <span className="hidden md:inline">•</span>
-                    <span className="hidden md:inline text-accent font-semibold">
-                      {t('carousel.score')}: {idea.score}
-                    </span>
-                  </div>
-
-                  {/* Action Buttons - Simplified on mobile */}
-                  <div className="flex items-center gap-2 md:gap-4">
-                    <Link
-                      href={`/${locale}/ideas/${idea.id}`}
-                      onClick={() => {
-                        // Save current path and scroll position before navigating
-                        if (typeof window !== 'undefined') {
-                          // Find the scrollable container (div inside main with overflow-y-auto)
-                          const scrollContainer = document.querySelector(
-                            'main > div.overflow-y-auto'
-                          ) as HTMLElement
-                          const scrollY = scrollContainer
-                            ? scrollContainer.scrollTop
-                            : window.scrollY
-
-                          sessionStorage.setItem(
-                            'previousPath',
-                            window.location.pathname
-                          )
-                          sessionStorage.setItem(
-                            'previousScrollPosition',
-                            scrollY.toString()
-                          )
-                        }
-                      }}
-                      className="px-4 md:px-8 py-2 md:py-3 bg-white text-black text-sm md:text-base font-semibold rounded-md hover:bg-gray-200 transition-colors"
-                    >
-                      {t('carousel.view_details')}
-                    </Link>
-                    <button className="hidden md:block p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors">
-                      <Bookmark className="w-5 h-5" />
-                    </button>
-                    <button className="hidden md:block p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors">
-                      <Share2 className="w-5 h-5" />
-                    </button>
+                            sessionStorage.setItem(
+                              'previousPath',
+                              window.location.pathname
+                            )
+                            sessionStorage.setItem(
+                              'previousScrollPosition',
+                              scrollY.toString()
+                            )
+                          }
+                        }}
+                        className="px-4 md:px-8 py-2 md:py-3 bg-white text-black text-sm md:text-base font-semibold rounded-md hover:bg-gray-200 transition-colors"
+                      >
+                        {t('carousel.view_details')}
+                      </Link>
+                      <button className="hidden md:block p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors">
+                        <Bookmark className="w-5 h-5" />
+                      </button>
+                      <button className="hidden md:block p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors">
+                        <Share2 className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
       {/* Sidebar Thumbnails - All ideas visible, compact layout */}
       <div className="hidden md:block absolute right-0 top-0 bottom-0 w-64 lg:w-72 bg-black z-30 border-l border-gray-800 flex-col">
         <div className="flex-1 flex flex-col p-2 md:p-3 space-y-1.5 md:space-y-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {ideas.slice(0, 5).map((idea, index) => (
-            <button
-              key={idea.id}
-              onClick={() => handleThumbnailClick(index)}
-              className={`relative w-full text-left p-2 rounded-lg transition-all flex items-center gap-2 overflow-hidden ${
-                index === activeIndex
-                  ? 'bg-gray-900 ring-2 ring-accent'
-                  : 'bg-black hover:bg-gray-900'
-              }`}
-            >
-              {/* Progress bar overlay - only visible on active item */}
-              {index === activeIndex && !isPaused && !isUserInteracting && (
-                <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
-                  {/* Background progress bar */}
-                  <div
-                    className="absolute inset-0 bg-white/10"
-                    style={{
-                      width: `${progress}%`,
-                      transition: 'width 0.1s linear',
-                    }}
-                  />
-                  {/* Animated light bar */}
-                  <div
-                    className="absolute top-0 bottom-0 w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                    style={{
-                      left: `${progress}%`,
-                      transform: 'translateX(-50%)',
-                      transition: 'left 0.1s linear',
-                    }}
-                  />
-                </div>
-              )}
-              <div className="relative w-16 h-16 flex-shrink-0 rounded overflow-hidden bg-gray-800 z-10">
-                {idea.image ? (
-                  <Image
-                    src={idea.image}
-                    alt={idea.title}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                ) : idea.video ? (
-                  <VideoThumbnail videoSrc={idea.video} title={idea.title} />
-                ) : (
-                  <div className="w-full h-full bg-gray-800" />
+          {ideas.slice(0, 5).map((idea, index) => {
+            const cardMedia = getCardMedia(idea)
+            return (
+              <button
+                key={idea.id}
+                onClick={() => handleThumbnailClick(index)}
+                className={`relative w-full text-left p-2 rounded-lg transition-all flex items-center gap-2 overflow-hidden ${
+                  index === activeIndex
+                    ? 'bg-gray-900 ring-2 ring-accent'
+                    : 'bg-black hover:bg-gray-900'
+                }`}
+              >
+                {/* Progress bar overlay - only visible on active item */}
+                {index === activeIndex && !isPaused && !isUserInteracting && (
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
+                    {/* Background progress bar */}
+                    <div
+                      className="absolute inset-0 bg-white/10"
+                      style={{
+                        width: `${progress}%`,
+                        transition: 'width 0.1s linear',
+                      }}
+                    />
+                    {/* Animated light bar */}
+                    <div
+                      className="absolute top-0 bottom-0 w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                      style={{
+                        left: `${progress}%`,
+                        transform: 'translateX(-50%)',
+                        transition: 'left 0.1s linear',
+                      }}
+                    />
+                  </div>
                 )}
-              </div>
-              <div className="flex-1 min-w-0 z-10">
-                <p className="text-xs md:text-sm font-medium text-white line-clamp-2">
-                  {idea.title}
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {idea.anonymous ? t('common.anonymous') : idea.author}
-                </p>
-              </div>
-            </button>
-          ))}
+                <div className="relative w-16 h-16 flex-shrink-0 rounded overflow-hidden bg-gray-800 z-10">
+                  {cardMedia.video ? (
+                    <VideoThumbnail
+                      videoSrc={cardMedia.video}
+                      title={idea.title}
+                    />
+                  ) : cardMedia.image ? (
+                    <Image
+                      src={cardMedia.image}
+                      alt={idea.title}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-400" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0 z-10">
+                  <p className="text-xs md:text-sm font-medium text-white line-clamp-2">
+                    {idea.title}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {idea.anonymous ? t('common.anonymous') : idea.author}
+                  </p>
+                </div>
+              </button>
+            )
+          })}
         </div>
       </div>
 
