@@ -70,8 +70,7 @@
     "idea_score": "Idea Score",
     "total_votes": "Total Votes",
     "total_comments": "Total Comments",
-    "vote": "vote",
-    "votes": "votes"
+    "vote": "vote"
   },
   "auth": {
     "sign_in_required": "Sign In Required",

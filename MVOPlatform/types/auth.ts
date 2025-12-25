@@ -5,6 +5,10 @@ export interface UserProfile {
   email: string
   full_name: string
   role: 'user' | 'admin'
+  profile_media_id?: string
+  media_assets?: {
+    url: string
+  }
   created_at: string
   updated_at: string
 }

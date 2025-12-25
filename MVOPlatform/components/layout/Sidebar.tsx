@@ -203,7 +203,9 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       label: t('navigation.spaces'),
       icon: FolderKanban,
       href: `/${currentLocale}/spaces`,
-      active: pathname === `/${currentLocale}/spaces` || pathname?.startsWith(`/${currentLocale}/spaces/`),
+      active:
+        pathname === `/${currentLocale}/spaces` ||
+        pathname?.startsWith(`/${currentLocale}/spaces/`),
     },
     {
       id: 'activity',
@@ -465,7 +467,10 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                   user={{
                     name: profile?.full_name || user?.email || 'User',
                     email: user?.email || '',
-                    image: user?.user_metadata?.avatar_url || null,
+                    image:
+                      profile?.media_assets?.url ||
+                      user?.user_metadata?.avatar_url ||
+                      null,
                   }}
                   onSignOut={() => dispatch(signOut())}
                   showProfileLink={!showExpanded}

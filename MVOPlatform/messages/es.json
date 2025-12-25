@@ -71,8 +71,7 @@
     "idea_score": "Puntuación de la Idea",
     "total_votes": "Votos Totales",
     "total_comments": "Comentarios Totales",
-    "vote": "voto",
-    "votes": "votos"
+    "vote": "voto"
   },
   "auth": {
     "sign_in_required": "Inicio de Sesión Requerido",

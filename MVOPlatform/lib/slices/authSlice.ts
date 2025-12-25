@@ -18,7 +18,14 @@ const waitForProfile = async (
   for (let i = 0; i < maxAttempts; i++) {
     const { data, error } = await supabase
       .from('users')
-      .select('*')
+      .select(
+        `
+        *,
+        media_assets (
+          url
+        )
+      `
+      )
       .eq('id', userId)
       .maybeSingle()
 

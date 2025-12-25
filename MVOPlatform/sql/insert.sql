@@ -355,7 +355,11 @@ INSERT INTO media_assets (id, type, url) VALUES
 ('550e8400-e29b-41d4-a716-446655440320', 'image', 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&h=450&fit=crop'),
 ('550e8400-e29b-41d4-a716-446655440321', 'image', 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=450&fit=crop'),
 ('550e8400-e29b-41d4-a716-446655440322', 'video', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'),
-('550e8400-e29b-41d4-a716-446655440323', 'video', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4');
+('550e8400-e29b-41d4-a716-446655440323', 'video', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'),
+('550e8400-e29b-41d4-a716-446655440324', 'image', 'https://is1-ssl.mzstatic.com/image/thumb/B0-2kLh7yVSyBsPEiULgHQ/1200x675.jpg');
+
+-- Set profile images for all users
+UPDATE users SET profile_media_id = '550e8400-e29b-41d4-a716-446655440324';
 
 -- Insert idea media
 INSERT INTO idea_media (idea_id, media_id, sort_order) VALUES
