@@ -43,7 +43,8 @@
   "status": {
     "loading": "Cargando...",
     "loading_more_ideas": "Cargando más ideas...",
-    "no_more_ideas": "No hay más ideas para cargar"
+    "no_more_ideas": "No hay más ideas para cargar",
+    "finding_idea": "Buscando tu idea..."
   },
   "common": {
     "score": "Puntuación",
@@ -438,5 +439,20 @@
     "invite_link": "Link de Invitación",
     "copy_link": "Copiar Link",
     "link_copied": "Link copiado al portapapeles"
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Panel de Administración",
+      "subtitle": "Gestionar ideas, reportes y configuraciones de la plataforma",
+      "all_ideas": "Todas las Ideas",
+      "search_placeholder": "Buscar ideas por título, descripción o etiquetas...",
+      "loading": "Cargando ideas...",
+      "no_ideas": "No se encontraron ideas",
+      "delete_idea": "Eliminar Idea",
+      "delete_confirm": "¿Estás seguro de que quieres eliminar esta idea? Esta acción no se puede deshacer.",
+      "delete_success": "Idea eliminada exitosamente",
+      "delete_error": "Error al eliminar la idea. Por favor, inténtalo de nuevo.",
+      "load_more": "Cargar Más Ideas"
+    }
   }
 }

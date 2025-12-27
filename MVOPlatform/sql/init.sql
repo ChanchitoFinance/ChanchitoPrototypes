@@ -485,6 +485,11 @@ CREATE POLICY "Public read badges" ON badges FOR SELECT USING (true);
 CREATE POLICY "Public read ideas" ON ideas FOR SELECT USING (true);
 CREATE POLICY "Authenticated create ideas" ON ideas FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "Creators update ideas" ON ideas FOR UPDATE USING (auth.uid() = creator_id);
+CREATE POLICY "Admins can delete ideas" ON ideas FOR DELETE USING (
+  EXISTS (
+    SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'
+  )
+);
 
 -- Comments: public read, authenticated create
 CREATE POLICY "Public read comments" ON comments FOR SELECT USING (true);

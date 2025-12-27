@@ -66,6 +66,14 @@ export interface IIdeaService {
   ): Promise<Idea[]>
 
   /**
+   * Get all ideas for admin with search and pagination
+   * @param search Optional search query for title, description, and tags
+   * @param limit Optional limit for number of ideas to return
+   * @param offset Optional offset for pagination
+   */
+  getAllIdeasForAdmin(search?: string, limit?: number, offset?: number): Promise<{ ideas: Idea[], total: number }>
+
+  /**
    * Create a new idea
    */
   createIdea(idea: Omit<Idea, 'id'>, spaceId: string): Promise<Idea>
@@ -475,6 +483,150 @@ class SupabaseIdeaService implements IIdeaService {
     }
 
     return data?.map(this.mapDbIdeaToIdea) || []
+  }
+
+  async getAllIdeasForAdmin(search?: string, limit = 20, offset = 0): Promise<{ ideas: Idea[], total: number }> {
+    // First, get the total count
+    let countQuery = supabase
+      .from('ideas')
+      .select('id', { count: 'exact', head: true })
+
+    // Add search functionality if search query is provided
+    if (search && search.trim()) {
+      const searchTerm = `%${search.trim()}%`
+
+      // Search in title and content fields
+      countQuery = countQuery.or(
+        `title.ilike.${searchTerm},` +
+        `content->>description.ilike.${searchTerm}`
+      )
+    }
+
+    const { count: titleDescCount, error: countError } = await countQuery
+
+    let totalCount = titleDescCount || 0
+
+    // If searching, also count tag-matched ideas
+    if (search && search.trim()) {
+      const searchTerm = `%${search.trim()}%`
+      const { count: tagCount, error: tagCountError } = await supabase
+        .from('ideas')
+        .select('id', { count: 'exact', head: true })
+        .filter('idea_tags.tags.name', 'ilike', searchTerm)
+
+      if (!tagCountError && tagCount) {
+        // Subtract overlapping ideas to avoid double counting
+        totalCount = (titleDescCount || 0) + tagCount
+      }
+    }
+
+    let query = supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        status_flag,
+        content,
+        created_at,
+        anonymous,
+        users!ideas_creator_id_fkey (
+          username,
+          full_name,
+          email
+        ),
+        idea_votes (
+          vote_type
+        ),
+        idea_tags (
+          tags (
+            name
+          )
+        ),
+        comments!left (
+          id
+        )
+      `
+      )
+      .order('created_at', { ascending: false })
+
+    // Add search functionality if search query is provided
+    if (search && search.trim()) {
+      const searchTerm = `%${search.trim()}%`
+
+      // Search in title and content fields
+      query = query.or(
+        `title.ilike.${searchTerm},` +
+        `content->>description.ilike.${searchTerm}`
+      )
+    }
+
+    // Apply pagination
+    query = query.range(offset, offset + limit - 1)
+
+    let { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching all ideas for admin:', error)
+      throw error
+    }
+
+    // If we have search results, also fetch ideas that match tags
+    let tagMatchedIdeas: any[] = []
+    if (search && search.trim()) {
+      const searchTerm = `%${search.trim()}%`
+      const { data: tagData, error: tagError } = await supabase
+        .from('ideas')
+        .select(
+          `
+          id,
+          title,
+          status_flag,
+          content,
+          created_at,
+          anonymous,
+          users!ideas_creator_id_fkey (
+            username,
+            full_name,
+            email
+          ),
+          idea_votes (
+            vote_type
+          ),
+          idea_tags!inner (
+            tags!inner (
+              name
+            )
+          ),
+          comments!left (
+            id
+          )
+        `
+        )
+        .filter('idea_tags.tags.name', 'ilike', searchTerm)
+        .order('created_at', { ascending: false })
+        .range(0, limit * 2) // Fetch more to account for overlaps
+
+      if (tagError) {
+        console.error('Error fetching tag-matched ideas for admin:', tagError)
+      } else {
+        tagMatchedIdeas = tagData || []
+      }
+    }
+
+    // Combine results and remove duplicates
+    const allIdeas = [...(data || []), ...tagMatchedIdeas]
+    const uniqueIdeas = allIdeas.filter(
+      (idea, index, self) => index === self.findIndex(i => i.id === idea.id)
+    )
+
+    // Apply final pagination after combining and deduplicating
+    const paginatedIdeas = uniqueIdeas.slice(offset, offset + limit)
+
+    return {
+      ideas: paginatedIdeas.map(this.mapDbIdeaToIdea),
+      total: totalCount
+    }
   }
 
   async toggleVote(

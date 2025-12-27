@@ -66,11 +66,9 @@ See [AuthProvider](../../components/providers/AuthProvider.tsx) for the route pr
 
 ### Admin Access
 
-Admin access is determined by comparing the user's profile email against a configured admin email address. If the emails match, the user is granted admin privileges. Additionally, the profile includes a `role` field that can be set to 'admin' for more granular control.
+Admin access is determined by the profile's `role` field set to 'admin' for more granular control.
 
-To implement admin-only features, check `profile?.email === adminEmail` or `profile?.role === 'admin'` in your components.
-
-Set the `NEXT_PUBLIC_ADMIN_EMAIL` environment variable to specify the admin email.
+To implement admin-only features, check `profile?.role === 'admin'` in your components.
 
 See how admin checks are performed in components like [AdminPanel](../../components/pages/AdminPanel.tsx).
 

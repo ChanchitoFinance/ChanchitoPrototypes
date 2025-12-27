@@ -311,10 +311,13 @@ class SupabaseCommentService implements ICommentService {
         .eq('user_id', user.id)
         .maybeSingle()
 
-      if (userVote) {
-        comment.upvoted = userVote.reaction_type === 'upvote'
-        comment.downvoted = userVote.reaction_type === 'downvote'
-      }
+      // Always set the vote status, even if no vote exists
+      comment.upvoted = userVote?.reaction_type === 'upvote' || false
+      comment.downvoted = userVote?.reaction_type === 'downvote' || false
+    } else {
+      // Ensure vote status is set to false for non-authenticated users
+      comment.upvoted = false
+      comment.downvoted = false
     }
 
     return comment

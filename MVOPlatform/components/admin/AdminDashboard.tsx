@@ -1,212 +1,423 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { AlertTriangle, CheckCircle, Clock, DollarSign } from 'lucide-react'
+import { Search, Trash2, AlertTriangle, CheckCircle, ArrowUp, ArrowDown, MessageSquare, DollarSign } from 'lucide-react'
+import { useTranslations, useLocale } from '@/components/providers/I18nProvider'
+import { ideaService } from '@/lib/services/ideaService'
+import { Idea } from '@/lib/types/idea'
+import { Button } from '@/components/ui/Button'
+import { Dialog } from '@/components/ui/Dialog'
+import { Toast } from '@/components/ui/Toast'
 import { formatDate } from '@/lib/utils/date'
+import { getCardMedia } from '@/lib/utils/media'
+import { useVideoPlayer } from '@/hooks/useVideoPlayer'
+import { useRouter } from 'next/navigation'
 
-const mockStats = {
-  totalIdeas: 1247,
-  pendingValidation: 23,
-  completedToday: 45,
-  revenue: 12450,
-}
-
-const mockReports = [
-  {
-    id: '1',
-    idea: 'AI-Powered Meal Planning App',
-    author: 'Sarah Chen',
-    status: 'pending',
-    submittedAt: '2024-01-15T10:30:00Z',
-  },
-  {
-    id: '2',
-    idea: 'Sustainable Fashion Marketplace',
-    author: 'Michael Rodriguez',
-    status: 'completed',
-    submittedAt: '2024-01-14T15:20:00Z',
-  },
-  {
-    id: '3',
-    idea: 'Remote Team Building Platform',
-    author: 'Emily Johnson',
-    status: 'completed',
-    submittedAt: '2024-01-13T09:15:00Z',
-  },
-]
+const ITEMS_PER_PAGE = 20
 
 export function AdminDashboard() {
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'reports'>(
-    'overview'
-  )
+  const t = useTranslations()
+  const { locale } = useLocale()
+  const router = useRouter()
+  const [ideas, setIdeas] = useState<Idea[]>([])
+  const [totalIdeas, setTotalIdeas] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
+  const [hasMore, setHasMore] = useState(true)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [ideaToDelete, setIdeaToDelete] = useState<Idea | null>(null)
+  const [toast, setToast] = useState<{ message: string; isOpen: boolean } | null>(null)
+  const [isSearching, setIsSearching] = useState(false)
+
+  const observerRef = useRef<HTMLDivElement>(null)
+  const isInitialLoadRef = useRef(true)
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 800)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Load ideas when search changes
+  useEffect(() => {
+    if (!isInitialLoadRef.current) {
+      setIsSearching(true)
+      setToast({ message: 'Searching...', isOpen: true })
+    }
+    loadIdeas(true)
+    isInitialLoadRef.current = false
+  }, [debouncedSearchQuery])
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+          loadMoreIdeas()
+        }
+      },
+      { threshold: 1.0 }
+    )
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [hasMore, loading, loadingMore])
+
+  const loadIdeas = async (reset = false) => {
+    try {
+      setLoading(true)
+      const offset = reset ? 0 : ideas.length
+      const result = await ideaService.getAllIdeasForAdmin(
+        debouncedSearchQuery || undefined,
+        ITEMS_PER_PAGE,
+        offset
+      )
+
+      if (reset) {
+        setIdeas(result.ideas)
+        setTotalIdeas(result.total)
+        // Show search feedback whenever ideas are loaded (search or initial load)
+        setToast({ message: `Found ${result.total} ideas`, isOpen: true })
+      } else {
+        setIdeas(prev => [...prev, ...result.ideas])
+      }
+
+      setHasMore(result.ideas.length === ITEMS_PER_PAGE)
+    } catch (error) {
+      console.error('Error loading ideas:', error)
+      setToast({ message: t('admin.dashboard.loading'), isOpen: true })
+    } finally {
+      setLoading(false)
+      setIsSearching(false)
+    }
+  }
+
+  const loadMoreIdeas = async () => {
+    if (loadingMore || !hasMore) return
+
+    try {
+      setLoadingMore(true)
+      const result = await ideaService.getAllIdeasForAdmin(
+        debouncedSearchQuery || undefined,
+        ITEMS_PER_PAGE,
+        ideas.length
+      )
+
+      setIdeas(prev => [...prev, ...result.ideas])
+      setHasMore(result.ideas.length === ITEMS_PER_PAGE)
+    } catch (error) {
+      console.error('Error loading more ideas:', error)
+      setToast({ message: t('status.loading_more_ideas'), isOpen: true })
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  const handleDeleteIdea = async () => {
+    if (!ideaToDelete) return
+
+    try {
+      await ideaService.deleteIdea(ideaToDelete.id)
+      setIdeas(prev => prev.filter(idea => idea.id !== ideaToDelete.id))
+      setTotalIdeas(prev => prev - 1)
+      setToast({ message: t('admin.dashboard.delete_success'), isOpen: true })
+    } catch (error) {
+      console.error('Error deleting idea:', error)
+      setToast({ message: t('admin.dashboard.delete_error'), isOpen: true })
+    } finally {
+      setDeleteDialogOpen(false)
+      setIdeaToDelete(null)
+    }
+  }
+
+  const openDeleteDialog = (idea: Idea) => {
+    setIdeaToDelete(idea)
+    setDeleteDialogOpen(true)
+  }
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-heading-1 mb-2">
-          Admin Dashboard
+          {t('admin.dashboard.title')}
         </h1>
         <p className="text-body">
-          Manage ideas, reports, and platform settings
+          {t('admin.dashboard.subtitle')}
         </p>
       </div>
 
-      <div className="flex gap-2 border-b border-gray-100">
-        <button
-          onClick={() => setSelectedTab('overview')}
-          className={`px-4 py-2 text-base font-medium border-b-2 transition-colors ${
-            selectedTab === 'overview'
-              ? 'border-accent text-text-primary'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Overview
-        </button>
-        <button
-          onClick={() => setSelectedTab('reports')}
-          className={`px-4 py-2 text-base font-medium border-b-2 transition-colors ${
-            selectedTab === 'reports'
-              ? 'border-accent text-text-primary'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Reports
-        </button>
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary w-5 h-5" />
+        <input
+          type="text"
+          placeholder={t('admin.dashboard.search_placeholder')}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent bg-white text-black"
+        />
       </div>
 
-      {selectedTab === 'overview' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="card-white">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-label text-text-secondary">
-                  Total Ideas
-                </h3>
-                <CheckCircle className="w-5 h-5 text-accent" />
-              </div>
-              <div className="text-3xl font-semibold text-text-primary">
-                {mockStats.totalIdeas.toLocaleString()}
-              </div>
-            </div>
+      {/* Ideas Grid */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold text-text-primary">
+          {t('admin.dashboard.all_ideas')} ({totalIdeas})
+        </h2>
 
-            <div className="card-white">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-label text-text-secondary">
-                  Pending
-                </h3>
-                <Clock className="w-5 h-5 text-accent-alt" />
+        {loading && ideas.length === 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="card-hover overflow-hidden">
+                <div className="p-4 space-y-4">
+                  <div className="aspect-video bg-gray-200 rounded-md animate-pulse"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                  </div>
+                </div>
               </div>
-              <div className="text-3xl font-semibold text-text-primary">
-                {mockStats.pendingValidation}
-              </div>
-            </div>
-
-            <div className="card-white">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-label text-text-secondary">
-                  Completed Today
-                </h3>
-                <CheckCircle className="w-5 h-5 text-accent" />
-              </div>
-              <div className="text-3xl font-semibold text-text-primary">
-                {mockStats.completedToday}
-              </div>
-            </div>
-
-            <div className="card-white">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-label text-text-secondary">
-                  Revenue
-                </h3>
-                <DollarSign className="w-5 h-5 text-accent" />
-              </div>
-              <div className="text-3xl font-semibold text-text-primary">
-                ${mockStats.revenue.toLocaleString()}
-              </div>
-            </div>
+            ))}
           </div>
-        </motion.div>
+        ) : ideas.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-text-primary mb-2">
+              {t('admin.dashboard.no_ideas')}
+            </h3>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {ideas.map((idea) => (
+                <AdminIdeaCard
+                  key={idea.id}
+                  idea={idea}
+                  onDelete={() => openDeleteDialog(idea)}
+                  locale={locale}
+                  router={router}
+                />
+              ))}
+            </div>
+
+            {/* Load More Trigger */}
+            {ideas.length >= ITEMS_PER_PAGE && (
+              <div ref={observerRef} className="flex justify-center py-8">
+                {loadingMore && (
+                  <div className="flex items-center gap-2 text-text-secondary">
+                    <div className="w-4 h-4 border-2 border-gray-300 border-t-accent rounded-full animate-spin"></div>
+                    {t('status.loading_more_ideas')}
+                  </div>
+                )}
+                {!hasMore && ideas.length > 0 && (
+                  <p className="text-text-secondary">
+                    {t('status.no_more_ideas')}
+                  </p>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        title={t('admin.dashboard.delete_idea')}
+        message={`${t('admin.dashboard.delete_confirm')}${ideaToDelete ? `\n\n${ideaToDelete.title}` : ''}`}
+        type="confirm"
+        onConfirm={handleDeleteIdea}
+        confirmText={t('actions.delete')}
+        cancelText={t('actions.cancel')}
+        confirmVariant="primary"
+      />
+
+      {/* Toast Notifications */}
+      {toast && (
+        <Toast
+          isOpen={toast.isOpen}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
       )}
 
-      {selectedTab === 'reports' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="card-white overflow-hidden"
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-100 border-b border-border-color">
-                <tr>
-                  <th className="table-header">
-                    Idea
-                  </th>
-                  <th className="table-header">
-                    Author
-                  </th>
-                  <th className="table-header">
-                    Status
-                  </th>
-                  <th className="table-header">
-                    Submitted
-                  </th>
-                  <th className="table-header">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-color">
-                {mockReports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-100 transition-colors">
-                    <td className="table-cell">
-                      <div className="text-base font-medium text-text-primary">
-                        {report.idea}
-                      </div>
-                    </td>
-                    <td className="table-cell">
-                      <div className="text-sm text-text-secondary">
-                        {report.author}
-                      </div>
-                    </td>
-                    <td className="table-cell">
-                      <span
-                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium ${
-                          report.status === 'completed'
-                            ? 'bg-green-50 text-green-700'
-                            : 'bg-yellow-50 text-yellow-700'
-                        }`}
-                      >
-                        {report.status === 'completed' ? (
-                          <CheckCircle className="w-3 h-3" />
-                        ) : (
-                          <AlertTriangle className="w-3 h-3" />
-                        )}
-                        {report.status}
-                      </span>
-                    </td>
-                    <td className="table-cell">
-                      <div className="text-sm text-text-secondary">
-                        {formatDate(report.submittedAt)}
-                      </div>
-                    </td>
-                    <td className="table-cell">
-                      <button className="text-sm font-medium text-accent hover:text-accent/80 transition-colors">
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
-      )}
     </div>
   )
 }
 
+interface AdminIdeaCardProps {
+  idea: Idea
+  onDelete: () => void
+  locale: string
+  router: any
+}
+
+function AdminIdeaCard({ idea, onDelete, locale, router }: AdminIdeaCardProps) {
+  const t = useTranslations()
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const cardMedia = getCardMedia(idea)
+
+  // Use reusable video player hook with start time at 10 seconds
+  const videoRef = useVideoPlayer({
+    videoSrc: cardMedia.video,
+    containerRef: cardRef,
+    startTime: 10,
+    threshold: 0.5,
+    onPlay: () => setIsVideoPlaying(true),
+    onPause: () => setIsVideoPlaying(false),
+  })
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Prevent navigation if delete button was clicked
+    if ((e.target as HTMLElement).closest('button')) {
+      return
+    }
+    // Navigate to idea details page with proper locale
+    router.push(`/${locale}/ideas/${idea.id}`)
+  }
+
+  return (
+    <div
+      ref={cardRef}
+      className="card-hover overflow-hidden h-full relative group cursor-pointer"
+      onClick={handleCardClick}
+    >
+      {/* Delete Button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          onDelete()
+        }}
+        className="absolute top-3 right-3 z-10 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+        title={t('admin.dashboard.delete_idea')}
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
+
+      <motion.article
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-4 flex flex-col h-full"
+      >
+        {/* Media Section */}
+        <div className="relative w-full aspect-video mb-3 rounded-md overflow-hidden">
+          {cardMedia.video ? (
+            <video
+              ref={videoRef}
+              src={cardMedia.video}
+              className="w-full h-full object-cover"
+              loop
+              muted
+              playsInline
+              preload="none"
+            />
+          ) : cardMedia.image ? (
+            <img
+              src={cardMedia.image}
+              alt={idea.title}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center">
+              <div className="text-center px-4">
+                <h3 className="text-lg font-bold text-white line-clamp-2">
+                  {idea.title}
+                </h3>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Content Section */}
+        <div className="flex items-start justify-between gap-3 mb-3 flex-1">
+          <div className="flex-1 min-w-0 max-w-[calc(100%-80px)]">
+            <h2 className="text-lg font-semibold text-text-primary mb-1 line-clamp-2 break-words">
+              {idea.title}
+            </h2>
+            <p className="text-sm text-text-secondary line-clamp-2 mb-2 break-words">
+              {idea.description}
+            </p>
+          </div>
+          <div className="text-right flex-shrink-0 w-16">
+            <div className="text-2xl font-semibold text-accent whitespace-nowrap">
+              {idea.score}
+            </div>
+            <div className="text-xs text-text-secondary whitespace-nowrap">
+              {t('common.score')}
+            </div>
+          </div>
+        </div>
+
+        {/* Metrics Section */}
+        <div className="flex items-center gap-3 mb-2 min-h-[32px] overflow-hidden">
+          {/* Upvote Metric */}
+          <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
+            <ArrowUp className="w-3.5 h-3.5 text-green-500" />
+            <span className="text-sm font-medium">
+              {idea.votesByType.use}
+            </span>
+          </div>
+
+          {/* Downvote Metric */}
+          <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
+            <ArrowDown className="w-3.5 h-3.5 text-red-500" />
+            <span className="text-sm font-medium">
+              {idea.votesByType.dislike}
+            </span>
+          </div>
+
+          {/* Pay Vote Metric */}
+          <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
+            <DollarSign className="w-3.5 h-3.5 text-blue-500" />
+            <span className="text-sm font-medium">
+              {idea.votesByType.pay}
+            </span>
+          </div>
+
+          {/* Comments Metric */}
+          <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span className="text-sm">{idea.commentCount}</span>
+          </div>
+        </div>
+
+        {/* Tags Section */}
+        <div className="flex items-center gap-1.5 flex-wrap mb-2 overflow-hidden">
+          {idea.tags.slice(0, 3).map(tag => (
+            <span
+              key={tag}
+              className="badge-gray text-xs px-2 py-0.5 whitespace-nowrap flex-shrink-0"
+              title={tag}
+            >
+              {tag}
+            </span>
+          ))}
+          {idea.tags.length > 3 && (
+            <span className="text-xs text-text-secondary whitespace-nowrap flex-shrink-0">
+              +{idea.tags.length - 3}
+            </span>
+          )}
+        </div>
+
+        {/* Author and Date */}
+        <div className="flex items-center justify-between text-xs text-text-secondary pt-2 border-t border-background">
+          <span>By {idea.author}</span>
+          <span>{formatDate(idea.createdAt)}</span>
+        </div>
+      </motion.article>
+    </div>
+  )
+}

@@ -18,9 +18,10 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
   const { locale } = useLocale()
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [loading, setLoading] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const [initialized, setInitialized] = useState(false)
   const [isVoting, setIsVoting] = useState(false)
+  const [hasCompletedInitialLoad, setHasCompletedInitialLoad] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const observerRef = useRef<IntersectionObserver | null>(null)
   const router = useRouter()
@@ -78,49 +79,81 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
     [initialized, ideas, activeIndex, isVoting, isAuthenticated]
   )
 
-  // Load initial ideas for For You section (TikTok-style) - Only load first batch
+  // Load initial ideas for For You section (TikTok-style)
   useEffect(() => {
     if (!initialized) {
       setLoading(true)
-      // Load only 3 ideas initially for faster initial load
-      ideaService.getExploreIdeas(3).then(async loadedIdeas => {
-        setIdeas(loadedIdeas)
-
-        // Batch fetch user votes for all loaded ideas
-        if (isAuthenticated && loadedIdeas.length > 0) {
-          try {
-            const ideaIds = loadedIdeas.map(idea => idea.id)
-            const votesMap = await ideaService.getUserVotesForIdeas(ideaIds)
-            // Update ideas with user vote information
-            setIdeas(prev =>
-              prev.map(idea => ({
-                ...idea,
-                userVotes: votesMap[idea.id] || {
-                  use: false,
-                  dislike: false,
-                  pay: false,
-                },
-              }))
-            )
-          } catch (error) {
-            console.error('Error fetching user votes:', error)
+      
+      // Function to load ideas and check for initialIdeaId
+      const loadIdeasWithInitialId = async (offset = 0, accumulatedIdeas: Idea[] = []) => {
+        const batchSize = 3
+        const loadedIdeas = await ideaService.getExploreIdeas(batchSize, offset)
+        
+        if (loadedIdeas.length === 0) {
+          // No more ideas to load
+          return accumulatedIdeas
+        }
+        
+        const allIdeas = [...accumulatedIdeas, ...loadedIdeas]
+        
+        // Check if we found the initial idea
+        if (initialIdeaId) {
+          const hasInitialIdea = allIdeas.some(idea => idea.id === initialIdeaId)
+          
+          // If we haven't found it yet and have less than 15 ideas, load more
+          if (!hasInitialIdea && allIdeas.length < 15) {
+            return loadIdeasWithInitialId(offset + batchSize, allIdeas)
           }
         }
+        
+        return allIdeas
+      }
+      
+      loadIdeasWithInitialId().then(async loadedIdeas => {
+       // Batch fetch user votes for all loaded ideas
+       if (isAuthenticated && loadedIdeas.length > 0) {
+         try {
+           const ideaIds = loadedIdeas.map(idea => idea.id)
+           const votesMap = await ideaService.getUserVotesForIdeas(ideaIds)
+           // Update ideas with user vote information
+           loadedIdeas = loadedIdeas.map(idea => ({
+             ...idea,
+             userVotes: votesMap[idea.id] || {
+               use: false,
+               dislike: false,
+               pay: false,
+             },
+           }))
+         } catch (error) {
+           console.error('Error fetching user votes:', error)
+         }
+       }
 
-        setLoading(false)
-        setInitialized(true)
+       // Set initial active index based on URL parameter
+       let initialIndex = 0
+       if (initialIdeaId && loadedIdeas.length > 0) {
+         const foundIndex = loadedIdeas.findIndex(
+           idea => idea.id === initialIdeaId
+         )
+         if (foundIndex >= 0) {
+           initialIndex = foundIndex
+           lastUrlIdeaId.current = initialIdeaId
+         } else {
+           // If initial idea not found, default to first idea
+           lastUrlIdeaId.current = loadedIdeas[0].id
+         }
+       } else if (loadedIdeas.length > 0) {
+         // No initial idea specified, default to first idea
+         lastUrlIdeaId.current = loadedIdeas[0].id
+       }
 
-        // Set initial active index based on URL parameter
-        if (initialIdeaId && loadedIdeas.length > 0) {
-          const initialIndex = loadedIdeas.findIndex(
-            idea => idea.id === initialIdeaId
-          )
-          if (initialIndex >= 0) {
-            setActiveIndex(initialIndex)
-            lastUrlIdeaId.current = initialIdeaId
-          }
-        }
-      })
+       // Set state all at once to avoid intermediate renders
+       setIdeas(loadedIdeas)
+       setActiveIndex(initialIndex)
+       setLoading(false)
+       setInitialized(true)
+       setHasCompletedInitialLoad(true)
+     })
     }
   }, [initialized, initialIdeaId, isAuthenticated])
 
@@ -177,13 +210,21 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
     ) {
       const currentIdea = ideas[activeIndex]
       if (currentIdea && currentIdea.id !== lastUrlIdeaId.current) {
-        lastUrlIdeaId.current = currentIdea.id
-        router.replace(`/${locale}/for-you?id=${currentIdea.id}`, {
-          scroll: false,
-        })
+        // Only skip URL update if we haven't completed initial load yet
+        // AND we're on the initial idea from URL
+        const shouldSkipUpdate = !hasCompletedInitialLoad &&
+                                initialIdeaId &&
+                                currentIdea.id === initialIdeaId
+                                
+        if (!shouldSkipUpdate) {
+          lastUrlIdeaId.current = currentIdea.id
+          router.replace(`/${locale}/for-you?id=${currentIdea.id}`, {
+            scroll: false,
+          })
+        }
       }
     }
-  }, [activeIndex, ideas, initialized, router])
+  }, [activeIndex, ideas, initialized, router, initialIdeaId, hasCompletedInitialLoad])
 
   // Scroll to initial position when component is ready
   useEffect(() => {

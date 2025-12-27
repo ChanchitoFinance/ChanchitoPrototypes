@@ -18,6 +18,7 @@ import {
   X,
   LogIn,
   FolderKanban,
+  Shield,
 } from 'lucide-react'
 import { clientEnv } from '@/config/env'
 import { UserMenu } from '@/components/ui/UserMenu'
@@ -221,6 +222,13 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       href: `/${currentLocale}/upload`,
       active: pathname === `/${currentLocale}/upload`,
     },
+    ...(profile?.role === 'admin' ? [{
+      id: 'admin',
+      label: t('navigation.admin'),
+      icon: Shield,
+      href: `/${currentLocale}/admin`,
+      active: pathname === `/${currentLocale}/admin`,
+    }] : []),
   ]
 
   const bottomItems = [
@@ -436,55 +444,30 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           className={`${SIDEBAR_STYLES.container.padding.auth.top} ${SIDEBAR_STYLES.container.padding.auth.margin}`}
         >
           {isAuthenticated ? (
-            <>
-              {profile?.email === clientEnv.adminEmail && (
-                <Link
-                  href="/admin"
-                  onClick={() => setIsMobileOpen(false)}
-                  className={`w-full flex items-center ${SIDEBAR_STYLES.button.gap.expanded} ${SIDEBAR_STYLES.button.padding.horizontal.expanded} ${SIDEBAR_STYLES.button.padding.vertical} ${SIDEBAR_STYLES.button.borderRadius} transition-colors ${
-                    pathname === '/admin'
-                      ? SIDEBAR_STYLES.colors.active
-                      : SIDEBAR_STYLES.colors.inactive
-                  } ${!showExpanded ? 'justify-center' : ''}`}
-                  title={!showExpanded ? t('navigation.admin') : ''}
-                >
-                  <Activity
-                    className={`${SIDEBAR_STYLES.icon.size} flex-shrink-0`}
-                  />
-                  {showExpanded && (
-                    <span
-                      className={`${SIDEBAR_STYLES.button.text.size} ${SIDEBAR_STYLES.button.text.weight}`}
-                    >
-                      {t('navigation.admin')}
-                    </span>
-                  )}
-                </Link>
+            <div
+              className={`${SIDEBAR_STYLES.container.padding.auth.horizontal} ${SIDEBAR_STYLES.container.padding.auth.vertical}`}
+            >
+              <UserMenu
+                user={{
+                  name: profile?.full_name || user?.email || 'User',
+                  email: user?.email || '',
+                  image:
+                    profile?.media_assets?.url ||
+                    user?.user_metadata?.avatar_url ||
+                    null,
+                }}
+                onSignOut={() => dispatch(signOut())}
+                showProfileLink={!showExpanded}
+                position="above"
+              />
+              {!showExpanded && (
+                <div className="mt-1 text-center">
+                  <p className="text-xs text-text-secondary truncate max-w-16">
+                    {profile?.full_name || 'User'}
+                  </p>
+                </div>
               )}
-              <div
-                className={`${SIDEBAR_STYLES.container.padding.auth.horizontal} ${SIDEBAR_STYLES.container.padding.auth.vertical}`}
-              >
-                <UserMenu
-                  user={{
-                    name: profile?.full_name || user?.email || 'User',
-                    email: user?.email || '',
-                    image:
-                      profile?.media_assets?.url ||
-                      user?.user_metadata?.avatar_url ||
-                      null,
-                  }}
-                  onSignOut={() => dispatch(signOut())}
-                  showProfileLink={!showExpanded}
-                  position="above"
-                />
-                {!showExpanded && (
-                  <div className="mt-1 text-center">
-                    <p className="text-xs text-text-secondary truncate max-w-16">
-                      {profile?.full_name || 'User'}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </>
+            </div>
           ) : (
             <button
               onClick={() => {

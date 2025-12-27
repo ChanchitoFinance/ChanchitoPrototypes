@@ -25,7 +25,7 @@ export function AdminPanel() {
     )
   }
 
-  if (!isAuthenticated || profile?.email !== clientEnv.adminEmail) {
+  if (!isAuthenticated || profile?.role !== 'admin') {
     router.push(`/${locale}`)
     return null
   }

@@ -42,7 +42,8 @@
   "status": {
     "loading": "Loading...",
     "loading_more_ideas": "Loading more ideas...",
-    "no_more_ideas": "No more ideas to load"
+    "no_more_ideas": "No more ideas to load",
+    "finding_idea": "Finding your idea..."
   },
   "common": {
     "score": "Score",
@@ -437,5 +438,20 @@
     "invite_link": "Invite Link",
     "copy_link": "Copy Link",
     "link_copied": "Link copied to clipboard"
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "subtitle": "Manage ideas, reports, and platform settings",
+      "all_ideas": "All Ideas",
+      "search_placeholder": "Search ideas by title, description, or tags...",
+      "loading": "Loading ideas...",
+      "no_ideas": "No ideas found",
+      "delete_idea": "Delete Idea",
+      "delete_confirm": "Are you sure you want to delete this idea? This action cannot be undone.",
+      "delete_success": "Idea deleted successfully",
+      "delete_error": "Error deleting idea. Please try again.",
+      "load_more": "Load More Ideas"
+    }
   }
 }

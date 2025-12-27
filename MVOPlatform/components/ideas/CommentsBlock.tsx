@@ -119,7 +119,11 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
     const updateCommentRecursive = (comments: Comment[]): Comment[] => {
       return comments.map(comment => {
         if (comment.id === commentId) {
-          return updatedComment
+          // Preserve the existing replies when updating the comment
+          return {
+            ...updatedComment,
+            replies: comment.replies, // Keep the existing replies structure
+          }
         }
         if (comment.replies) {
           return {
