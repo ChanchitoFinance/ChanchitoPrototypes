@@ -14,10 +14,10 @@ export const metadata: Metadata = {
     'Validate your business idea in 48 hours with data-driven insights',
 }
 
-export default function RootLayout({ children, params }: Props) {
-  const locale = params.locale as 'en' | 'es'
+export default async function RootLayout({ children, params }: Props) {
+  const locale = (await params).locale as 'en' | 'es'
   return (
-    <html>
+    <html suppressHydrationWarning>
       <body>
         <GoogleAnalytics />
         <Providers locale={locale}>{children}</Providers>
