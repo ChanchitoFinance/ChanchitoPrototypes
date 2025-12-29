@@ -39,13 +39,13 @@
   },
   "overrides": [
     {
-      "files": ["config/env.ts", "config/env.js"],
+      "files": ["env-validation/config/env.ts", "env-validation/config/env.js"],
       "rules": {
         "no-restricted-syntax": "off"
       }
     },
     {
-      "files": ["lib/env-validation/javascript_adapter.js"],
+      "files": ["env-validation/javascript_adapter.js"],
       "rules": {
         "no-restricted-syntax": "off"
       }
