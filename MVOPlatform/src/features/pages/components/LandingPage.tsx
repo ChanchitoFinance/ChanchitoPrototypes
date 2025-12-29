@@ -1,13 +1,12 @@
 'use client'
 
-import { CTA } from "@/features/landing/components/CTA"
-import { FAQ } from "@/features/landing/components/FAQ"
-import { Hero } from "@/features/landing/components/Hero"
-import { Pricing } from "@/features/landing/components/Pricing"
-import { Process } from "@/features/landing/components/Process"
-import { ScorecardMockup } from "@/features/landing/components/ScorecardMockup"
-import { Testimonials } from "@/features/landing/components/Testimonials"
-import { Footer } from "@/shared/components/layout/Footer"
+import { CTA } from '@/features/landing/components/CTA'
+import { FAQ } from '@/features/landing/components/FAQ'
+import { Hero } from '@/features/landing/components/Hero'
+import { Pricing } from '@/features/landing/components/Pricing'
+import { Process } from '@/features/landing/components/Process'
+import { ScorecardMockup } from '@/features/landing/components/ScorecardMockup'
+import { Testimonials } from '@/features/landing/components/Testimonials'
 
 export function LandingPage() {
   return (
@@ -22,9 +21,7 @@ export function LandingPage() {
           <FAQ />
           <CTA />
         </main>
-        <Footer />
       </div>
     </div>
   )
 }
-

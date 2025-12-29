@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CheckCircle } from 'lucide-react'
 import { Button } from '@/shared/components/ui/Button'
-import { Footer } from '@/shared/components/layout/Footer'
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams()
@@ -75,7 +74,6 @@ export default function PaymentSuccessPage() {
             <PaymentSuccessContent />
           </Suspense>
         </main>
-        <Footer />
       </div>
     </div>
   )

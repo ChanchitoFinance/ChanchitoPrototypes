@@ -1,7 +1,6 @@
 'use client'
 
 import { ReportDashboard } from '@/features/report/components/ReportDashboard'
-import { Footer } from '@/shared/components/layout/Footer'
 import { motion } from 'framer-motion'
 
 interface IdeaReportProps {
@@ -21,9 +20,7 @@ export function IdeaReport({ ideaId }: IdeaReportProps) {
             <ReportDashboard ideaId={ideaId} />
           </motion.div>
         </main>
-        <Footer />
       </div>
     </div>
   )
 }
-

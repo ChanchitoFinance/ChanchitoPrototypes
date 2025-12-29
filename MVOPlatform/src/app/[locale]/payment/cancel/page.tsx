@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { XCircle } from 'lucide-react'
 import { Button } from '@/shared/components/ui/Button'
-import { Footer } from '@/shared/components/layout/Footer'
 
 export default function PaymentCancelPage() {
   return (
@@ -40,7 +39,6 @@ export default function PaymentCancelPage() {
             </div>
           </motion.div>
         </main>
-        <Footer />
       </div>
     </div>
   )

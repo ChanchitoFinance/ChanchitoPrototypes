@@ -7,7 +7,6 @@ import { useAppDispatch, useAppSelector } from '@/core/lib/hooks'
 import { IdeaForm } from '@/features/ideas/components/forms/IdeaForm'
 import { Button } from '@/shared/components/ui/Button'
 import { signInWithGoogle } from '@/core/lib/slices/authSlice'
-import { Footer } from '@/shared/components/layout/Footer'
 
 export function IdeaUpload() {
   const t = useTranslations()
@@ -44,7 +43,6 @@ export function IdeaUpload() {
               </Button>
             </motion.div>
           </main>
-          <Footer />
         </div>
       </div>
     )
@@ -55,7 +53,6 @@ export function IdeaUpload() {
       <div className="flex-1 flex flex-col overflow-hidden ml-16 md:ml-64">
         <main className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <IdeaForm />
-          <Footer />
         </main>
       </div>
     </div>
