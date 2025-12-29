@@ -14,7 +14,7 @@ A Next.js web application for validating business ideas with data-driven insight
 
 ## Tech Stack
 
-- Next.js 14 (App Router)
+- Next.js 16 (App Router)
 - TypeScript
 - React 18
 - Tailwind CSS
@@ -23,6 +23,27 @@ A Next.js web application for validating business ideas with data-driven insight
 - Redux Toolkit
 - Stripe
 - React Hook Form + Zod
+- **Architecture**: Feature-Based Architecture
+
+## Architecture
+
+This project uses a **Feature-Based Architecture** that organizes code around business features rather than technical layers. Each feature is self-contained and includes all necessary components, hooks, types, and utilities.
+
+### Key Benefits
+
+- **Separation of Concerns**: Each feature manages its own logic
+- **Easier Maintenance**: Changes are localized to specific features
+- **Better Testing**: Features can be tested independently
+- **Scalability**: New features can be added without affecting existing ones
+
+### Structure Overview
+
+- **`src/core/`**: Shared business logic, services, and infrastructure
+- **`src/features/`**: Feature-specific code (components, hooks, types)
+- **`src/shared/`**: Cross-cutting UI components and providers
+- **`src/app/`**: Next.js routing and page definitions
+
+See `docs/architecture/feature-based-architecture.md` for detailed implementation guidelines.
 
 ## Getting Started
 
@@ -89,14 +110,30 @@ npm run format:check  # Check formatting without changing files
 
 ## Project Structure
 
+The project follows a **Feature-Based Architecture** where code is organized around business features rather than technical layers.
+
 ```
-MVOPlatform/
-├── app/              # Next.js pages and API routes
-├── components/       # React components
-├── config/           # Configuration files (env.ts)
-├── styles/           # Design system and tokens
-├── docs/             # Documentation
-└── public/          # Static assets
+src/
+├── app/                    # Next.js App Router (pages and layouts)
+├── core/                   # Shared business logic and infrastructure
+│   ├── abstractions/       # Service interfaces/contracts
+│   ├── lib/               # Core utilities and services
+│   │   ├── services/      # Core business services
+│   │   ├── slices/        # Redux slices
+│   │   └── utils/         # Utility functions
+│   ├── styles/            # Global styles and design tokens
+│   └── types/             # Shared TypeScript types
+├── features/              # Feature-specific code
+│   ├── [feature-name]/    # Each feature is self-contained
+│   │   ├── components/    # Feature-specific components
+│   │   ├── hooks/         # Feature-specific hooks
+│   │   ├── types/         # Feature-specific types
+│   │   └── utils/         # Feature-specific utilities
+└── shared/                # Cross-cutting concerns
+    ├── components/        # Shared UI components
+    │   ├── layout/        # Layout components
+    │   ├── providers/     # React context providers
+    │   └── ui/            # Reusable UI components
 ```
 
 ## Services
@@ -121,9 +158,11 @@ See `docs/services-usage.md` for detailed usage examples.
 
 See `docs/` directory for detailed documentation:
 
+- **Architecture Overview** (`docs/architecture/overview.md`)
+- **Feature-Based Architecture Guide** (`docs/architecture/feature-based-architecture.md`)
 - Services usage (`docs/services-usage.md`)
 - UX guidelines (`docs/UX/`)
-- Architecture (`docs/architecture/`)
+- Security insights (`docs/security-insights.md`)
 
 ## Design System
 
