@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from '@/shared/components/providers/I18nProvider'
 import { ideaService } from '@/core/lib/services/ideaService'
 import { Idea } from '@/core/types/idea'
-import { MyIdeaCard } from '@/features/ideas/components/MyIdeaCard'
+import { IdeaCard } from '@/features/ideas/components/IdeaCard'
 import { Button } from '@/shared/components/ui/Button'
 import { Plus, SortAsc, Filter, RefreshCw } from 'lucide-react'
 
@@ -180,13 +180,7 @@ export function UserIdeasList() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedIdeas.map(idea => (
-            <div
-              key={idea.id}
-              className="cursor-pointer"
-              onClick={() => router.push(`/${locale}/ideas/${idea.id}`)}
-            >
-              <MyIdeaCard idea={idea} />
-            </div>
+            <IdeaCard key={idea.id} idea={idea} variant="metrics" />
           ))}
         </div>
       )}

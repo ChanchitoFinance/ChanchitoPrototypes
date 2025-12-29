@@ -13,23 +13,19 @@ import {
   Heart,
   Activity,
   Plus,
-  User,
   MoreHorizontal,
   X,
   LogIn,
   FolderKanban,
   Shield,
 } from 'lucide-react'
-import { clientEnv } from '../../../../env-validation/config/env'
 import { UserMenu } from '@/shared/components/ui/UserMenu'
-import Image from 'next/image'
 
 interface SidebarProps {
   activeTab?: 'home' | 'foryou'
   onTabChange?: (tab: 'home' | 'foryou') => void
 }
 
-// Sidebar styling constants
 const SIDEBAR_STYLES = {
   // Widths
   width: {
@@ -510,7 +506,6 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
       <aside
         className={`fixed left-0 top-0 h-screen z-50 transition-all duration-300 flex-shrink-0 ${
           showExpanded

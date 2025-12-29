@@ -8,13 +8,10 @@ import { Process } from "@/features/landing/components/Process"
 import { ScorecardMockup } from "@/features/landing/components/ScorecardMockup"
 import { Testimonials } from "@/features/landing/components/Testimonials"
 import { Footer } from "@/shared/components/layout/Footer"
-import { Sidebar } from "lucide-react"
-
 
 export function LandingPage() {
   return (
     <div className="min-h-screen flex bg-background">
-      <Sidebar />
       <div className="flex-1 flex flex-col ml-16 md:ml-64">
         <main className="flex-1">
           <Hero />

@@ -3,14 +3,13 @@
 import { Footer } from '@/shared/components/layout/Footer'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import { Button } from '@/shared/components/ui/Button'
-import { Crown, Check, Sidebar } from 'lucide-react'
+import { Crown, Check } from 'lucide-react'
 
 export function PremiumPage() {
   const t = useTranslations()
 
   return (
     <div className="h-screen w-full overflow-hidden bg-background flex">
-      <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden ml-16 md:ml-64">
         <main className="flex-1 overflow-y-auto flex flex-col [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="flex-1">

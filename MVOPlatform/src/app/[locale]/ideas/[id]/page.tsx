@@ -1,11 +1,15 @@
 'use client'
 
+import React from 'react'
 import { IdeaDetail } from '@/features/ideas/components/IdeaDetail'
-import { Sidebar } from '@/shared/components/layout/Sidebar'
-import { Footer } from '@/shared/components/layout/Footer'
 import { useState, useEffect } from 'react'
 
-export default function IdeaDetailPage({ params }: { params: { id: string } }) {
+export default function IdeaDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const resolvedParams = React.use(params)
   const [sidebarWidth, setSidebarWidth] = useState(256) // Default to expanded width (w-64 = 256px)
   const [activeTab, setActiveTab] = useState<'home' | 'foryou'>('home')
 
@@ -66,10 +70,8 @@ export default function IdeaDetailPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="min-h-screen bg-background flex">
-      <Sidebar activeTab={activeTab} />
-      <div className="flex-1 flex flex-col transition-all duration-300 ml-16 md:ml-64">
-        <IdeaDetail ideaId={params.id} />
-        <Footer />
+      <div className="flex-1 flex flex-col transition-all duration-300">
+        <IdeaDetail ideaId={resolvedParams.id} />
       </div>
     </div>
   )

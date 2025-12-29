@@ -146,7 +146,7 @@ export function IdeasFeed({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.03 }}
                 >
-                  <IdeaCard idea={idea} />
+                  <IdeaCard idea={idea} variant="interactive" />
                 </motion.div>
               ))}
               {/* Loading skeletons for new items */}
@@ -162,7 +162,7 @@ export function IdeasFeed({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.05 }}
                 >
-                  <IdeaCard idea={idea} />
+                  <IdeaCard idea={idea} variant="interactive" />
                 </motion.div>
               ))}
               {/* Loading skeletons for new items */}

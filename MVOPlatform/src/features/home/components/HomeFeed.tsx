@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Sidebar } from '@/shared/components/layout/Sidebar'
-import { Footer } from '@/shared/components/layout/Footer'
-import { HomeIdeaCard } from '@/features/home/components/HomeIdeaCard'
+import { IdeaCard } from '@/features/ideas/components/IdeaCard'
 import { motion } from 'framer-motion'
 import { Idea } from '@/core/types/idea'
 import { ideaService } from '@/core/lib/services/ideaService'
@@ -269,8 +267,9 @@ export function HomeFeed({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.03 }}
                   >
-                    <HomeIdeaCard
+                    <IdeaCard
                       idea={idea}
+                      variant="interactive"
                       onMouseEnter={() => setHoveredIdeaId(idea.id)}
                       onMouseLeave={() => setHoveredIdeaId(null)}
                       initialUserVotes={idea.userVotes}
@@ -290,8 +289,9 @@ export function HomeFeed({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.03 }}
               >
-                <HomeIdeaCard
+                <IdeaCard
                   idea={idea}
+                  variant="interactive"
                   onMouseEnter={() => setHoveredIdeaId(idea.id)}
                   onMouseLeave={() => setHoveredIdeaId(null)}
                   initialUserVotes={idea.userVotes}
@@ -327,18 +327,5 @@ export function HomeFeed({
       )}
     </main>
   )
-
-  if (!showHeader && !showFooter) {
-    return content
-  }
-
-  return (
-    <div className="min-h-screen flex bg-background">
-      {showHeader && <Sidebar />}
-      <div className="flex-1 flex flex-col transition-all duration-300 overflow-x-hidden">
-        {content}
-        {showFooter && <Footer />}
-      </div>
-    </div>
-  )
+  return content
 }

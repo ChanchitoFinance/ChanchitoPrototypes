@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Sidebar } from '@/shared/components/layout/Sidebar'
 import { Footer } from '@/shared/components/layout/Footer'
-import { HomeIdeaCard } from '@/features/home/components/HomeIdeaCard'
+import { IdeaCard } from '@/features/ideas/components/IdeaCard'
 import { Button } from '@/shared/components/ui/Button'
 import { teamService } from '@/core/lib/services/teamService'
 import { ideaService } from '@/core/lib/services/ideaService'
@@ -170,7 +169,6 @@ export function SpaceDetailPage({ spaceId }: SpaceDetailPageProps) {
   if (loading) {
     return (
       <div className="h-screen w-full overflow-hidden bg-background flex">
-        <Sidebar />
         <div className="flex-1 flex items-center justify-center ml-16 md:ml-64">
           <Loader2 className="w-8 h-8 animate-spin text-accent" />
         </div>
@@ -197,7 +195,6 @@ export function SpaceDetailPage({ spaceId }: SpaceDetailPageProps) {
   if (showCreateForm) {
     return (
       <div className="h-screen w-full overflow-hidden bg-background flex">
-        <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden ml-16 md:ml-64">
           <main className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <div className="max-w-4xl mx-auto px-4 md:px-6 py-8">
@@ -230,8 +227,6 @@ export function SpaceDetailPage({ spaceId }: SpaceDetailPageProps) {
 
   return (
     <div className="h-screen w-full overflow-hidden bg-background flex relative">
-      <Sidebar />
-      {/* Back Button - Top Left, next to sidebar, follows scroll */}
       <div className="fixed top-4 left-20 md:left-[272px] z-50 transition-all duration-300">
         <Button
           onClick={handleBack}
@@ -422,7 +417,7 @@ export function SpaceDetailPage({ spaceId }: SpaceDetailPageProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-8">
                     {ideas.map(idea => (
                       <div key={idea.id} className="relative group">
-                        <HomeIdeaCard idea={idea} />
+                        <IdeaCard idea={idea} variant="interactive" />
                         {isAdmin && (
                           <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                             <Button

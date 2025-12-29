@@ -6,7 +6,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Idea } from '@/core/types/idea'
 import { useVideoPlayer } from '@/core/hooks/useVideoPlayer'
-import { useLocale, useTranslations } from '@/shared/components/providers/I18nProvider'
+import {
+  useLocale,
+  useTranslations,
+} from '@/shared/components/providers/I18nProvider'
 import { ideaService } from '@/core/lib/services/ideaService'
 import { CarouselItemSkeleton } from '@/shared/components/ui/Skeleton'
 import { getCardMedia } from '@/core/lib/utils/media'
@@ -371,7 +374,6 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
         </div>
       </div>
 
-      {/* Sidebar Thumbnails - All ideas visible, compact layout */}
       <div className="hidden md:block absolute right-0 top-0 bottom-0 w-64 lg:w-72 bg-black z-30 border-l border-gray-800 flex-col">
         <div className="flex-1 flex flex-col p-2 md:p-3 space-y-1.5 md:space-y-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {ideas.slice(0, 5).map((idea, index) => {

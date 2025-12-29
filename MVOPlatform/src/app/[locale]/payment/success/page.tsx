@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CheckCircle } from 'lucide-react'
 import { Button } from '@/shared/components/ui/Button'
-import { Sidebar } from '@/shared/components/layout/Sidebar'
 import { Footer } from '@/shared/components/layout/Footer'
 
 function PaymentSuccessContent() {
@@ -36,8 +35,8 @@ function PaymentSuccessContent() {
         Payment Successful
       </h1>
       <p className="text-base text-text-secondary mb-8">
-        Your payment has been processed successfully. You can now submit
-        your idea for validation.
+        Your payment has been processed successfully. You can now submit your
+        idea for validation.
       </p>
       {sessionId && (
         <p className="text-sm text-text-secondary mb-8">
@@ -59,19 +58,20 @@ function PaymentSuccessContent() {
 export default function PaymentSuccessPage() {
   return (
     <div className="min-h-screen flex bg-background">
-      <Sidebar />
       <div className="flex-1 flex flex-col ml-16 md:ml-0">
         <main className="flex-1 flex items-center justify-center px-6 py-12">
-          <Suspense fallback={
-            <div className="max-w-md w-full text-center">
-              <div className="mb-6 flex justify-center">
-                <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+          <Suspense
+            fallback={
+              <div className="max-w-md w-full text-center">
+                <div className="mb-6 flex justify-center">
+                  <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+                </div>
+                <h1 className="text-3xl font-semibold text-text-primary mb-4">
+                  Loading...
+                </h1>
               </div>
-              <h1 className="text-3xl font-semibold text-text-primary mb-4">
-                Loading...
-              </h1>
-            </div>
-          }>
+            }
+          >
             <PaymentSuccessContent />
           </Suspense>
         </main>
@@ -80,4 +80,3 @@ export default function PaymentSuccessPage() {
     </div>
   )
 }
-
