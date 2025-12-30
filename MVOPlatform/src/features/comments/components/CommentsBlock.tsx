@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
-import { ArrowUp, MessageSquare } from 'lucide-react'
+import { toast } from 'sonner'
+import { ArrowUp } from 'lucide-react'
 import { Comment } from '@/core/types/comment'
 import { useAppSelector } from '@/core/lib/hooks'
 import { commentService } from '@/core/lib/services/commentService'
@@ -85,7 +85,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
 
   const handleUpvoteComment = async (commentId: string) => {
     if (!user) {
-      alert(t('auth.sign_in_to_vote'))
+      toast.warning(t('auth.sign_in_to_vote'))
       return
     }
     try {
@@ -101,7 +101,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
 
   const handleDownvoteComment = async (commentId: string) => {
     if (!user) {
-      alert(t('auth.sign_in_to_vote'))
+      toast.warning(t('auth.sign_in_to_vote'))
       return
     }
     try {
@@ -156,7 +156,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
     if (!replyContent || submitting) return
 
     if (!user) {
-      alert(t('auth.sign_in_to_comment'))
+      toast.warning(t('auth.sign_in_to_comment'))
       return
     }
 
@@ -241,7 +241,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
     if (!newComment.trim() || submitting) return
 
     if (!user) {
-      alert(t('auth.sign_in_to_comment'))
+      toast.warning(t('auth.sign_in_to_comment'))
       return
     }
 

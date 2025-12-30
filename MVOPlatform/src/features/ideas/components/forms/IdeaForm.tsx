@@ -42,6 +42,7 @@ import { ContentRenderer } from '../ContentRenderer'
 import { Button } from '@/shared/components/ui/Button'
 import { ContentBlock } from '@/core/types/content'
 import { isUrlValid } from '@/core/lib/utils/media'
+import { toast } from 'sonner'
 
 type IdeaFormData = {
   title: string
@@ -525,7 +526,7 @@ export function IdeaForm({
         setHeroVideo(null)
         setShowImageUpload(false)
       } catch (error) {
-        alert(
+        toast.error(
           error instanceof Error ? error.message : t('validation.upload_failed')
         )
       } finally {
@@ -544,7 +545,7 @@ export function IdeaForm({
         setHeroImage(null)
         setShowVideoUpload(false)
       } catch (error) {
-        alert(
+        toast.error(
           error instanceof Error ? error.message : t('validation.upload_failed')
         )
       } finally {
@@ -571,7 +572,7 @@ export function IdeaForm({
     })
 
     if (validBlocks.length === 0) {
-      alert(t('validation.content_required'))
+      toast.error(t('validation.content_required'))
       return
     }
 
@@ -730,7 +731,7 @@ export function IdeaForm({
     } catch (error) {
       console.error('Error creating idea:', error)
       setSubmitProgress('')
-      alert(t('validation.idea_creation_error'))
+      toast.error(t('validation.idea_creation_error'))
     } finally {
       setIsSubmitting(false)
       setSubmitProgress('')

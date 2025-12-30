@@ -25,6 +25,7 @@ import {
   VoteDistributionBar,
 } from '@/shared/components/ui/VoteDistributionBar'
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
+import { toast } from 'sonner'
 
 type IdeaCardVariant = 'interactive' | 'metrics' | 'admin'
 
@@ -93,7 +94,7 @@ export function IdeaCard({
   ) => {
     e.preventDefault()
     if (!isAuthenticated) {
-      alert(t('auth.sign_in_to_vote'))
+      toast.warning(t('auth.sign_in_to_vote'))
       return
     }
     if (isVoting) return

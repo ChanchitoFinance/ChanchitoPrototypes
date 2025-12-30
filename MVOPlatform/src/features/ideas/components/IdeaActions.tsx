@@ -11,6 +11,7 @@ import {
   DollarSign,
 } from 'lucide-react'
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
+import { toast } from 'sonner'
 
 interface IdeaActionsProps {
   idea: Idea
@@ -54,20 +55,20 @@ export function IdeaActions({
           url: window.location.href,
         })
         // Show success feedback
-        alert(t('actions.share_success'))
+        toast.success(t('actions.share_success'))
       } catch (error) {
         if (error.name !== 'AbortError') {
           console.error('Error sharing:', error)
           // Fallback to clipboard
           navigator.clipboard.writeText(window.location.href)
-          alert(t('actions.link_copied'))
+          toast.success(t('actions.link_copied'))
         }
         // If user canceled, don't show any message
       }
     } else {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href)
-      alert(t('actions.link_copied'))
+      toast.success(t('actions.link_copied'))
     }
   }
 

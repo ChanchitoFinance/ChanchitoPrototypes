@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { toast } from 'sonner'
 import { ForYouIdeaCard } from './ForYouIdeaCard'
 import { Idea } from '@/core/types/idea'
 import { ideaService } from '@/core/lib/services/ideaService'
@@ -44,7 +45,7 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
       if (e.key === 'ArrowUp') {
         e.preventDefault()
         if (!isAuthenticated) {
-          alert(t('auth.sign_in_to_vote'))
+          toast.warning(t('auth.sign_in_to_vote'))
           return
         }
         setIsVoting(true)
@@ -61,7 +62,7 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
       } else if (e.key === 'ArrowDown') {
         e.preventDefault()
         if (!isAuthenticated) {
-          alert(t('auth.sign_in_to_vote'))
+          toast.warning(t('auth.sign_in_to_vote'))
           return
         }
         setIsVoting(true)
