@@ -20,7 +20,10 @@ import {
   Crown,
 } from 'lucide-react'
 import Image from 'next/image'
-import { useLocale, useTranslations } from '@/shared/components/providers/I18nProvider'
+import {
+  useLocale,
+  useTranslations,
+} from '@/shared/components/providers/I18nProvider'
 import { usePremiumRedirect } from '@/core/hooks/usePremiumRedirect'
 import { useAppSelector } from '@/core/lib/hooks'
 import { Team } from '@/core/types/team'
@@ -127,7 +130,7 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
 
   const onError = (errors: any) => {
     console.error('Form validation errors:', errors)
-    
+
     // Find the first error with a message
     let errorMsg = null
     for (const [field, error] of Object.entries(errors)) {
@@ -146,11 +149,11 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
         break
       }
     }
-    
+
     if (!errorMsg) {
       errorMsg = t('validation.please_fill_required_fields')
     }
-    
+
     setErrorMessage(errorMsg)
   }
 
@@ -280,7 +283,10 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
       return
     }
 
-    if (data.create_new_team && (!data.new_team_name || data.new_team_name.trim().length === 0)) {
+    if (
+      data.create_new_team &&
+      (!data.new_team_name || data.new_team_name.trim().length === 0)
+    ) {
       alert('Please enter a team name')
       return
     }
@@ -326,7 +332,8 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
         team_id: teamId,
         name: data.space_name,
         visibility: data.visibility,
-        settings: Object.keys(spaceSettings).length > 0 ? spaceSettings : undefined,
+        settings:
+          Object.keys(spaceSettings).length > 0 ? spaceSettings : undefined,
       })
 
       // Add creator as admin
@@ -336,19 +343,22 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
       if (onSuccess) {
         onSuccess()
       }
-      
+
       // Always redirect to the space detail page
       router.push(`/${locale}/spaces/${newSpace.id}`)
     } catch (error) {
       console.error('Error creating space:', error)
-      const errorMsg = error instanceof Error ? error.message : t('spaces.space_creation_error')
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : t('spaces.space_creation_error')
       setErrorMessage(errorMsg)
       setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <article className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-12">
         <motion.form
           initial={{ opacity: 0, y: 20 }}
@@ -419,7 +429,9 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
                     type="radio"
                     checked={!createNewTeam}
                     onChange={() => {
-                      setValue('create_new_team', false, { shouldValidate: true })
+                      setValue('create_new_team', false, {
+                        shouldValidate: true,
+                      })
                       setErrorMessage(null)
                     }}
                     className="w-4 h-4 text-accent"
@@ -450,7 +462,9 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
                     type="radio"
                     checked={createNewTeam}
                     onChange={() => {
-                      setValue('create_new_team', true, { shouldValidate: true })
+                      setValue('create_new_team', true, {
+                        shouldValidate: true,
+                      })
                       setErrorMessage(null)
                     }}
                     className="w-4 h-4 text-accent"
@@ -571,7 +585,9 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
                   value="public"
                   className="w-4 h-4 text-accent"
                 />
-                <span className="text-sm text-text-primary">{t('spaces.public')}</span>
+                <span className="text-sm text-text-primary">
+                  {t('spaces.public')}
+                </span>
               </label>
               <motion.label
                 className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-accent-alt/30 hover:border-accent-alt/50 transition-colors"
@@ -591,7 +607,9 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
                   }}
                 />
                 <div className="flex items-center gap-2 flex-1">
-                  <span className="text-sm text-text-primary">{t('spaces.private')}</span>
+                  <span className="text-sm text-text-primary">
+                    {t('spaces.private')}
+                  </span>
                   <Crown className="w-4 h-4 text-accent-alt" />
                 </div>
               </motion.label>
@@ -1053,4 +1071,3 @@ function SpaceCropEditor({
     </div>
   )
 }
-

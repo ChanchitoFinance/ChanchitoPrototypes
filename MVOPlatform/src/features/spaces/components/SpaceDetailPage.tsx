@@ -237,9 +237,9 @@ export function SpaceDetailPage({ spaceId }: SpaceDetailPageProps) {
   const spaceMedia = space.settings?.space_image || space.settings?.space_video
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="bg-background relative">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1">
           {/* Full-width Layout: Ideas content with optional space media sidebar */}
           <div className="px-4 md:px-6 py-8">
             <div className="max-w-7xl mx-auto">
