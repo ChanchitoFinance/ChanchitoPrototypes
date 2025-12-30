@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from '../providers/I18nProvider'
+import { Bell } from 'lucide-react'
 import { useLocale } from '../providers/I18nProvider'
 
 interface UserMenuProps {
@@ -16,6 +17,8 @@ interface UserMenuProps {
   onSignOut: () => void
   showProfileLink?: boolean
   position?: 'below' | 'above'
+  hasUnreadNotifications?: boolean
+  currentLocale?: string
 }
 
 export function UserMenu({
@@ -23,6 +26,8 @@ export function UserMenu({
   onSignOut,
   showProfileLink = false,
   position = 'below',
+  hasUnreadNotifications = false,
+  currentLocale = 'en',
 }: UserMenuProps) {
   const t = useTranslations()
   const { locale } = useLocale()
@@ -53,19 +58,24 @@ export function UserMenu({
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-accent"
       >
-        {user.image ? (
-          <Image
-            src={user.image}
-            alt={user.name || 'User'}
-            width={32}
-            height={32}
-            className="rounded-full"
-          />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-text-primary font-medium">
-            {user.name?.[0] || user.email?.[0] || 'U'}
-          </div>
-        )}
+        <div className="relative">
+          {user.image ? (
+            <Image
+              src={user.image}
+              alt={user.name || 'User'}
+              width={32}
+              height={32}
+              className="rounded-full"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-text-primary font-medium">
+              {user.name?.[0] || user.email?.[0] || 'U'}
+            </div>
+          )}
+          {hasUnreadNotifications && (
+            <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-accent border-2 border-background"></div>
+          )}
+        </div>
       </button>
 
       <AnimatePresence>
@@ -91,6 +101,22 @@ export function UserMenu({
                 {t('navigation.profile')}
               </Link>
             )}
+            <Link
+              href={`/${currentLocale}/notifications`}
+              onClick={() => setIsOpen(false)}
+              className={`block px-4 py-2 text-sm interactive-hover ${
+                hasUnreadNotifications
+                  ? 'text-accent font-medium'
+                  : 'text-text-secondary'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span>{t('navigation.notifications')}</span>
+                {hasUnreadNotifications && (
+                  <span className="w-2 h-2 rounded-full bg-accent"></span>
+                )}
+              </div>
+            </Link>
             <Link
               href={`/${locale}/settings`}
               onClick={() => setIsOpen(false)}
