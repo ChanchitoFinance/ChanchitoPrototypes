@@ -13,6 +13,7 @@ import Image from 'next/image'
 import { formatDate } from '@/core/lib/utils/date'
 import { Idea } from '@/core/types/idea'
 import { useVideoPlayer } from '@/core/hooks/useVideoPlayer'
+import { useMediaValidation } from '@/core/hooks/useMediaValidation'
 import { TikTokComments } from './TikTokComments'
 import { commentService } from '@/core/lib/services/commentService'
 import { VoteDistributionBar } from '@/shared/components/ui/VoteDistributionBar'
@@ -64,11 +65,12 @@ export function ForYouIdeaCard({
     }
   }, [initialUserVotes])
 
-  const cardMedia = getCardMedia(currentIdea)
+  // Use media validation hook to check and filter invalid media URLs
+  const validCardMedia = useMediaValidation(currentIdea)
 
   // Use reusable video player hook with start time at 10 seconds
   const videoRef = useVideoPlayer({
-    videoSrc: cardMedia.video,
+    videoSrc: validCardMedia.video,
     isActive,
     startTime: 45,
   })
@@ -178,15 +180,15 @@ export function ForYouIdeaCard({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen snap-start snap-mandatory bg-black overflow-hidden"
+      className="relative w-full h-screen snap-start snap-mandatory bg-[var(--background)] overflow-hidden"
     >
       {/* Background image/video area */}
       <div className="absolute inset-0">
-        {cardMedia.video ? (
+        {validCardMedia.video ? (
           <>
             <video
               ref={videoRef}
-              src={cardMedia.video}
+              src={validCardMedia.video}
               className="absolute inset-0 w-full h-full object-cover"
               loop
               muted
@@ -194,20 +196,20 @@ export function ForYouIdeaCard({
               autoPlay={isActive}
               preload={isActive ? 'auto' : 'none'}
             />
-            {/* Black fade from bottom to top for text visibility */}
+            {/* Background fade from bottom to top for text visibility */}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none" />
           </>
-        ) : cardMedia.image ? (
+        ) : validCardMedia.image ? (
           <>
             <Image
-              src={cardMedia.image}
+              src={validCardMedia.image}
               alt={currentIdea.title}
               fill
               className="object-cover"
               priority={isActive}
               loading={isActive ? 'eager' : 'lazy'}
             />
-            {/* Black fade from bottom to top for text visibility */}
+            {/* Background fade from bottom to top for text visibility */}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none" />
           </>
         ) : (
@@ -215,14 +217,18 @@ export function ForYouIdeaCard({
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center px-6 max-w-2xl">
                 <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
-                  {currentIdea.title}
+                  {currentIdea.title.length > 10
+                    ? `${currentIdea.title.substring(0, 10)}...`
+                    : currentIdea.title}
                 </h2>
                 <p className="text-lg md:text-xl text-text-secondary leading-relaxed">
-                  {currentIdea.description}
+                  {currentIdea.description.length > 50
+                    ? `${currentIdea.description.substring(0, 50)}...`
+                    : currentIdea.description}
                 </p>
               </div>
             </div>
-            {/* Black fade from bottom to top for text visibility */}
+            {/* Background fade from bottom to top for text visibility */}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none" />
           </div>
         )}
@@ -234,7 +240,7 @@ export function ForYouIdeaCard({
           {currentIdea.tags.map(tag => (
             <span
               key={tag}
-              className="px-3 py-1 text-xs font-medium text-white bg-black/50 backdrop-blur-sm rounded-full"
+              className="px-3 py-1 text-xs font-medium text-gray-600 bg-slate-100 backdrop-blur-sm rounded-full"
             >
               #{tag}
             </span>
@@ -244,7 +250,7 @@ export function ForYouIdeaCard({
           <div className="text-4xl md:text-5xl font-bold text-accent drop-shadow-lg">
             {currentIdea.score}
           </div>
-          <div className="text-xs text-white/80 drop-shadow-md">
+          <div className="text-sm text-white drop-shadow-md mr-2">
             {t('common.score')}
           </div>
         </div>
@@ -258,7 +264,9 @@ export function ForYouIdeaCard({
             {/* Left side - Text content */}
             <div className="flex-1 text-white min-w-0 pointer-events-auto pb-0">
               <h3 className="text-lg font-bold mb-1 drop-shadow-lg">
-                {currentIdea.title}
+                {currentIdea.title.length > 10
+                  ? `${currentIdea.title.substring(0, 10)}...`
+                  : currentIdea.title}
               </h3>
               {/* Vote Distribution Bar - Between title and description */}
               <div className="mb-1 flex justify-start pointer-events-auto">
@@ -271,11 +279,16 @@ export function ForYouIdeaCard({
                 </div>
               </div>
               <p className="text-sm text-white/90 mb-1 line-clamp-2 drop-shadow-md">
-                {currentIdea.description}
+                {currentIdea.description.length > 50
+                  ? `${currentIdea.description.substring(0, 50)}...`
+                  : currentIdea.description}
               </p>
               <div className="flex items-center gap-2 text-xs text-white/80">
                 <span>
-                  @{currentIdea.anonymous ? t('common.anonymous') : currentIdea.author}
+                  @
+                  {currentIdea.anonymous
+                    ? t('common.anonymous')
+                    : currentIdea.author}
                 </span>
                 <span>•</span>
                 <span>{formatDate(currentIdea.createdAt)}</span>
@@ -384,7 +397,9 @@ export function ForYouIdeaCard({
             {/* Left side - Text content */}
             <div className="flex-1 text-white min-w-0 pointer-events-auto">
               <h3 className="text-2xl font-bold mb-2 drop-shadow-lg">
-                {currentIdea.title}
+                {currentIdea.title.length > 10
+                  ? `${currentIdea.title.substring(0, 10)}...`
+                  : currentIdea.title}
               </h3>
               {/* Vote Distribution Bar - Between title and description */}
               <div className="mb-2 flex justify-start pointer-events-auto">
@@ -397,11 +412,16 @@ export function ForYouIdeaCard({
                 </div>
               </div>
               <p className="text-base text-white/90 mb-2 line-clamp-2 drop-shadow-md">
-                {currentIdea.description}
+                {currentIdea.description.length > 50
+                  ? `${currentIdea.description.substring(0, 50)}...`
+                  : currentIdea.description}
               </p>
               <div className="flex items-center gap-3 text-sm text-white/80">
                 <span>
-                  @{currentIdea.anonymous ? t('common.anonymous') : currentIdea.author}
+                  @
+                  {currentIdea.anonymous
+                    ? t('common.anonymous')
+                    : currentIdea.author}
                 </span>
                 <span>•</span>
                 <span>{formatDate(currentIdea.createdAt)}</span>

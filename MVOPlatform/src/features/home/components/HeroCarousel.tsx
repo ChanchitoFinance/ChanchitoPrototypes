@@ -139,10 +139,10 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
     Record<string, { video?: string; image?: string }>
   >({})
 
-  // Load trending ideas if not provided (max 5 for carousel)
+  // Load trending ideas if not provided (max 7 for carousel)
   useEffect(() => {
     if (!initialIdeas && !initialized) {
-      ideaService.getTrendingIdeas(5).then(loadedIdeas => {
+      ideaService.getTrendingIdeas(7).then(loadedIdeas => {
         setIdeas(loadedIdeas)
         setInitialized(true)
       })
@@ -245,10 +245,10 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
   // Show skeleton while loading
   if (!initialized || ideas.length === 0) {
     return (
-      <div className="relative w-full h-[500px] md:h-[600px] bg-black flex">
+      <div className="relative w-full h-[500px] md:h-[612px] bg-[var(--background)] flex">
         <div className="relative flex-1 h-full overflow-hidden">
           <div className="carousel-scroll-container flex h-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory">
-            {[1, 2, 3, 4, 5].map(i => (
+            {[1, 2, 3, 4, 5, 6, 7].map(i => (
               <CarouselItemSkeleton key={i} />
             ))}
           </div>
@@ -261,15 +261,15 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
 
   return (
     <div
-      className="relative w-full h-[500px] md:h-[600px] bg-black flex"
+      className="relative w-full h-[500px] md:h-[612px] bg-black flex"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Trending Label */}
       <div className="absolute top-6 left-6 md:left-10 z-20">
         <div className="flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 bg-accent/90 backdrop-blur-sm rounded-full shadow-xl">
-          <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-text-primary" />
-          <span className="text-base md:text-lg font-bold text-text-primary tracking-wide uppercase">
+          <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-white" />
+          <span className="text-base md:text-lg font-bold text-white tracking-wide uppercase">
             {t('carousel.trending')}
           </span>
         </div>
@@ -342,7 +342,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                           key={tag}
                           className="px-2 md:px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs md:text-sm font-medium"
                         >
-                          {tag}
+                          #{tag}
                         </span>
                       ))}
                     </div>
@@ -468,9 +468,9 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
         </div>
       </div>
 
-      <div className="hidden md:block absolute right-0 top-0 bottom-0 w-64 lg:w-72 bg-black z-30 border-l border-gray-800 flex-col">
+      <div className="hidden md:block absolute right-0 top-0 bottom-0 w-64 lg:w-72 bg-[var(--background)] z-30 border-l border-gray-800 flex-col">
         <div className="flex-1 flex flex-col p-2 md:p-3 space-y-1.5 md:space-y-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {ideas.slice(0, 5).map((idea, index) => {
+          {ideas.slice(0, 7).map((idea, index) => {
             const validCardMedia = validMediaMap[idea.id] || {}
             return (
               <button
@@ -478,8 +478,8 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                 onClick={() => handleThumbnailClick(index)}
                 className={`relative w-full text-left p-2 rounded-lg transition-all flex items-center gap-2 overflow-hidden ${
                   index === activeIndex
-                    ? 'bg-gray-900 ring-2 ring-accent'
-                    : 'bg-black hover:bg-gray-900'
+                    ? '[var(--background)] ring-2 ring-accent'
+                    : '[var(--background)] hover:bg-gray-300'
                 }`}
               >
                 {/* Progress bar overlay - only visible on active item */}
@@ -504,7 +504,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                     />
                   </div>
                 )}
-                <div className="relative w-16 h-16 flex-shrink-0 rounded overflow-hidden bg-gray-800 z-10">
+                <div className="relative w-16 h-16 flex-shrink-0 rounded overflow-hidden bg-[var(--gray-200)] z-10">
                   {validCardMedia.video ? (
                     <VideoThumbnail
                       videoSrc={validCardMedia.video}
@@ -523,10 +523,10 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                   )}
                 </div>
                 <div className="flex-1 min-w-0 z-10">
-                  <p className="text-xs md:text-sm font-medium text-white line-clamp-2">
+                  <p className="text-xs md:text-sm font-medium text-primary line-clamp-2">
                     {idea.title}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-500 mt-0.5">
                     {idea.anonymous ? t('common.anonymous') : idea.author}
                   </p>
                 </div>
@@ -545,7 +545,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
             className={`transition-all ${
               index === activeIndex
                 ? 'w-8 h-2 bg-accent rounded-full shadow-lg'
-                : 'w-2 h-2 bg-[#FFFFFF]/30 rounded-full hover:bg-[#66D3FF]/50'
+                : 'w-2 h-2 bg-[var(--text-primary)]/30 rounded-full hover:bg-[#66D3FF]/50'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />

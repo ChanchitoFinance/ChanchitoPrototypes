@@ -7,18 +7,18 @@
 :root {
   /* Colors - Single source of truth */
   --background: #000000;
-  --text-primary: #FFFFFF;
-  --text-secondary: #A0A0A0;
-  --accent: #66D3FF;
-  --accent-alt: #A78BFA;
-  --border-color: #1F1F1F;
-  --white: #FFFFFF;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --accent: #66d3ff;
+  --accent-alt: #a78bfa;
+  --border-color: #1f1f1f;
+  --white: #ffffff;
   --black: #000000;
-  
+
   /* Gray scale - commonly used (dark theme) */
-  --gray-50: #1A1A1A;
-  --gray-100: #1F1F1F;
-  --gray-200: #2A2A2A;
+  --gray-50: #1a1a1a;
+  --gray-100: #1f1f1f;
+  --gray-200: #2a2a2a;
 
   /* Typography */
   --font-family-primary: 'Inter', system-ui, sans-serif;
@@ -81,6 +81,7 @@ body {
   font-weight: var(--font-weight-normal);
   background-color: var(--background);
   color: var(--text-primary);
+  height: 100%;
 }
 
 a {
@@ -345,9 +346,9 @@ a {
   }
 
   /* Only apply height: auto to iframes that are NOT absolutely positioned */
-  .html-embed-wrapper iframe:not([style*="absolute"]),
-  .html-embed-wrapper embed:not([style*="absolute"]),
-  .html-embed-wrapper object:not([style*="absolute"]) {
+  .html-embed-wrapper iframe:not([style*='absolute']),
+  .html-embed-wrapper embed:not([style*='absolute']),
+  .html-embed-wrapper object:not([style*='absolute']) {
     width: 100% !important;
     min-height: 400px !important;
     height: auto !important;
@@ -355,7 +356,7 @@ a {
   }
 
   /* Allow responsive containers to work properly - iframe with absolute positioning */
-  .html-embed-wrapper iframe[style*="absolute"] {
+  .html-embed-wrapper iframe[style*='absolute'] {
     width: 100% !important;
     height: 100% !important;
   }
@@ -367,17 +368,17 @@ a {
 
   /* For desktop screens, allow taller embeds - only for direct iframes */
   @media (min-width: 768px) {
-    .html-embed-wrapper iframe:not([style*="absolute"]),
-    .html-embed-wrapper embed:not([style*="absolute"]),
-    .html-embed-wrapper object:not([style*="absolute"]) {
+    .html-embed-wrapper iframe:not([style*='absolute']),
+    .html-embed-wrapper embed:not([style*='absolute']),
+    .html-embed-wrapper object:not([style*='absolute']) {
       min-height: 600px !important;
     }
   }
 
   @media (min-width: 1024px) {
-    .html-embed-wrapper iframe:not([style*="absolute"]),
-    .html-embed-wrapper embed:not([style*="absolute"]),
-    .html-embed-wrapper object:not([style*="absolute"]) {
+    .html-embed-wrapper iframe:not([style*='absolute']),
+    .html-embed-wrapper embed:not([style*='absolute']),
+    .html-embed-wrapper object:not([style*='absolute']) {
       min-height: 800px !important;
     }
   }

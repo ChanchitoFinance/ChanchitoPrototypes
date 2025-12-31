@@ -36,19 +36,21 @@ export function SpacesPage() {
     loadSpaces()
   }, [user?.id])
 
-  const handleSpaceCreated = async () => {
-  }
+  const handleSpaceCreated = async () => {}
 
   if (showCreateForm) {
     return (
       <main className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <SpaceForm onSuccess={handleSpaceCreated} onCancel={() => setShowCreateForm(false)} />
+        <SpaceForm
+          onSuccess={handleSpaceCreated}
+          onCancel={() => setShowCreateForm(false)}
+        />
       </main>
     )
   }
 
   return (
-    <main className="flex-1 overflow-y-auto flex flex-col [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+    <main className="flex-1 overflow-y-auto  flex flex-col [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       <div className="flex-1">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
           {/* Header */}
@@ -62,10 +64,7 @@ export function SpacesPage() {
               </p>
             </div>
             {isAuthenticated && (
-              <Button
-                onClick={() => setShowCreateForm(true)}
-                variant="primary"
-              >
+              <Button onClick={() => setShowCreateForm(true)} variant="primary">
                 <Plus className="w-4 h-4" />
                 {t('spaces.create_space')}
               </Button>
@@ -116,4 +115,3 @@ export function SpacesPage() {
     </main>
   )
 }
-

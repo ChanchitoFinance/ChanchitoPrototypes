@@ -14,12 +14,13 @@ export function SidebarWrapper({ children }: SidebarWrapperProps) {
   // Check if we're on the landing page
   const isLandingPage = pathname === `/${currentLocale}`
 
+  // Check if we're on the For You page to disable scrolling
+  const isForYouPage = pathname.includes('/for-you')
+
   return (
-    <div className="h-screen w-full overflow-hidden bg-background flex">
+    <div className="w-fullbg-background">
       {!isLandingPage && <Sidebar />}
-      <main
-        className={`flex-1 overflow-y-auto ${isLandingPage ? 'ml-0' : 'ml-16 md:ml-64'}`}
-      >
+      <main className={`${isLandingPage ? 'ml-0' : 'ml-16 md:ml-64'}`}>
         {children}
       </main>
     </div>

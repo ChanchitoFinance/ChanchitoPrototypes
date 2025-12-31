@@ -148,7 +148,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
   )
 
   return (
-    <div className="mt-12 bg-black rounded-lg p-8 shadow-sm border border-gray-800">
+    <div className="mt-12 bg-[var(--gray-200)] rounded-lg p-8 shadow-sm border border-[var(--border-color)]">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-semibold text-text-primary">
@@ -168,7 +168,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
       </div>
 
       {/* Score Explanation */}
-      <div className="mb-8 bg-gray-900 rounded-lg p-6 border border-gray-800">
+      <div className="mb-8 bg-[var(--gray-100)] rounded-lg p-6 border border-[var(--border-color)]">
         <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
           <TrendingUp className="w-6 h-6 text-green-500 flex-shrink-0" />
           <span>

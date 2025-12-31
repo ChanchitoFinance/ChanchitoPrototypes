@@ -22,12 +22,10 @@ export default async function RootLayout({ children, params }: Props) {
     <>
       <GoogleAnalytics />
       <Providers locale={locale}>
-        <Providers locale={locale}>
-          <SidebarWrapper>
-            {children}
-            <Footer />
-          </SidebarWrapper>
-        </Providers>
+        <SidebarWrapper>
+          {children}
+          <Footer />
+        </SidebarWrapper>
       </Providers>
     </>
   )

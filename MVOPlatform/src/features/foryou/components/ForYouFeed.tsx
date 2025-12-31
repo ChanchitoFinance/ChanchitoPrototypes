@@ -377,7 +377,7 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
           {[1, 2, 3, 4, 5].map(i => (
             <div
               key={`skeleton-${i}`}
-              className="h-screen snap-start snap-mandatory"
+              className="h-screen snap-start snap-mandatory bg-[var(--background)]"
             >
               <ExploreIdeaSkeleton />
             </div>
@@ -399,8 +399,8 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
 
       {/* Loading indicator at the end */}
       {loading && initialized && (
-        <div className="h-screen snap-start snap-mandatory flex items-center justify-center bg-black">
-          <div className="text-white text-lg">
+        <div className="h-screen snap-start snap-mandatory flex items-center justify-center bg-[var(--background)]">
+          <div className="text-[var(--text-primary)] text-lg">
             {t('status.loading_more_ideas')}
           </div>
         </div>
