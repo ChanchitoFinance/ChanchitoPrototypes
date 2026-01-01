@@ -21,6 +21,7 @@ import { useAppSelector } from '@/core/lib/hooks'
 import { ideaService } from '@/core/lib/services/ideaService'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import { getCardMedia } from '@/core/lib/utils/media'
+import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
 
 interface ForYouIdeaCardProps {
   idea: Idea
@@ -300,13 +301,18 @@ export function ForYouIdeaCard({
               <motion.button
                 onClick={handleVote}
                 whileTap={{ scale: 0.9 }}
+                disabled={isVoting}
                 className={`flex flex-col items-center gap-1 p-2.5 rounded-full transition-colors ${
                   voted
                     ? 'bg-accent text-text-primary'
                     : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
-                }`}
+                } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                <ArrowUp className="w-5 h-5" />
+                {isVoting ? (
+                  <LoadingSpinner size={16} color="white" />
+                ) : (
+                  <ArrowUp className="w-5 h-5" />
+                )}
                 <span className="text-xs font-semibold">
                   {currentIdea.votesByType.use}
                 </span>
@@ -315,14 +321,19 @@ export function ForYouIdeaCard({
               <motion.button
                 onClick={handleDownVote}
                 whileTap={{ scale: 0.9 }}
+                disabled={isVoting}
                 className={`flex flex-col items-center gap-1 p-2.5 rounded-full transition-colors ${
                   downvoted
                     ? 'bg-red-500 text-white'
                     : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
-                }`}
+                } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 title="Downvote"
               >
-                <ArrowDown className="w-5 h-5" />
+                {isVoting ? (
+                  <LoadingSpinner size={16} color="white" />
+                ) : (
+                  <ArrowDown className="w-5 h-5" />
+                )}
                 <span className="text-xs font-semibold">
                   {currentIdea.votesByType.dislike}
                 </span>
@@ -331,16 +342,21 @@ export function ForYouIdeaCard({
               <motion.button
                 onClick={handleWouldPay}
                 whileTap={{ scale: 0.9 }}
+                disabled={isVoting}
                 className={`flex flex-col items-center gap-1 p-2.5 rounded-full transition-colors ${
                   wouldPay
                     ? 'bg-accent-alt text-white'
                     : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
-                }`}
+                } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 title="I'd pay for it"
               >
-                <DollarSign
-                  className={`w-5 h-5 ${wouldPay ? 'fill-current' : ''}`}
-                />
+                {isVoting ? (
+                  <LoadingSpinner size={16} color="white" />
+                ) : (
+                  <DollarSign
+                    className={`w-5 h-5 ${wouldPay ? 'fill-current' : ''}`}
+                  />
+                )}
                 <span className="text-xs font-semibold">
                   {currentIdea.votesByType.pay}
                 </span>
@@ -433,13 +449,18 @@ export function ForYouIdeaCard({
               <motion.button
                 onClick={handleVote}
                 whileTap={{ scale: 0.9 }}
+                disabled={isVoting}
                 className={`flex flex-col items-center gap-1 p-3 rounded-full transition-colors ${
                   voted
                     ? 'bg-accent text-text-primary'
                     : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
-                }`}
+                } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                <ArrowUp className="w-6 h-6" />
+                {isVoting ? (
+                  <LoadingSpinner size={18} color="white" />
+                ) : (
+                  <ArrowUp className="w-6 h-6" />
+                )}
                 <span className="text-xs font-semibold">
                   {currentIdea.votesByType.use}
                 </span>
@@ -448,14 +469,19 @@ export function ForYouIdeaCard({
               <motion.button
                 onClick={handleDownVote}
                 whileTap={{ scale: 0.9 }}
+                disabled={isVoting}
                 className={`flex flex-col items-center gap-1 p-3 rounded-full transition-colors ${
                   downvoted
                     ? 'bg-red-500 text-white'
                     : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
-                }`}
+                } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 title="Downvote"
               >
-                <ArrowDown className="w-6 h-6" />
+                {isVoting ? (
+                  <LoadingSpinner size={18} color="white" />
+                ) : (
+                  <ArrowDown className="w-6 h-6" />
+                )}
                 <span className="text-xs font-semibold">
                   {currentIdea.votesByType.dislike}
                 </span>
@@ -464,16 +490,21 @@ export function ForYouIdeaCard({
               <motion.button
                 onClick={handleWouldPay}
                 whileTap={{ scale: 0.9 }}
+                disabled={isVoting}
                 className={`flex flex-col items-center gap-1 p-3 rounded-full transition-colors ${
                   wouldPay
                     ? 'bg-accent-alt text-white'
                     : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
-                }`}
+                } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 title="I'd pay for it"
               >
-                <DollarSign
-                  className={`w-6 h-6 ${wouldPay ? 'fill-current' : ''}`}
-                />
+                {isVoting ? (
+                  <LoadingSpinner size={18} color="white" />
+                ) : (
+                  <DollarSign
+                    className={`w-6 h-6 ${wouldPay ? 'fill-current' : ''}`}
+                  />
+                )}
                 <span className="text-xs font-semibold">
                   {currentIdea.votesByType.pay}
                 </span>

@@ -1,6 +1,6 @@
 'use client'
 
-import { IdeaVotes, IdeaVoteType } from '@/lib/types/idea'
+import { IdeaVotes, IdeaVoteType } from '@/core/types/idea'
 
 interface VoteDistributionBarProps {
   votes: IdeaVotes
@@ -16,7 +16,9 @@ export const VOTE_COLORS: Record<IdeaVoteType, string> = {
 }
 
 // Helper function to get the most voted type and its color
-export function getMostVotedType(votes: IdeaVotes): { type: IdeaVoteType; color: string } | null {
+export function getMostVotedType(
+  votes: IdeaVotes
+): { type: IdeaVoteType; color: string } | null {
   const totalVotes = votes.dislike + votes.use + votes.pay
   if (totalVotes === 0) return null
 
@@ -26,7 +28,7 @@ export function getMostVotedType(votes: IdeaVotes): { type: IdeaVoteType; color:
     { type: 'pay' as IdeaVoteType, count: votes.pay },
   ]
 
-  const mostVoted = voteCounts.reduce((max, current) => 
+  const mostVoted = voteCounts.reduce((max, current) =>
     current.count > max.count ? current : max
   )
 
@@ -36,9 +38,13 @@ export function getMostVotedType(votes: IdeaVotes): { type: IdeaVoteType; color:
   }
 }
 
-export function VoteDistributionBar({ votes, orientation = 'horizontal', thickness = 'normal' }: VoteDistributionBarProps) {
+export function VoteDistributionBar({
+  votes,
+  orientation = 'horizontal',
+  thickness = 'normal',
+}: VoteDistributionBarProps) {
   const totalVotes = votes.dislike + votes.use + votes.pay
-  
+
   // If no votes, don't show the bar
   if (totalVotes === 0) {
     return null
@@ -57,9 +63,9 @@ export function VoteDistributionBar({ votes, orientation = 'horizontal', thickne
   // Outer segments are split in half to create the concentric pattern
   const segments: Array<{ type: IdeaVoteType; width: number }> = [
     { type: 'dislike', width: percentages.dislike / 2 }, // Left edge: half of dislike percentage
-    { type: 'use', width: percentages.use / 2 },         // Left inner: half of use percentage
-    { type: 'pay', width: percentages.pay },             // Center: full pay percentage
-    { type: 'use', width: percentages.use / 2 },         // Right inner: half of use percentage
+    { type: 'use', width: percentages.use / 2 }, // Left inner: half of use percentage
+    { type: 'pay', width: percentages.pay }, // Center: full pay percentage
+    { type: 'use', width: percentages.use / 2 }, // Right inner: half of use percentage
     { type: 'dislike', width: percentages.dislike / 2 }, // Right edge: half of dislike percentage
   ]
 
@@ -74,16 +80,19 @@ export function VoteDistributionBar({ votes, orientation = 'horizontal', thickne
   }
 
   const isVertical = orientation === 'vertical'
-  const heightClass = thickness === 'extra-thin' ? 'h-0.5' : thickness === 'thin' ? 'h-1' : 'h-2'
+  const heightClass =
+    thickness === 'extra-thin' ? 'h-0.5' : thickness === 'thin' ? 'h-1' : 'h-2'
   const widthClass = thickness === 'thin' ? 'w-1' : 'w-1.5'
 
   if (isVertical) {
     return (
-      <div className={`${widthClass} h-full flex flex-col overflow-hidden rounded-sm`}>
+      <div
+        className={`${widthClass} h-full flex flex-col overflow-hidden rounded-sm`}
+      >
         {segments.map((segment, index) => {
           const color = VOTE_COLORS[segment.type]
           const isLast = index === segments.length - 1
-          
+
           return (
             <div
               key={`${segment.type}-${index}`}
@@ -105,7 +114,7 @@ export function VoteDistributionBar({ votes, orientation = 'horizontal', thickne
       {segments.map((segment, index) => {
         const color = VOTE_COLORS[segment.type]
         const isLast = index === segments.length - 1
-        
+
         return (
           <div
             key={`${segment.type}-${index}`}
@@ -121,4 +130,3 @@ export function VoteDistributionBar({ votes, orientation = 'horizontal', thickne
     </div>
   )
 }
-

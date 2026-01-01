@@ -29,6 +29,13 @@ export default function SettingsPage() {
   const [currentTheme, setCurrentTheme] = useState(theme)
   const [currentLanguage, setCurrentLanguage] = useState(language)
 
+  // Synchronize Redux state with actual I18nProvider locale on initial load
+  useEffect(() => {
+    if (language !== locale) {
+      dispatch(setLanguage(locale))
+    }
+  }, [language, locale, dispatch])
+
   useEffect(() => {
     setCurrentTheme(theme)
     setCurrentLanguage(language)

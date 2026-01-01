@@ -245,7 +245,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
   // Show skeleton while loading
   if (!initialized || ideas.length === 0) {
     return (
-      <div className="relative w-full h-[500px] md:h-[612px] bg-[var(--background)] flex">
+      <div className="relative w-full h-[500px] md:h-[622px] bg-[var(--background)] flex">
         <div className="relative flex-1 h-full overflow-hidden">
           <div className="carousel-scroll-container flex h-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory">
             {[1, 2, 3, 4, 5, 6, 7].map(i => (
@@ -261,7 +261,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
 
   return (
     <div
-      className="relative w-full h-[500px] md:h-[612px] bg-black flex"
+      className="relative w-full h-[500px] md:h-[622px] bg-black flex"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

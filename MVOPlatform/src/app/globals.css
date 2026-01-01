@@ -20,6 +20,19 @@
   --gray-100: #1f1f1f;
   --gray-200: #2a2a2a;
 
+  /* Light theme specific colors */
+  --light-background: #fdfdfd;
+  --light-text-primary: #111111;
+  --light-text-secondary: #6a6a6a;
+  --light-border-color: #f3f4f6;
+  --light-gray-50: #f9fafb;
+  --light-gray-100: #f3f4f6;
+  --light-gray-200: #e5e7eb;
+  --light-gray-300: #d1d5db;
+  --light-card-border: #e5e7eb;
+  --light-button-bg: #f3f4f6;
+  --light-button-hover: #e5e7eb;
+
   /* Typography */
   --font-family-primary: 'Inter', system-ui, sans-serif;
   --font-weight-normal: 400;
@@ -82,6 +95,17 @@ body {
   background-color: var(--background);
   color: var(--text-primary);
   height: 100%;
+}
+
+/* Light theme overrides */
+body.light-theme {
+  --background: var(--light-background);
+  --text-primary: var(--light-text-primary);
+  --text-secondary: var(--light-text-secondary);
+  --border-color: var(--light-border-color);
+  --gray-50: var(--light-gray-50);
+  --gray-100: var(--light-gray-100);
+  --gray-200: var(--light-gray-200);
 }
 
 a {
@@ -164,7 +188,7 @@ a {
     background-color: var(--background);
     border: 2px solid var(--background);
     border-radius: var(--border-radius-md);
-    padding: var(--spacing-lg);
+    padding: var(--spacing-xs);
     box-shadow: var(--shadow-card);
     transition: all var(--transition-normal);
   }
@@ -172,6 +196,17 @@ a {
   .card-hover:hover {
     box-shadow: var(--shadow-hover);
     transform: translateY(-2px);
+  }
+
+  /* Light theme card styling - adds subtle border for visibility */
+  .light-theme-card {
+    background-color: var(--light-gray-50);
+  }
+
+  /* Dark theme overrides - no border needed */
+  body:not(.light-theme) .light-theme-card {
+    border: none;
+    background-color: transparent;
   }
 
   /* Card variants */

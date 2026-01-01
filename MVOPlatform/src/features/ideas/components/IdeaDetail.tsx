@@ -184,11 +184,14 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   return (
     <div className="bg-background relative">
       {/* Back Button - Top Left, next to sidebar - fixed on scroll */}
-      <div className="fixed top-4 left-20 md:left-[272px] z-50">
+      <div className="fixed top-4 left-20 md:left-[272px] z-50 ">
         <Button
           onClick={handleBack}
           variant="outline"
-          className="flex items-center gap-2 bg-background/90 backdrop-blur-sm shadow-lg"
+          className="
+            !text-gray-400
+            !border-gray-400
+          "
         >
           <ArrowLeft className="w-4 h-4" />
           {t('actions.back')}
@@ -268,7 +271,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
             >
               {idea.title}
             </h1>
-            <div className="flex items-center gap-4 text-white/80 text-sm md:text-base">
+            <div className="flex items-center gap-4 text-white text-sm md:text-base">
               {!idea.anonymous && (
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4" />
@@ -309,6 +312,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           onDownvote={handleVoteDown}
           onLike={handleLike}
           onCommentsClick={handleCommentsClick}
+          isVoting={isVoting}
         />
 
         {/* Rich Content - filter out hero media if it's the first block */}

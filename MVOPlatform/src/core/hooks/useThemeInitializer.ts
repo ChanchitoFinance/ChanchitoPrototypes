@@ -19,6 +19,22 @@ export const useThemeInitializer = () => {
   }, [dispatch, userEmail])
 
   useEffect(() => {
+    // Detect current theme from document if Redux state doesn't match
+    const detectCurrentTheme = () => {
+      const documentTheme = document.documentElement.classList.contains('dark')
+        ? 'dark'
+        : 'light'
+      if (theme !== documentTheme) {
+        dispatch(setTheme(documentTheme))
+      }
+    }
+
+    // Small delay to ensure document is ready
+    const timeoutId = setTimeout(detectCurrentTheme, 100)
+    return () => clearTimeout(timeoutId)
+  }, [dispatch, theme])
+
+  useEffect(() => {
     // Apply theme to document
     if (theme === 'light') {
       document.documentElement.classList.remove('dark')

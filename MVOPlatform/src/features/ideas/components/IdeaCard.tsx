@@ -24,6 +24,7 @@ import {
   getMostVotedType,
   VoteDistributionBar,
 } from '@/shared/components/ui/VoteDistributionBar'
+import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
 
 type IdeaCardVariant = 'interactive' | 'metrics' | 'admin'
 
@@ -191,7 +192,7 @@ export function IdeaCard({
         <motion.article
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 flex flex-col h-full"
+          className="p-4 flex flex-col h-full light-theme-card"
         >
           {/* Media Section */}
           <div className="relative w-full aspect-video mb-3 rounded-md overflow-hidden">
@@ -313,7 +314,7 @@ export function IdeaCard({
         >
           <motion.article
             whileHover={{ y: -2 }}
-            className="p-4 flex flex-col h-full"
+            className="p-4 flex flex-col h-full light-theme-card"
           >
             {/* Media Section */}
             <div className="relative w-full aspect-video mb-3 rounded-md overflow-hidden">
@@ -380,58 +381,73 @@ export function IdeaCard({
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={handleUpVote}
+                    disabled={isVoting}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-250 text-sm whitespace-nowrap flex-shrink-0 ${
                       upvoted
                         ? 'bg-accent text-text-primary'
-                        : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
-                    }`}
+                        : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
-                    <motion.div
-                      animate={upvoted ? { scale: [1, 1.2, 1] } : {}}
-                      transition={{ duration: 0.3 }}
-                      className="flex-shrink-0"
-                    >
-                      <ArrowUp className="w-3.5 h-3.5" />
-                    </motion.div>
+                    {isVoting ? (
+                      <LoadingSpinner size={16} color="var(--text-secondary)" />
+                    ) : (
+                      <motion.div
+                        animate={upvoted ? { scale: [1, 1.2, 1] } : {}}
+                        transition={{ duration: 0.3 }}
+                        className="flex-shrink-0"
+                      >
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      </motion.div>
+                    )}
                     <span className="font-medium">
                       {currentIdea.votesByType.use}
                     </span>
                   </button>
                   <button
                     onClick={handleDownVote}
+                    disabled={isVoting}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-250 text-sm whitespace-nowrap flex-shrink-0 ${
                       downvoted
                         ? 'bg-red-500 text-white'
-                        : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
-                    }`}
+                        : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
-                    <motion.div
-                      animate={downvoted ? { scale: [1, 1.2, 1] } : {}}
-                      transition={{ duration: 0.3 }}
-                      className="flex-shrink-0"
-                    >
-                      <ArrowDown className="w-3.5 h-3.5" />
-                    </motion.div>
+                    {isVoting ? (
+                      <LoadingSpinner size={16} color="var(--text-secondary)" />
+                    ) : (
+                      <motion.div
+                        animate={downvoted ? { scale: [1, 1.2, 1] } : {}}
+                        transition={{ duration: 0.3 }}
+                        className="flex-shrink-0"
+                      >
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      </motion.div>
+                    )}
                     <span className="font-medium">
                       {currentIdea.votesByType.dislike}
                     </span>
                   </button>
                   <button
                     onClick={e => handleVote(e, 'pay')}
+                    disabled={isVoting}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-250 text-sm whitespace-nowrap flex-shrink-0 ${
                       votedPay
                         ? 'bg-accent-alt text-white'
-                        : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
-                    }`}
+                        : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                     title="I'd pay for it"
                   >
-                    <motion.div
-                      animate={votedPay ? { scale: [1, 1.2, 1] } : {}}
-                      transition={{ duration: 0.3 }}
-                      className="flex-shrink-0"
-                    >
-                      <DollarSign className="w-3.5 h-3.5" />
-                    </motion.div>
+                    {isVoting ? (
+                      <LoadingSpinner size={16} color="var(--text-secondary)" />
+                    ) : (
+                      <motion.div
+                        animate={votedPay ? { scale: [1, 1.2, 1] } : {}}
+                        transition={{ duration: 0.3 }}
+                        className="flex-shrink-0"
+                      >
+                        <DollarSign className="w-3.5 h-3.5" />
+                      </motion.div>
+                    )}
                     <span className="font-medium">
                       {currentIdea.votesByType.pay}
                     </span>
