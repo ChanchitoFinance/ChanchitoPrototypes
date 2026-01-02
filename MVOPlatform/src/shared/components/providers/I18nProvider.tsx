@@ -58,8 +58,11 @@ export function I18nProvider({
     setLocaleState(newLocale)
     setMessages(newLocale === 'es' ? es : en)
 
-    // Update URL
-    const newPath = newLocale === 'en' ? '/' : `/${newLocale}`
+    // Update URL while preserving the current route
+    const currentPath = window.location.pathname
+    const pathWithoutLocale = currentPath.replace(/^\/\w{2}/, '') || '/'
+    // Always include locale prefix for consistency with Next.js i18n routing
+    const newPath = `/${newLocale}${pathWithoutLocale}`
     window.history.pushState({}, '', newPath)
   }
 

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from '../providers/I18nProvider'
+import { useLocale } from '../providers/I18nProvider'
 
 interface UserMenuProps {
   user: {
@@ -24,6 +25,7 @@ export function UserMenu({
   position = 'below',
 }: UserMenuProps) {
   const t = useTranslations()
+  const { locale } = useLocale()
   const [isOpen, setIsOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -89,6 +91,13 @@ export function UserMenu({
                 {t('navigation.profile')}
               </Link>
             )}
+            <Link
+              href={`/${locale}/settings`}
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-2 text-sm text-text-secondary interactive-hover"
+            >
+              {t('settings.title')}
+            </Link>
             <button
               onClick={onSignOut}
               className="w-full text-left px-4 py-2 text-sm text-text-secondary interactive-hover"

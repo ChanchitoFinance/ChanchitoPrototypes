@@ -68,8 +68,8 @@ export default function ActivityPage() {
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="h-screen w-full overflow-hidden bg-background flex">
-        <main className="flex-1 overflow-y-auto">
+      <div className="w-full bg-background flex">
+        <main className="flex-1">
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="mb-8">
               <div className="flex items-center gap-4 mb-6">
@@ -90,12 +90,12 @@ export default function ActivityPage() {
                 </div>
               </div>
 
-              <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg w-fit">
+              <div className="flex space-x-1 bg-gray-50 p-1 rounded-lg w-fit">
                 <button
                   onClick={() => setActiveTab('ideas')}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                     activeTab === 'ideas'
-                      ? 'bg-gray-700 text-text-primary shadow-sm'
+                      ? 'bg-gray-100 text-text-primary shadow-sm'
                       : 'text-text-secondary hover:text-text-primary'
                   }`}
                 >
@@ -105,7 +105,7 @@ export default function ActivityPage() {
                   onClick={() => setActiveTab('analytics')}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                     activeTab === 'analytics'
-                      ? 'bg-gray-700 text-text-primary shadow-sm'
+                      ? 'bg-gray-100 text-text-primary shadow-sm'
                       : 'text-text-secondary hover:text-text-primary'
                   }`}
                 >
@@ -115,7 +115,7 @@ export default function ActivityPage() {
             </div>
 
             {/* Example Content for Non-Logged-In Users */}
-            <div className="mt-8 bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="mt-8 bg-card border border-border rounded-lg p-6">
               <div className="flex items-start gap-4">
                 <Lightbulb className="w-8 h-8 text-blue-500 flex-shrink-0 mt-1" />
                 <div>
@@ -172,7 +172,7 @@ export default function ActivityPage() {
                     <article className="p-4 flex flex-col h-full">
                       {/* Media Section */}
                       <div className="relative w-full aspect-video mb-3 rounded-md overflow-hidden">
-                        <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-accent to-purple-400 flex items-center justify-center">
                           <div className="text-center px-4">
                             <h3 className="text-lg font-bold text-text-primary line-clamp-2">
                               {t('activity.example.idea_title_1')}
@@ -251,7 +251,7 @@ export default function ActivityPage() {
                     <article className="p-4 flex flex-col h-full">
                       {/* Media Section */}
                       <div className="relative w-full aspect-video mb-3 rounded-md overflow-hidden">
-                        <div className="w-full h-full bg-gradient-to-br from-green-400 to-blue-400 flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-green-400 to-accent flex items-center justify-center">
                           <div className="text-center px-4">
                             <h3 className="text-lg font-bold text-text-primary line-clamp-2">
                               {t('activity.example.idea_title_2')}
@@ -330,7 +330,7 @@ export default function ActivityPage() {
                     <article className="p-4 flex flex-col h-full">
                       {/* Media Section */}
                       <div className="relative w-full aspect-video mb-3 rounded-md overflow-hidden">
-                        <div className="w-full h-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-purple-400 to-accent flex items-center justify-center">
                           <div className="text-center px-4">
                             <h3 className="text-lg font-bold text-text-primary line-clamp-2">
                               {t('activity.example.idea_title_3')}
@@ -425,7 +425,7 @@ export default function ActivityPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-text-secondary mb-1">
@@ -439,7 +439,7 @@ export default function ActivityPage() {
                       </div>
                     </div>
 
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-text-secondary mb-1">
@@ -453,7 +453,7 @@ export default function ActivityPage() {
                       </div>
                     </div>
 
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-text-secondary mb-1">
@@ -467,7 +467,7 @@ export default function ActivityPage() {
                       </div>
                     </div>
 
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-text-secondary mb-1">
@@ -481,7 +481,7 @@ export default function ActivityPage() {
                       </div>
                     </div>
 
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-text-secondary mb-1">
@@ -495,7 +495,7 @@ export default function ActivityPage() {
                       </div>
                     </div>
 
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-text-secondary mb-1">
@@ -509,7 +509,7 @@ export default function ActivityPage() {
                       </div>
                     </div>
 
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-text-secondary mb-1">
@@ -523,7 +523,7 @@ export default function ActivityPage() {
                       </div>
                     </div>
 
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-text-secondary mb-1">
@@ -539,7 +539,7 @@ export default function ActivityPage() {
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <h3 className="text-lg font-semibold text-text-primary mb-4">
                         {t('activity.analytics.charts.vote_types_breakdown')}
                       </h3>
@@ -592,7 +592,7 @@ export default function ActivityPage() {
                       </ResponsiveContainer>
                     </div>
 
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <h3 className="text-lg font-semibold text-text-primary mb-4">
                         {t('activity.analytics.charts.category_distribution')}
                       </h3>
@@ -634,7 +634,7 @@ export default function ActivityPage() {
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-green-500" />
                         {t('activity.analytics.best_idea')}
@@ -662,7 +662,7 @@ export default function ActivityPage() {
                       </div>
                     </div>
 
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
                         <MessageCircle className="w-5 h-5 text-purple-500" />
                         {t('activity.analytics.most_interacted')}
@@ -690,7 +690,7 @@ export default function ActivityPage() {
                       </div>
                     </div>
 
-                    <div className="bg-gray-800 rounded-lg p-6 shadow-sm border">
+                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
                       <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
                         <TrendingDown className="w-5 h-5 text-red-500" />
                         {t('activity.analytics.worst_idea')}
@@ -728,8 +728,8 @@ export default function ActivityPage() {
   }
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-background flex">
-      <main className="flex-1 overflow-y-auto">
+    <div className="w-full bg-background flex">
+      <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="mb-8">
             <div className="flex items-center gap-4 mb-6">
@@ -751,7 +751,7 @@ export default function ActivityPage() {
               </div>
             </div>
 
-            <div className="flex space-x-1 bg-gray-50 p-1 rounded-lg w-fit">
+            <div className="flex space-x-1 bg-card p-1 rounded-lg w-fit">
               <button
                 onClick={() => setActiveTab('ideas')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${

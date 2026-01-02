@@ -464,5 +464,16 @@
       "delete_error": "Error al eliminar la idea. Por favor, inténtalo de nuevo.",
       "load_more": "Cargar Más Ideas"
     }
+  },
+  "settings": {
+    "title": "Configuración",
+    "theme_settings": "Configuración de Tema",
+    "theme_description": "Elige tu esquema de color preferido para la aplicación",
+    "language_settings": "Configuración de Idioma",
+    "language_description": "Selecciona tu idioma preferido para la interfaz",
+    "light_mode": "Modo Claro",
+    "dark_mode": "Modo Oscuro",
+    "save_settings": "Guardar Configuración",
+    "auto_save_message": "Tus configuraciones se guardan automáticamente cuando realizas cambios"
   }
 }

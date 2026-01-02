@@ -177,7 +177,7 @@ export function UserAnalytics() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-text-secondary mb-1">
@@ -194,7 +194,7 @@ export function UserAnalytics() {
           </div>
         </div>
 
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-text-secondary mb-1">
@@ -211,7 +211,7 @@ export function UserAnalytics() {
           </div>
         </div>
 
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-text-secondary mb-1">
@@ -228,7 +228,7 @@ export function UserAnalytics() {
           </div>
         </div>
 
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-text-secondary mb-1">
@@ -246,7 +246,7 @@ export function UserAnalytics() {
         </div>
 
         {/* New Metrics Row */}
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-text-secondary mb-1">
@@ -263,7 +263,7 @@ export function UserAnalytics() {
           </div>
         </div>
 
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-text-secondary mb-1">
@@ -280,7 +280,7 @@ export function UserAnalytics() {
           </div>
         </div>
 
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-text-secondary mb-1">
@@ -297,7 +297,7 @@ export function UserAnalytics() {
           </div>
         </div>
 
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-text-secondary mb-1">
@@ -315,7 +315,7 @@ export function UserAnalytics() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Vote Types Pie Chart */}
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <h3 className="text-lg font-semibold text-text-primary mb-4">
             {translate(
               'activity.analytics.charts.vote_types_breakdown',
@@ -372,7 +372,7 @@ export function UserAnalytics() {
         </div>
 
         {/* Category Distribution Chart */}
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <h3 className="text-lg font-semibold text-text-primary mb-4">
             {translate(
               'activity.analytics.charts.category_distribution',
@@ -438,7 +438,7 @@ export function UserAnalytics() {
 
       {/* Best/Worst Performing Ideas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-green-500" />
             {translate('activity.analytics.best_idea', 'Best Performing Idea')}
@@ -466,7 +466,7 @@ export function UserAnalytics() {
           )}
         </div>
 
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
             <MessageCircle className="w-5 h-5 text-purple-500" />
             {translate('activity.analytics.most_interacted', 'Most Discussed')}
@@ -499,7 +499,7 @@ export function UserAnalytics() {
           )}
         </div>
 
-        <div className="bg-gray-100 rounded-lg p-6 shadow-sm border">
+        <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
           <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
             <TrendingDown className="w-5 h-5 text-red-500" />
             {translate('activity.analytics.worst_idea', 'Needs Improvement')}

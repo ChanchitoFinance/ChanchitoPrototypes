@@ -10,6 +10,7 @@ import {
   Share2,
   DollarSign,
 } from 'lucide-react'
+import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
 
 interface IdeaActionsProps {
   idea: Idea
@@ -24,6 +25,7 @@ interface IdeaActionsProps {
   onDownvote: () => void
   onLike: () => void
   onCommentsClick?: () => void
+  isVoting?: boolean
 }
 
 export function IdeaActions({
@@ -39,6 +41,7 @@ export function IdeaActions({
   onDownvote,
   onLike,
   onCommentsClick,
+  isVoting = false,
 }: IdeaActionsProps) {
   const t = useTranslations()
 
@@ -74,18 +77,23 @@ export function IdeaActions({
       <motion.button
         onClick={onUpvote}
         whileTap={{ scale: 0.95 }}
+        disabled={isVoting}
         className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
           upvoted
             ? 'bg-accent text-text-primary'
-            : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
-        }`}
+            : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+        } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
       >
-        <motion.div
-          animate={upvoted ? { scale: [1, 1.2, 1] } : {}}
-          transition={{ duration: 0.3 }}
-        >
-          <ArrowUp className="w-5 h-5" />
-        </motion.div>
+        {isVoting ? (
+          <LoadingSpinner size={18} color="var(--text-secondary)" />
+        ) : (
+          <motion.div
+            animate={upvoted ? { scale: [1, 1.2, 1] } : {}}
+            transition={{ duration: 0.3 }}
+          >
+            <ArrowUp className="w-5 h-5" />
+          </motion.div>
+        )}
         <span className="font-semibold">{useCount}</span>
         <span className="text-sm hidden md:inline">{t('actions.up')}</span>
       </motion.button>
@@ -94,19 +102,24 @@ export function IdeaActions({
       <motion.button
         onClick={onDownvote}
         whileTap={{ scale: 0.95 }}
+        disabled={isVoting}
         className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
           downvoted
             ? 'bg-red-500 text-white'
-            : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
-        }`}
+            : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+        } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
         title="Downvote"
       >
-        <motion.div
-          animate={downvoted ? { scale: [1, 1.2, 1] } : {}}
-          transition={{ duration: 0.3 }}
-        >
-          <ArrowDown className="w-5 h-5" />
-        </motion.div>
+        {isVoting ? (
+          <LoadingSpinner size={18} color="var(--text-secondary)" />
+        ) : (
+          <motion.div
+            animate={downvoted ? { scale: [1, 1.2, 1] } : {}}
+            transition={{ duration: 0.3 }}
+          >
+            <ArrowDown className="w-5 h-5" />
+          </motion.div>
+        )}
         <span className="font-semibold">{dislikeCount}</span>
         <span className="text-sm hidden md:inline">{t('actions.down')}</span>
       </motion.button>
@@ -115,14 +128,19 @@ export function IdeaActions({
       <motion.button
         onClick={onLike}
         whileTap={{ scale: 0.95 }}
+        disabled={isVoting}
         className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
           liked
             ? 'bg-accent-alt text-white'
-            : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
-        }`}
+            : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+        } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
         title="I'd pay for it"
       >
-        <DollarSign className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
+        {isVoting ? (
+          <LoadingSpinner size={18} color="var(--text-secondary)" />
+        ) : (
+          <DollarSign className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
+        )}
         <span className="font-semibold">{likeCount}</span>
         <span className="text-sm hidden md:inline">{t('actions.id_pay')}</span>
       </motion.button>

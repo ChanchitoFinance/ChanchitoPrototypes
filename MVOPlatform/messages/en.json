@@ -463,5 +463,16 @@
       "delete_error": "Error deleting idea. Please try again.",
       "load_more": "Load More Ideas"
     }
+  },
+  "settings": {
+    "title": "Settings",
+    "theme_settings": "Theme Settings",
+    "theme_description": "Choose your preferred color scheme for the application",
+    "language_settings": "Language Settings",
+    "language_description": "Select your preferred language for the interface",
+    "light_mode": "Light Mode",
+    "dark_mode": "Dark Mode",
+    "save_settings": "Save Settings",
+    "auto_save_message": "Your settings are automatically saved when you make changes"
   }
 }

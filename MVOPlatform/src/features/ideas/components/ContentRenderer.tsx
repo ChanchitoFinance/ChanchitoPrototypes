@@ -21,7 +21,13 @@ export function ContentRenderer({ content }: ContentRendererProps) {
   )
 }
 
-function ContentBlockRenderer({ block, index }: { block: ContentBlock; index: number }) {
+function ContentBlockRenderer({
+  block,
+  index,
+}: {
+  block: ContentBlock
+  index: number
+}) {
   switch (block.type) {
     case 'text':
       const textSize = block.size || 'medium'
@@ -62,7 +68,7 @@ function ContentBlockRenderer({ block, index }: { block: ContentBlock; index: nu
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: index * 0.1 }}
         >
-          <HeadingTag 
+          <HeadingTag
             className={`${headingClasses[block.level]} text-text-primary mb-4 break-words`}
             style={{
               fontFamily: block.fontFamily || undefined,
@@ -83,21 +89,25 @@ function ContentBlockRenderer({ block, index }: { block: ContentBlock; index: nu
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: index * 0.1 }}
-          className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100"
+          className="relative w-full aspect-video rounded-lg overflow-hidden bg-[var(--gray-100)]"
         >
           <Image
             src={block.src}
             alt=""
             fill
             className="object-cover"
-            style={block.crop ? {
-              objectPosition: `${block.crop.x}% ${block.crop.y}%`,
-              transform: `scale(${block.crop.scale || 1})`,
-              transformOrigin: `${block.crop.x}% ${block.crop.y}%`,
-            } : undefined}
+            style={
+              block.crop
+                ? {
+                    objectPosition: `${block.crop.x}% ${block.crop.y}%`,
+                    transform: `scale(${block.crop.scale || 1})`,
+                    transformOrigin: `${block.crop.x}% ${block.crop.y}%`,
+                  }
+                : undefined
+            }
           />
           {block.caption && (
-            <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-4 text-sm">
+            <div className="absolute bottom-0 left-0 right-0 bg-[var(--background)]/70 text-[var(--text-primary)] p-4 text-sm">
               {block.caption}
             </div>
           )}
@@ -132,7 +142,7 @@ function ContentBlockRenderer({ block, index }: { block: ContentBlock; index: nu
             style={{
               maxWidth: '100%',
             }}
-            dangerouslySetInnerHTML={{ 
+            dangerouslySetInnerHTML={{
               __html: `<style>
                 /* Default styles for iframes - allow responsive containers to override */
                 iframe, embed, object {
@@ -170,7 +180,7 @@ function ContentBlockRenderer({ block, index }: { block: ContentBlock; index: nu
                   width: 100% !important;
                   height: auto !important;
                 }
-              </style>${block.content}` 
+              </style>${block.content}`,
             }}
           />
         </motion.div>
@@ -193,22 +203,29 @@ function VideoBlock({ video, index }: { video: VideoContent; index: number }) {
       className="space-y-4"
     >
       {video.title && (
-        <h3 className="text-2xl font-semibold text-text-primary break-words" style={{
-          overflowWrap: 'break-word',
-          wordBreak: 'break-word',
-          maxWidth: '100%',
-        }}>{video.title}</h3>
+        <h3
+          className="text-2xl font-semibold text-text-primary break-words"
+          style={{
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
+            maxWidth: '100%',
+          }}
+        >
+          {video.title}
+        </h3>
       )}
-      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
+      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-[var(--background)]">
         <video
           src={video.src}
           className="w-full h-full object-contain"
           style={{
-            ...(video.crop ? {
-              objectPosition: `${video.crop.x}% ${video.crop.y}%`,
-              transform: `scale(${video.crop.scale || 1})`,
-              transformOrigin: `${video.crop.x}% ${video.crop.y}%`,
-            } : {}),
+            ...(video.crop
+              ? {
+                  objectPosition: `${video.crop.x}% ${video.crop.y}%`,
+                  transform: `scale(${video.crop.scale || 1})`,
+                  transformOrigin: `${video.crop.x}% ${video.crop.y}%`,
+                }
+              : {}),
             zIndex: 1,
           }}
           controls
@@ -216,26 +233,47 @@ function VideoBlock({ video, index }: { video: VideoContent; index: number }) {
         />
       </div>
       {video.description && (
-        <p className="text-text-secondary text-sm break-words" style={{
-          overflowWrap: 'break-word',
-          wordBreak: 'break-word',
-          maxWidth: '100%',
-        }}>{video.description}</p>
+        <p
+          className="text-text-secondary text-sm break-words"
+          style={{
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
+            maxWidth: '100%',
+          }}
+        >
+          {video.description}
+        </p>
       )}
     </motion.div>
   )
 }
 
-function CarouselBlock({ carousel, index }: { carousel: { type: 'carousel'; slides: Array<{ image?: string; video?: string; title?: string; description: string }> }; index: number }) {
+function CarouselBlock({
+  carousel,
+  index,
+}: {
+  carousel: {
+    type: 'carousel'
+    slides: Array<{
+      image?: string
+      video?: string
+      title?: string
+      description: string
+    }>
+  }
+  index: number
+}) {
   const [currentSlide, setCurrentSlide] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % carousel.slides.length)
+    setCurrentSlide(prev => (prev + 1) % carousel.slides.length)
   }
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + carousel.slides.length) % carousel.slides.length)
+    setCurrentSlide(
+      prev => (prev - 1 + carousel.slides.length) % carousel.slides.length
+    )
   }
 
   return (
@@ -245,7 +283,10 @@ function CarouselBlock({ carousel, index }: { carousel: { type: 'carousel'; slid
       transition={{ duration: 0.5, delay: index * 0.1 }}
       className="relative w-full"
     >
-      <div ref={containerRef} className="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
+      <div
+        ref={containerRef}
+        className="relative w-full aspect-video rounded-lg overflow-hidden bg-[var(--background)]"
+      >
         <AnimatePresence mode="wait">
           {carousel.slides.map((slide, slideIndex) => {
             if (slideIndex !== currentSlide) return null
@@ -271,32 +312,52 @@ function CarouselBlock({ carousel, index }: { carousel: { type: 'carousel'; slid
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-accent/20 via-background to-accent/10 flex items-center justify-center">
                     <div className="text-center px-6 max-w-2xl">
-                      <h3 className="text-3xl font-bold text-text-primary mb-4 break-words" style={{
-                        overflowWrap: 'break-word',
-                        wordBreak: 'break-word',
-                        maxWidth: '100%',
-                      }}>{slide.title}</h3>
-                      <p className="text-lg text-text-secondary break-words" style={{
-                        overflowWrap: 'break-word',
-                        wordBreak: 'break-word',
-                        maxWidth: '100%',
-                      }}>{slide.description}</p>
+                      <h3
+                        className="text-3xl font-bold text-white mb-4 break-words"
+                        style={{
+                          overflowWrap: 'break-word',
+                          wordBreak: 'break-word',
+                          maxWidth: '100%',
+                        }}
+                      >
+                        {slide.title}
+                      </h3>
+                      <p
+                        className="text-lg text-white/90 break-words"
+                        style={{
+                          overflowWrap: 'break-word',
+                          wordBreak: 'break-word',
+                          maxWidth: '100%',
+                        }}
+                      >
+                        {slide.description}
+                      </p>
                     </div>
                   </div>
                 )}
                 {/* Overlay with description - only show if not video (videos have their own controls) */}
                 {!slide.video && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-6">
-                    <h3 className="text-xl font-bold text-white mb-2 break-words" style={{
-                      overflowWrap: 'break-word',
-                      wordBreak: 'break-word',
-                      maxWidth: '100%',
-                    }}>{slide.title}</h3>
-                    <p className="text-white/90 break-words" style={{
-                      overflowWrap: 'break-word',
-                      wordBreak: 'break-word',
-                      maxWidth: '100%',
-                    }}>{slide.description}</p>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[var(--background)] via-[var(--background)]/80 to-transparent p-6">
+                    <h3
+                      className="text-xl font-bold text-[var(--text-primary)] mb-2 break-words"
+                      style={{
+                        overflowWrap: 'break-word',
+                        wordBreak: 'break-word',
+                        maxWidth: '100%',
+                      }}
+                    >
+                      {slide.title}
+                    </h3>
+                    <p
+                      className="text-[var(--text-primary)]/90 break-words"
+                      style={{
+                        overflowWrap: 'break-word',
+                        wordBreak: 'break-word',
+                        maxWidth: '100%',
+                      }}
+                    >
+                      {slide.description}
+                    </p>
                   </div>
                 )}
               </motion.div>
@@ -309,14 +370,14 @@ function CarouselBlock({ carousel, index }: { carousel: { type: 'carousel'; slid
           <>
             <button
               onClick={prevSlide}
-              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors z-10"
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-[var(--background)]/50 hover:bg-[var(--background)]/70 rounded-full text-[var(--text-primary)] transition-colors z-10"
               aria-label="Previous slide"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors z-10"
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-[var(--background)]/50 hover:bg-[var(--background)]/70 rounded-full text-[var(--text-primary)] transition-colors z-10"
               aria-label="Next slide"
             >
               <ChevronRight className="w-6 h-6" />
@@ -331,7 +392,7 @@ function CarouselBlock({ carousel, index }: { carousel: { type: 'carousel'; slid
                   className={`w-2 h-2 rounded-full transition-all ${
                     slideIndex === currentSlide
                       ? 'bg-accent w-8'
-                      : 'w-2 h-2 bg-[#FFFFFF]/30 rounded-full hover:bg-[#66D3FF]/50'
+                      : 'w-2 h-2 bg-[var(--text-primary)]/30 rounded-full hover:bg-[#66D3FF]/50'
                   }`}
                   aria-label={`Go to slide ${slideIndex + 1}`}
                 />
@@ -362,7 +423,19 @@ function VideoSlide({ src }: { src: string }) {
   )
 }
 
-function ButtonBlock({ button, index }: { button: { type: 'button'; text: string; href?: string; onClick?: string; variant?: 'primary' | 'secondary' | 'outline' }; index: number }) {
+function ButtonBlock({
+  button,
+  index,
+}: {
+  button: {
+    type: 'button'
+    text: string
+    href?: string
+    onClick?: string
+    variant?: 'primary' | 'secondary' | 'outline'
+  }
+  index: number
+}) {
   const variantClasses = {
     primary: 'bg-accent text-text-primary hover:bg-accent/90',
     secondary: 'bg-gray-100 text-text-secondary hover:bg-gray-200',
@@ -408,4 +481,3 @@ function ButtonBlock({ button, index }: { button: { type: 'button'; text: string
     </motion.button>
   )
 }
-

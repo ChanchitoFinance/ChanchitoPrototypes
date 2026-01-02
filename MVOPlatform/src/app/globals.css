@@ -7,18 +7,31 @@
 :root {
   /* Colors - Single source of truth */
   --background: #000000;
-  --text-primary: #FFFFFF;
-  --text-secondary: #A0A0A0;
-  --accent: #66D3FF;
-  --accent-alt: #A78BFA;
-  --border-color: #1F1F1F;
-  --white: #FFFFFF;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --accent: #66d3ff;
+  --accent-alt: #a78bfa;
+  --border-color: #1f1f1f;
+  --white: #ffffff;
   --black: #000000;
-  
+
   /* Gray scale - commonly used (dark theme) */
-  --gray-50: #1A1A1A;
-  --gray-100: #1F1F1F;
-  --gray-200: #2A2A2A;
+  --gray-50: #1a1a1a;
+  --gray-100: #1f1f1f;
+  --gray-200: #2a2a2a;
+
+  /* Light theme specific colors */
+  --light-background: #fdfdfd;
+  --light-text-primary: #111111;
+  --light-text-secondary: #6a6a6a;
+  --light-border-color: #f3f4f6;
+  --light-gray-50: #f9fafb;
+  --light-gray-100: #f3f4f6;
+  --light-gray-200: #e5e7eb;
+  --light-gray-300: #d1d5db;
+  --light-card-border: #e5e7eb;
+  --light-button-bg: #f3f4f6;
+  --light-button-hover: #e5e7eb;
 
   /* Typography */
   --font-family-primary: 'Inter', system-ui, sans-serif;
@@ -81,6 +94,18 @@ body {
   font-weight: var(--font-weight-normal);
   background-color: var(--background);
   color: var(--text-primary);
+  height: 100%;
+}
+
+/* Light theme overrides */
+body.light-theme {
+  --background: var(--light-background);
+  --text-primary: var(--light-text-primary);
+  --text-secondary: var(--light-text-secondary);
+  --border-color: var(--light-border-color);
+  --gray-50: var(--light-gray-50);
+  --gray-100: var(--light-gray-100);
+  --gray-200: var(--light-gray-200);
 }
 
 a {
@@ -163,7 +188,7 @@ a {
     background-color: var(--background);
     border: 2px solid var(--background);
     border-radius: var(--border-radius-md);
-    padding: var(--spacing-lg);
+    padding: var(--spacing-xs);
     box-shadow: var(--shadow-card);
     transition: all var(--transition-normal);
   }
@@ -171,6 +196,17 @@ a {
   .card-hover:hover {
     box-shadow: var(--shadow-hover);
     transform: translateY(-2px);
+  }
+
+  /* Light theme card styling - adds subtle border for visibility */
+  .light-theme-card {
+    background-color: var(--light-gray-50);
+  }
+
+  /* Dark theme overrides - no border needed */
+  body:not(.light-theme) .light-theme-card {
+    border: none;
+    background-color: transparent;
   }
 
   /* Card variants */
@@ -345,9 +381,9 @@ a {
   }
 
   /* Only apply height: auto to iframes that are NOT absolutely positioned */
-  .html-embed-wrapper iframe:not([style*="absolute"]),
-  .html-embed-wrapper embed:not([style*="absolute"]),
-  .html-embed-wrapper object:not([style*="absolute"]) {
+  .html-embed-wrapper iframe:not([style*='absolute']),
+  .html-embed-wrapper embed:not([style*='absolute']),
+  .html-embed-wrapper object:not([style*='absolute']) {
     width: 100% !important;
     min-height: 400px !important;
     height: auto !important;
@@ -355,7 +391,7 @@ a {
   }
 
   /* Allow responsive containers to work properly - iframe with absolute positioning */
-  .html-embed-wrapper iframe[style*="absolute"] {
+  .html-embed-wrapper iframe[style*='absolute'] {
     width: 100% !important;
     height: 100% !important;
   }
@@ -367,17 +403,17 @@ a {
 
   /* For desktop screens, allow taller embeds - only for direct iframes */
   @media (min-width: 768px) {
-    .html-embed-wrapper iframe:not([style*="absolute"]),
-    .html-embed-wrapper embed:not([style*="absolute"]),
-    .html-embed-wrapper object:not([style*="absolute"]) {
+    .html-embed-wrapper iframe:not([style*='absolute']),
+    .html-embed-wrapper embed:not([style*='absolute']),
+    .html-embed-wrapper object:not([style*='absolute']) {
       min-height: 600px !important;
     }
   }
 
   @media (min-width: 1024px) {
-    .html-embed-wrapper iframe:not([style*="absolute"]),
-    .html-embed-wrapper embed:not([style*="absolute"]),
-    .html-embed-wrapper object:not([style*="absolute"]) {
+    .html-embed-wrapper iframe:not([style*='absolute']),
+    .html-embed-wrapper embed:not([style*='absolute']),
+    .html-embed-wrapper object:not([style*='absolute']) {
       min-height: 800px !important;
     }
   }

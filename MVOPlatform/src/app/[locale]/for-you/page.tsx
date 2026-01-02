@@ -44,7 +44,7 @@ export default function ForYouPage() {
       <main className="flex-1 overflow-hidden">
         <div className="h-full overflow-hidden">
           {/* Desktop: Center and respect aspect ratio like TikTok */}
-          <div className="hidden md:flex h-full items-center justify-center bg-black">
+          <div className="hidden md:flex h-full items-center justify-center bg-[var(--background)]">
             <div className="w-full max-w-md h-full mx-auto">
               <ExploreIdeaSkeleton />
             </div>
@@ -63,7 +63,7 @@ export default function ForYouPage() {
     <main className="flex-1 overflow-hidden">
       <div className="h-full overflow-hidden">
         {/* Desktop: Center and respect aspect ratio like TikTok */}
-        <div className="hidden md:flex h-full items-center justify-center bg-black">
+        <div className="hidden md:flex h-full items-center justify-center bg-[var(--background)]">
           <div className="w-full max-w-md h-full mx-auto">
             <ForYouFeed initialIdeaId={initialIdeaId} />
           </div>
