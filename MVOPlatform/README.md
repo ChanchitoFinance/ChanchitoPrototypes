@@ -2,6 +2,8 @@
 
 A Next.js web application for validating business ideas with data-driven insights.
 
+[![Vercel](https://img.shields.io/badge/vercel-deployed-success?style=for-the-badge&logo=vercel&logoColor=white)](https://chanchito-mvo.vercel.app)
+
 ## Features
 
 - **Landing Page**: Hero, process explanation, pricing, testimonials, FAQ
@@ -23,7 +25,7 @@ A Next.js web application for validating business ideas with data-driven insight
 - Redux Toolkit
 - Stripe
 - React Hook Form + Zod
-- **Architecture**: Feature-Based Architecture
+- Feature-Based Architecture
 
 ## Architecture
 

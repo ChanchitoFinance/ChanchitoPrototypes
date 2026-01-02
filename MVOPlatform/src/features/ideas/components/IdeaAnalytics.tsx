@@ -148,7 +148,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
   )
 
   return (
-    <div className="mt-12 bg-[var(--gray-200)] rounded-lg p-8 shadow-sm border border-[var(--border-color)]">
+    <div className="mt-12 bg-background rounded-lg p-8 shadow-sm border border-border">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-semibold text-text-primary">
@@ -168,7 +168,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
       </div>
 
       {/* Score Explanation */}
-      <div className="mb-8 bg-[var(--gray-100)] rounded-lg p-6 border border-[var(--border-color)]">
+      <div className="mb-8 bg-card rounded-lg p-6 border border-border">
         <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
           <TrendingUp className="w-6 h-6 text-green-500 flex-shrink-0" />
           <span>
@@ -211,7 +211,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
       </div>
 
       {/* Vote Meaning */}
-      <div className="mb-8 bg-gray-900 rounded-lg p-6 border border-gray-800">
+      <div className="mb-8 bg-card rounded-lg p-6 border border-border">
         <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
           <ThumbsUp className="w-6 h-6 text-blue-500 flex-shrink-0" />
           <span>
@@ -340,7 +340,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
       </div>
 
       {/* Ideas Performance Chart */}
-      <div className="mb-8 bg-gray-900 rounded-lg p-6 border border-gray-800">
+      <div className="mb-8 bg-card rounded-lg p-6 border border-border">
         <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
           <BarChart3 className="w-6 h-6 text-accent flex-shrink-0" />
           <span>
@@ -370,7 +370,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
               },
             ]}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-600)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
             <XAxis
               dataKey="name"
               stroke="var(--text-secondary)"
@@ -402,7 +402,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
       </div>
 
       {/* Sentiment Analysis Chart */}
-      <div className="mb-8 bg-gray-900 rounded-lg p-6 border border-gray-800">
+      <div className="mb-8 bg-card rounded-lg p-6 border border-border">
         <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
           <TrendingUp className="w-6 h-6 text-orange-500 flex-shrink-0" />
           <span>
@@ -438,7 +438,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
                 ]}
               >
                 <PolarGrid
-                  stroke="#ffffff"
+                  stroke="#818589"
                   strokeWidth={1}
                   strokeOpacity={0.5}
                 />
@@ -518,7 +518,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
 
       {/* Most Voted Comments */}
       {topVotedComments.length > 0 && (
-        <div className="mb-8 bg-gray-900 rounded-lg p-6 border border-gray-800">
+        <div className="mb-8 bg-card rounded-lg p-6 border border-border">
           <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
             <MessageCircle className="w-6 h-6 text-purple-500 flex-shrink-0" />
             <span>
@@ -532,11 +532,11 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
             {topVotedComments.map((comment, index) => (
               <div
                 key={comment.id}
-                className="bg-gray-800 rounded-lg p-4 border border-gray-700"
+                className="bg-card rounded-lg p-4 border border-border"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-gray-300 font-bold text-sm">
+                  <div className="w-8 h-8 bg-card rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-text-secondary font-bold text-sm">
                       #{index + 1}
                     </span>
                   </div>
@@ -558,7 +558,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
 
       {/* Categories and Tags */}
       {idea.tags.length > 0 && (
-        <div className="mb-8 bg-gray-900 rounded-lg p-6 border border-gray-800">
+        <div className="mb-8 bg-card rounded-lg p-6 border border-border">
           <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
             <Lightbulb className="w-6 h-6 text-yellow-500 flex-shrink-0" />
             <span>
@@ -582,7 +582,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
       )}
 
       {/* Assessment Summary */}
-      <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+      <div className="bg-card rounded-lg p-6 border border-border">
         <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
           <Target className="w-6 h-6 text-blue-500 flex-shrink-0" />
           <span>
