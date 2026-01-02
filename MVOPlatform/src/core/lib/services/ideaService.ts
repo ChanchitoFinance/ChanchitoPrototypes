@@ -573,6 +573,12 @@ class SupabaseIdeaService implements IIdeaService {
     } = await supabase.auth.getUser()
     if (!user) throw new Error('User not authenticated')
 
+    console.log('ideaService: toggleVote called', {
+      ideaId,
+      voteType,
+      userId: user.id,
+    })
+
     // Handle different vote types:
     // - 'use' and 'dislike' are mutually exclusive (only one can exist)
     // - 'pay' is independent (can coexist with use/dislike)
@@ -597,11 +603,18 @@ class SupabaseIdeaService implements IIdeaService {
       // If clicking the same vote type, don't insert (removes the vote)
       // If clicking different vote type or no vote existed, insert the new vote
       if (!existingVote) {
+        console.log('ideaService: Inserting vote', {
+          idea_id: ideaId,
+          voter_id: user.id,
+          vote_type: voteType,
+        })
         await supabase.from('idea_votes').insert({
           idea_id: ideaId,
           voter_id: user.id,
           vote_type: voteType,
         })
+      } else {
+        console.log('ideaService: Removing existing vote (toggle off)')
       }
     } else if (voteType === 'pay') {
       // Check specifically for pay vote
@@ -616,6 +629,7 @@ class SupabaseIdeaService implements IIdeaService {
       // For pay votes, toggle independently
       if (existingPayVote) {
         // Remove pay vote
+        console.log('ideaService: Removing pay vote')
         await supabase
           .from('idea_votes')
           .delete()
@@ -624,6 +638,11 @@ class SupabaseIdeaService implements IIdeaService {
           .eq('vote_type', 'pay')
       } else {
         // Add pay vote (can coexist with use/dislike)
+        console.log('ideaService: Inserting pay vote', {
+          idea_id: ideaId,
+          voter_id: user.id,
+          vote_type: 'pay',
+        })
         await supabase.from('idea_votes').insert({
           idea_id: ideaId,
           voter_id: user.id,
