@@ -20,10 +20,8 @@ import { useVideoPlayer } from '@/core/hooks/useVideoPlayer'
 import { useMediaValidation } from '@/core/hooks/useMediaValidation'
 import { formatDate } from '@/core/lib/utils/date'
 import { ideaService } from '@/core/lib/services/ideaService'
-import {
-  getMostVotedType,
-  VoteDistributionBar,
-} from '@/shared/components/ui/VoteDistributionBar'
+import { getMostVotedType } from '@/core/lib/utils/idea.utils'
+import { VoteDistributionRing } from '@/shared/components/ui/VoteDistributionRing'
 import { toast } from 'sonner'
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
 
@@ -371,7 +369,7 @@ export function IdeaCard({
           {/* Vote Distribution Bar - Only for interactive variant */}
           {isInteractive && (
             <div className="mb-3">
-              <VoteDistributionBar votes={currentIdea.votesByType} />
+              <VoteDistributionRing votes={currentIdea.votesByType} size={50} />
             </div>
           )}
 

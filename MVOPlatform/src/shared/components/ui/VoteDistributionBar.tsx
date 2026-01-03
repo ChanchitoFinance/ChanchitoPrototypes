@@ -15,29 +15,6 @@ export const VOTE_COLORS: Record<IdeaVoteType, string> = {
   pay: '#A78BFA', // accent-alt violet
 }
 
-// Helper function to get the most voted type and its color
-export function getMostVotedType(
-  votes: IdeaVotes
-): { type: IdeaVoteType; color: string } | null {
-  const totalVotes = votes.dislike + votes.use + votes.pay
-  if (totalVotes === 0) return null
-
-  const voteCounts = [
-    { type: 'dislike' as IdeaVoteType, count: votes.dislike },
-    { type: 'use' as IdeaVoteType, count: votes.use },
-    { type: 'pay' as IdeaVoteType, count: votes.pay },
-  ]
-
-  const mostVoted = voteCounts.reduce((max, current) =>
-    current.count > max.count ? current : max
-  )
-
-  return {
-    type: mostVoted.type,
-    color: VOTE_COLORS[mostVoted.type],
-  }
-}
-
 export function VoteDistributionBar({
   votes,
   orientation = 'horizontal',

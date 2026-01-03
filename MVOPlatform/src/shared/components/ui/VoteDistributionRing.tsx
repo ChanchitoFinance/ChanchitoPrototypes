@@ -2,18 +2,12 @@
 
 import { useState } from 'react'
 import { IdeaVotes, IdeaVoteType } from '@/core/types/idea'
-import { Tooltip } from '@radix-ui/themes'
+import * as Tooltip from '@radix-ui/react-tooltip'
+import { VOTE_COLORS } from '@/core/lib/utils/idea.utils'
 
 interface VoteDistributionRingProps {
   votes: IdeaVotes
   size?: number // Diameter in pixels
-}
-
-// Colors for each vote type
-export const VOTE_COLORS: Record<IdeaVoteType, string> = {
-  dislike: '#9CA3AF', // grey-400
-  use: '#66D3FF', // accent cyan
-  pay: '#A78BFA', // accent-alt violet
 }
 
 // Labels for each vote type
@@ -101,37 +95,41 @@ export function VoteDistributionRing({
           const currentStrokeWidth = isHovered ? hoverStrokeWidth : strokeWidth
 
           return (
-            <Tooltip
-              key={`${arc.type}-${index}`}
-              content={
-                <>
+            <Tooltip.Root key={`${arc.type}-${index}`}>
+              <Tooltip.Trigger asChild>
+                <circle
+                  cx={center}
+                  cy={center}
+                  r={radius}
+                  fill="none"
+                  stroke={VOTE_COLORS[arc.type]}
+                  strokeWidth={currentStrokeWidth}
+                  strokeDasharray={`${arc.length} ${circumference - arc.length}`}
+                  strokeDashoffset={-arc.offset}
+                  strokeLinecap="round"
+                  className="transition-all duration-200 cursor-pointer"
+                  style={{
+                    transition: 'stroke-width 0.2s ease, opacity 0.2s ease',
+                  }}
+                  onMouseEnter={() => setHoveredArc(index)}
+                  onMouseLeave={() => setHoveredArc(null)}
+                />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content
+                  className="bg-gray-900 text-white px-3 py-2 rounded-md text-sm shadow-lg"
+                  sideOffset={5}
+                >
                   <span className="font-semibold">{VOTE_LABELS[arc.type]}</span>
                   <br />
                   <span className="text-xs">
                     {arc.count} votes <span className="opacity-50">•</span>{' '}
                     {arc.percentage.toFixed(1)}%
                   </span>
-                </>
-              }
-            >
-              <circle
-                cx={center}
-                cy={center}
-                r={radius}
-                fill="none"
-                stroke={VOTE_COLORS[arc.type]}
-                strokeWidth={currentStrokeWidth}
-                strokeDasharray={`${arc.length} ${circumference - arc.length}`}
-                strokeDashoffset={-arc.offset}
-                strokeLinecap="round"
-                className="transition-all duration-200 cursor-pointer"
-                style={{
-                  transition: 'stroke-width 0.2s ease, opacity 0.2s ease',
-                }}
-                onMouseEnter={() => setHoveredArc(index)}
-                onMouseLeave={() => setHoveredArc(null)}
-              />
-            </Tooltip>
+                  <Tooltip.Arrow className="fill-gray-900" />
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
           )
         })}
 
