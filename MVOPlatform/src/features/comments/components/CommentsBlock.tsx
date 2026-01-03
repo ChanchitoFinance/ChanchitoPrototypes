@@ -13,6 +13,8 @@ interface CommentsBlockProps {
   ideaId: string
 }
 
+const MAX_COMMENT_LENGTH = 3000
+
 export function CommentsBlock({ ideaId }: CommentsBlockProps) {
   const t = useTranslations()
   const [comments, setComments] = useState<Comment[]>([])
@@ -246,6 +248,15 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
     }
 
     const commentText = newComment.trim()
+
+    // Validate comment length
+    if (commentText.length > MAX_COMMENT_LENGTH) {
+      toast.error(
+        t('comments.character_limit').replace('{limit}', MAX_COMMENT_LENGTH.toString())
+      )
+      return
+    }
+
     setSubmitting(true)
     setNewComment('') // Clear textarea immediately for better UX
 
@@ -359,39 +370,60 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
 
       {/* Comment Form */}
       <form onSubmit={handleSubmitComment} className="mb-8">
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <textarea
-              ref={textareaRef}
-              value={newComment}
-              onChange={e => {
-                setNewComment(e.target.value)
-                // Auto-resize textarea
-                if (textareaRef.current) {
-                  textareaRef.current.style.height = 'auto'
-                  textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
-                }
-              }}
-              placeholder={t('comments.write_comment')}
-              className="w-full px-4 py-3 bg-gray-100 rounded-lg border border-border-color focus:outline-none focus:ring-2 focus:ring-accent resize-none overflow-hidden"
-              style={{
-                minHeight: '3rem',
-                maxHeight: '20rem',
-                color: '#ffffff',
-              }}
-              rows={1}
-            />
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-4">
+            <div className="flex-1 relative">
+              <textarea
+                ref={textareaRef}
+                value={newComment}
+                onChange={e => {
+                  const value = e.target.value
+                  // Enforce character limit
+                  if (value.length <= MAX_COMMENT_LENGTH) {
+                    setNewComment(value)
+                  }
+                  // Auto-resize textarea
+                  if (textareaRef.current) {
+                    textareaRef.current.style.height = 'auto'
+                    textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+                  }
+                }}
+                placeholder={t('comments.write_comment')}
+                maxLength={MAX_COMMENT_LENGTH}
+                className="w-full px-4 py-3 bg-gray-100 rounded-lg border border-border-color focus:outline-none focus:ring-2 focus:ring-accent resize-none overflow-hidden"
+                style={{
+                  minHeight: '3rem',
+                  maxHeight: '20rem',
+                  color: '#ffffff',
+                }}
+                rows={1}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={!newComment.trim() || submitting}
+              className="px-6 py-3 bg-accent text-text-primary rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 self-start"
+            >
+              <ArrowUp className="w-4 h-4" />
+              <span className="hidden md:inline">
+                {submitting ? t('comments.posting') : t('comments.post')}
+              </span>
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={!newComment.trim() || submitting}
-            className="px-6 py-3 bg-accent text-text-primary rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <ArrowUp className="w-4 h-4" />
-            <span className="hidden md:inline">
-              {submitting ? t('comments.posting') : t('comments.post')}
+          {/* Character count */}
+          <div className="flex justify-end">
+            <span
+              className={`text-xs ${newComment.length > MAX_COMMENT_LENGTH * 0.9
+                ? 'text-red-500'
+                : 'text-text-secondary'
+                }`}
+            >
+              {t('comments.characters_remaining').replace(
+                '{count}',
+                (MAX_COMMENT_LENGTH - newComment.length).toString()
+              )}
             </span>
-          </button>
+          </div>
         </div>
       </form>
 

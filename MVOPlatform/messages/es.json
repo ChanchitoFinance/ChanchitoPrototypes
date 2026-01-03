@@ -235,7 +235,11 @@
     "reply_placeholder": "Escribe una respuesta...",
     "replies": "respuestas",
     "reply_single": "respuesta",
-    "add_comment": "Agregar un comentario..."
+    "add_comment": "Agregar un comentario...",
+    "read_more": "Leer más",
+    "read_less": "Leer menos",
+    "character_limit": "Límite de {limit} caracteres",
+    "characters_remaining": "{count} caracteres restantes"
   },
   "carousel": {
     "trending": "Tendencias",

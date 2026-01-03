@@ -336,7 +336,7 @@ export function IdeaCard({
             </div>
 
             {/* Content Section - Title with Sentiment Indicator */}
-            <div className="flex items-start justify-between gap-3 mb-4 flex-1">
+            <div className="flex items-center justify-between gap-3 mb-4 flex-1">
               {/* Title */}
               <div className="flex-1 min-w-0">
                 <h2 className="text-xl font-bold text-text-primary line-clamp-3 break-words leading-tight">
@@ -359,8 +359,8 @@ export function IdeaCard({
                   onClick={handleUpVote}
                   disabled={isVoting}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${upvoted
-                      ? 'bg-green-500 text-white shadow-md'
-                      : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+                    ? 'bg-green-500 text-white shadow-md'
+                    : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
                     } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {isVoting ? (
@@ -382,8 +382,8 @@ export function IdeaCard({
                   onClick={handleDownVote}
                   disabled={isVoting}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${downvoted
-                      ? 'bg-red-500 text-white shadow-md'
-                      : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+                    ? 'bg-red-500 text-white shadow-md'
+                    : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
                     } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {isVoting ? (
@@ -405,8 +405,8 @@ export function IdeaCard({
                   onClick={e => handleVote(e, 'pay')}
                   disabled={isVoting}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${votedPay
-                      ? 'bg-blue-500 text-white shadow-md'
-                      : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+                    ? 'bg-blue-500 text-white shadow-md'
+                    : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
                     } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                   title="I'd pay for it"
                 >
@@ -433,8 +433,8 @@ export function IdeaCard({
               {/* Comments indicator */}
               <motion.div
                 className={`flex items-center gap-1.5 ${currentIdea.status_flag === 'active_discussion'
-                    ? 'text-accent'
-                    : 'text-text-secondary'
+                  ? 'text-accent'
+                  : 'text-text-secondary'
                   }`}
                 animate={
                   currentIdea.status_flag === 'active_discussion'
