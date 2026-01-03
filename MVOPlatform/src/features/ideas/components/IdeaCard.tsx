@@ -24,8 +24,8 @@ import {
   getMostVotedType,
   VoteDistributionBar,
 } from '@/shared/components/ui/VoteDistributionBar'
-import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
 import { toast } from 'sonner'
+import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
 
 type IdeaCardVariant = 'interactive' | 'metrics' | 'admin'
 
@@ -348,32 +348,32 @@ export function IdeaCard({
               )}
             </div>
 
-            {/* Content Section */}
-            <div className="flex items-start justify-between gap-3 mb-3 flex-1">
-              <div className="flex-1 min-w-0 max-w-[calc(100%-80px)]">
-                <h2 className="text-lg font-semibold text-text-primary mb-1 line-clamp-2 break-words">
-                  {currentIdea.title}
-                </h2>
-                <p className="text-sm text-text-secondary line-clamp-2 mb-2 break-words">
-                  {currentIdea.description}
-                </p>
+          {/* Content Section */}
+          <div className="flex items-start justify-between gap-3 mb-3 flex-1">
+            <div className="flex-1 min-w-0 max-w-[calc(100%-80px)]">
+              <h2 className="text-lg font-semibold text-text-primary mb-1 line-clamp-2 break-words">
+                {currentIdea.title}
+              </h2>
+              <p className="text-sm text-text-secondary line-clamp-2 mb-2 break-words">
+                {currentIdea.description}
+              </p>
+            </div>
+            <div className="text-right flex-shrink-0 w-16">
+              <div className="text-2xl font-semibold text-accent whitespace-nowrap">
+                {currentIdea.score}
               </div>
-              <div className="text-right flex-shrink-0 w-16">
-                <div className="text-2xl font-semibold text-accent whitespace-nowrap">
-                  {currentIdea.score}
-                </div>
-                <div className="text-xs text-text-secondary whitespace-nowrap">
-                  {t('common.score')}
-                </div>
+              <div className="text-xs text-text-secondary whitespace-nowrap">
+                {t('common.score')}
               </div>
             </div>
+          </div>
 
-            {/* Vote Distribution Bar - Only for interactive variant */}
-            {isInteractive && (
-              <div className="mb-3">
-                <VoteDistributionBar votes={currentIdea.votesByType} />
-              </div>
-            )}
+          {/* Vote Distribution Bar - Only for interactive variant */}
+          {isInteractive && (
+            <div className="mb-3">
+              <VoteDistributionBar votes={currentIdea.votesByType} />
+            </div>
+          )}
 
             {/* Actions Section */}
             <div className="flex items-center justify-between gap-2 mb-2 min-h-[32px] overflow-hidden">
