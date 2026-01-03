@@ -224,49 +224,43 @@ export function IdeaCard({
             )}
           </div>
 
-          {/* Content Section */}
-          <div className="flex items-start gap-3 mb-3 flex-1">
-            {/* Title and Description */}
-            <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-semibold text-text-primary mb-1 line-clamp-2 break-words">
-                {currentIdea.title}
-              </h2>
-              <p className="text-sm text-text-secondary line-clamp-2 mb-2 break-words">
-                {currentIdea.description}
-              </p>
-            </div>
+          {/* Content Section - Title Only */}
+          <div className="mb-4 flex-1">
+            <h2 className="text-xl font-bold text-text-primary line-clamp-3 break-words leading-tight">
+              {currentIdea.title}
+            </h2>
           </div>
 
           {/* Engagement Metrics - Prominent Display */}
-          <div className="flex items-center gap-4 mb-3 p-2 bg-background/50 rounded-lg">
+          <div className="flex items-center gap-4 mb-3 p-3 bg-background/50 rounded-lg">
             {/* Upvote Metric */}
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <ArrowUp className="w-4 h-4 text-green-500" />
-              <span className="text-base font-semibold text-text-primary">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <ArrowUp className="w-5 h-5 text-green-500" />
+              <span className="text-lg font-bold text-text-primary">
                 {currentIdea.votesByType.use}
               </span>
             </div>
 
             {/* Downvote Metric */}
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <ArrowDown className="w-4 h-4 text-red-500" />
-              <span className="text-base font-semibold text-text-primary">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <ArrowDown className="w-5 h-5 text-red-500" />
+              <span className="text-lg font-bold text-text-primary">
                 {currentIdea.votesByType.dislike}
               </span>
             </div>
 
             {/* Pay Vote Metric */}
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <DollarSign className="w-4 h-4 text-blue-500" />
-              <span className="text-base font-semibold text-text-primary">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <DollarSign className="w-5 h-5 text-blue-500" />
+              <span className="text-lg font-bold text-text-primary">
                 {currentIdea.votesByType.pay}
               </span>
             </div>
 
             {/* Comments Metric */}
-            <div className="flex items-center gap-1.5 flex-shrink-0 ml-auto">
-              <MessageSquare className="w-4 h-4 text-text-secondary" />
-              <span className="text-base font-semibold text-text-primary">
+            <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+              <MessageSquare className="w-5 h-5 text-text-secondary" />
+              <span className="text-lg font-bold text-text-primary">
                 {currentIdea.commentCount}
               </span>
             </div>
@@ -341,25 +335,22 @@ export function IdeaCard({
               )}
             </div>
 
-          {/* Content Section with Sentiment Indicator */}
-          <div className="flex items-start gap-3 mb-3 flex-1">
-            {/* Vote Distribution Ring - Prominent Position */}
-            {isInteractive && (
-              <div className="flex-shrink-0 flex items-start justify-center pt-1">
-                <VoteDistributionRing votes={currentIdea.votesByType} size={64} />
+            {/* Content Section - Title with Sentiment Indicator */}
+            <div className="flex items-start justify-between gap-3 mb-4 flex-1">
+              {/* Title */}
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl font-bold text-text-primary line-clamp-3 break-words leading-tight">
+                  {currentIdea.title}
+                </h2>
               </div>
-            )}
-            
-            {/* Title and Description */}
-            <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-semibold text-text-primary mb-1 line-clamp-2 break-words">
-                {currentIdea.title}
-              </h2>
-              <p className="text-sm text-text-secondary line-clamp-3 break-words">
-                {currentIdea.description}
-              </p>
+
+              {/* Vote Distribution Ring - Right Side */}
+              {isInteractive && (
+                <div className="flex-shrink-0">
+                  <VoteDistributionRing votes={currentIdea.votesByType} size={40} />
+                </div>
+              )}
             </div>
-          </div>
 
             {/* Actions Section - Prominent Voting Buttons */}
             {isInteractive ? (
@@ -367,11 +358,10 @@ export function IdeaCard({
                 <button
                   onClick={handleUpVote}
                   disabled={isVoting}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${
-                    upvoted
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${upvoted
                       ? 'bg-green-500 text-white shadow-md'
                       : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
-                  } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {isVoting ? (
                     <LoadingSpinner size={18} color="currentColor" />
@@ -391,11 +381,10 @@ export function IdeaCard({
                 <button
                   onClick={handleDownVote}
                   disabled={isVoting}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${
-                    downvoted
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${downvoted
                       ? 'bg-red-500 text-white shadow-md'
                       : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
-                  } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {isVoting ? (
                     <LoadingSpinner size={18} color="currentColor" />
@@ -415,11 +404,10 @@ export function IdeaCard({
                 <button
                   onClick={e => handleVote(e, 'pay')}
                   disabled={isVoting}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${
-                    votedPay
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${votedPay
                       ? 'bg-blue-500 text-white shadow-md'
                       : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
-                  } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                   title="I'd pay for it"
                 >
                   {isVoting ? (
@@ -444,16 +432,15 @@ export function IdeaCard({
             <div className="flex items-center justify-between gap-2 mb-2">
               {/* Comments indicator */}
               <motion.div
-                className={`flex items-center gap-1.5 ${
-                  currentIdea.status_flag === 'active_discussion'
+                className={`flex items-center gap-1.5 ${currentIdea.status_flag === 'active_discussion'
                     ? 'text-accent'
                     : 'text-text-secondary'
-                }`}
+                  }`}
                 animate={
                   currentIdea.status_flag === 'active_discussion'
                     ? {
-                        opacity: [0.7, 1, 0.7],
-                      }
+                      opacity: [0.7, 1, 0.7],
+                    }
                     : {}
                 }
                 transition={{
@@ -474,7 +461,7 @@ export function IdeaCard({
                 />
                 <span className="text-sm font-medium">{currentIdea.commentCount} {t('common.comments') || 'comments'}</span>
               </motion.div>
-              
+
               {/* Tags Section */}
               <div className="flex items-center gap-1.5 flex-wrap overflow-hidden">
                 {currentIdea.tags.slice(0, 2).map(tag => {

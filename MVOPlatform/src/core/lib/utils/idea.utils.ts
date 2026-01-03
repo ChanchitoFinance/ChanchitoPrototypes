@@ -28,3 +28,29 @@ export function getMostVotedType(
     color: VOTE_COLORS[mostVoted.type],
   }
 }
+
+/**
+ * Calculate vote sentiment percentage (positive vs negative)
+ * Returns a value between -100 (all negative) and 100 (all positive)
+ */
+export function getVoteSentiment(votes: IdeaVotes): number {
+  const totalVotes = votes.dislike + votes.use + votes.pay
+  if (totalVotes === 0) return 0
+
+  const positiveVotes = votes.use + votes.pay
+  const negativeVotes = votes.dislike
+
+  return ((positiveVotes - negativeVotes) / totalVotes) * 100
+}
+
+/**
+ * Get engagement level based on total interactions
+ */
+export function getEngagementLevel(votes: IdeaVotes, commentCount: number): 'low' | 'medium' | 'high' {
+  const totalVotes = votes.dislike + votes.use + votes.pay
+  const totalEngagement = totalVotes + commentCount
+
+  if (totalEngagement >= 20) return 'high'
+  if (totalEngagement >= 10) return 'medium'
+  return 'low'
+}
