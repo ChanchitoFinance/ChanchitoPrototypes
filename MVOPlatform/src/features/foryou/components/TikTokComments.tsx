@@ -8,6 +8,7 @@ import { useAppSelector } from '@/core/lib/hooks'
 import { commentService } from '@/core/lib/services/commentService'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import { CommentTree } from '@/features/comments/components/CommentTree'
+import { toast } from 'sonner'
 
 interface TikTokCommentsProps {
   ideaId: string
@@ -113,7 +114,7 @@ export function TikTokComments({
 
   const handleUpvoteComment = async (commentId: string) => {
     if (!user) {
-      alert(t('auth.sign_in_to_vote'))
+      toast.warning(t('auth.sign_in_to_vote'))
       return
     }
     try {
@@ -129,7 +130,7 @@ export function TikTokComments({
 
   const handleDownvoteComment = async (commentId: string) => {
     if (!user) {
-      alert(t('auth.sign_in_to_vote'))
+      toast.warning(t('auth.sign_in_to_vote'))
       return
     }
     try {
@@ -184,7 +185,7 @@ export function TikTokComments({
     if (!replyContent || submitting) return
 
     if (!user) {
-      alert(t('auth.sign_in_to_comment'))
+      toast.warning(t('auth.sign_in_to_comment'))
       return
     }
 
@@ -273,7 +274,7 @@ export function TikTokComments({
     if (!newComment.trim() || submitting) return
 
     if (!user) {
-      alert(t('auth.sign_in_to_comment'))
+      toast.warning(t('auth.sign_in_to_comment'))
       return
     }
 

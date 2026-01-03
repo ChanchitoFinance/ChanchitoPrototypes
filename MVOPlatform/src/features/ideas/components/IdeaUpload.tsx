@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '@/core/lib/hooks'
 import { IdeaForm } from '@/features/ideas/components/forms/IdeaForm'
 import { signInWithGoogle } from '@/core/lib/slices/authSlice'
 import { useEffect } from 'react'
+import { toast } from 'sonner'
 
 export function IdeaUpload() {
   const t = useTranslations()
@@ -26,7 +27,7 @@ export function IdeaUpload() {
       // Save draft to local storage
       localStorage.setItem('ideaDraft', JSON.stringify(formData))
       // Show alert instead of intrusive view
-      alert(t('auth.sign_in_required_alert'))
+      toast.warning(t('auth.sign_in_required_alert'))
       // Redirect to sign in
       dispatch(signInWithGoogle())
     }

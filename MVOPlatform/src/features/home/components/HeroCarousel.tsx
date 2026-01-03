@@ -23,6 +23,7 @@ import { ideaService } from '@/core/lib/services/ideaService'
 import { CarouselItemSkeleton } from '@/shared/components/ui/Skeleton'
 import { getCardMedia, isUrlValid } from '@/core/lib/utils/media'
 import { formatDate } from '@/core/lib/utils/date'
+import { toast } from 'sonner'
 
 interface HeroCarouselProps {
   ideas?: Idea[]
@@ -438,21 +439,21 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                               })
                               .then(() => {
                                 // Show success feedback
-                                alert(t('actions.share_success'))
+                                toast.success(t('actions.share_success'))
                               })
                               .catch(error => {
                                 if (error.name !== 'AbortError') {
                                   console.error('Error sharing:', error)
                                   // Fallback to clipboard
                                   navigator.clipboard.writeText(ideaUrl)
-                                  alert(t('actions.link_copied'))
+                                  toast.success(t('actions.link_copied'))
                                 }
                                 // If user canceled, don't show any message
                               })
                           } else {
                             // Fallback to clipboard
                             navigator.clipboard.writeText(ideaUrl)
-                            alert(t('actions.link_copied'))
+                            toast.success(t('actions.link_copied'))
                           }
                         }}
                         className="hidden md:block p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"

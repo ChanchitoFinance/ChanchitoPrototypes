@@ -22,6 +22,7 @@ import { ideaService } from '@/core/lib/services/ideaService'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import { getCardMedia } from '@/core/lib/utils/media'
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
+import { toast } from 'sonner'
 
 interface ForYouIdeaCardProps {
   idea: Idea
@@ -92,7 +93,7 @@ export function ForYouIdeaCard({
   const handleVote = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (!isAuthenticated) {
-      alert(t('auth.sign_in_to_vote'))
+      toast.warning(t('auth.sign_in_to_vote'))
       return
     }
     if (isVoting) return
@@ -118,7 +119,7 @@ export function ForYouIdeaCard({
   const handleWouldPay = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (!isAuthenticated) {
-      alert(t('auth.sign_in_to_vote'))
+      toast.warning(t('auth.sign_in_to_vote'))
       return
     }
     if (isVoting) return
@@ -142,7 +143,7 @@ export function ForYouIdeaCard({
   const handleDownVote = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (!isAuthenticated) {
-      alert(t('auth.sign_in_to_vote'))
+      toast.warning(t('auth.sign_in_to_vote'))
       return
     }
     if (isVoting) return

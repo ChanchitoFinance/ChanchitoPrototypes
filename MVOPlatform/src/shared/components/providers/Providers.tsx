@@ -6,6 +6,7 @@ import { AuthProvider } from './AuthProvider'
 import { I18nProvider } from './I18nProvider'
 import { ThemeInitializer } from './ThemeInitializer'
 import { store } from '@/core/lib/store'
+import * as Tooltip from '@radix-ui/react-tooltip'
 
 export function Providers({
   children,
@@ -18,7 +19,9 @@ export function Providers({
     <Provider store={store}>
       <I18nProvider locale={locale}>
         <ThemeInitializer>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <Tooltip.Provider>{children}</Tooltip.Provider>
+          </AuthProvider>
         </ThemeInitializer>
       </I18nProvider>
     </Provider>

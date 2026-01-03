@@ -27,6 +27,7 @@ import { ContentBlock } from '@/core/types/content'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import { Button } from '@/shared/components/ui/Button'
 import { isUrlValid } from '@/core/lib/utils/media'
+import { toast } from 'sonner'
 
 interface RichContentEditorProps {
   value: ContentBlock[]
@@ -965,7 +966,7 @@ function BlockEditor({
                               const url = await uploadFile(file, 'images')
                               onUpdate({ src: url })
                             } catch (error) {
-                              alert(
+                              toast.error(
                                 error instanceof Error
                                   ? error.message
                                   : 'Upload failed'
@@ -1011,7 +1012,7 @@ function BlockEditor({
                             const url = await uploadFile(file, 'images')
                             onUpdate({ src: url })
                           } catch (error) {
-                            alert(
+                            toast.error(
                               error instanceof Error
                                 ? error.message
                                 : 'Upload failed'
@@ -1114,7 +1115,7 @@ function BlockEditor({
                               const url = await uploadFile(file, 'videos')
                               onUpdate({ src: url })
                             } catch (error) {
-                              alert(
+                              toast.error(
                                 error instanceof Error
                                   ? error.message
                                   : 'Upload failed'
@@ -1160,7 +1161,7 @@ function BlockEditor({
                             const url = await uploadFile(file, 'videos')
                             onUpdate({ src: url })
                           } catch (error) {
-                            alert(
+                            toast.error(
                               error instanceof Error
                                 ? error.message
                                 : 'Upload failed'
@@ -1825,7 +1826,7 @@ function CarouselEditor({
                               video: undefined,
                             })
                           } catch (error) {
-                            alert(
+                            toast.error(
                               error instanceof Error
                                 ? error.message
                                 : 'Upload failed'
@@ -1856,7 +1857,7 @@ function CarouselEditor({
                               image: undefined,
                             })
                           } catch (error) {
-                            alert(
+                            toast.error(
                               error instanceof Error
                                 ? error.message
                                 : 'Upload failed'
@@ -1917,12 +1918,12 @@ function CarouselEditor({
                                 // If HEAD fails, keep the default (video)
                               }
                             } else {
-                              alert(t('validation.invalid_media_url'))
+                              toast.error(t('validation.invalid_media_url'))
                               return
                             }
                           } catch (validationError) {
                             console.error('Validation error:', validationError)
-                            alert(t('validation.invalid_media_url'))
+                            toast.error(t('validation.invalid_media_url'))
                             return
                           }
                         }
@@ -1963,7 +1964,7 @@ function CarouselEditor({
                           video: undefined,
                         })
                       } catch (error) {
-                        alert(
+                        toast.error(
                           error instanceof Error
                             ? error.message
                             : 'Upload failed'
@@ -1993,7 +1994,7 @@ function CarouselEditor({
                           image: undefined,
                         })
                       } catch (error) {
-                        alert(
+                        toast.error(
                           error instanceof Error
                             ? error.message
                             : 'Upload failed'
@@ -2021,7 +2022,7 @@ function CarouselEditor({
                         updateSlide(index, { video: url, image: undefined })
                       }
                     } else {
-                      alert(t('validation.invalid_media_url'))
+                      toast.error(t('validation.invalid_media_url'))
                     }
                   }
                 }}

@@ -234,7 +234,11 @@
     "reply_placeholder": "Write a reply...",
     "replies": "replies",
     "reply_single": "reply",
-    "add_comment": "Add a comment..."
+    "add_comment": "Add a comment...",
+    "read_more": "Read more",
+    "read_less": "Read less",
+    "character_limit": "{limit} character limit",
+    "characters_remaining": "{count} characters remaining"
   },
   "carousel": {
     "trending": "Trending",

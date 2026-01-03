@@ -8,6 +8,7 @@ import { ideaService } from '@/core/lib/services/ideaService'
 import { IdeaCardSkeleton } from '@/shared/components/ui/Skeleton'
 import { useAppSelector } from '@/core/lib/hooks'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
+import { toast } from 'sonner'
 
 export function HomeFeed() {
   const t = useTranslations()
@@ -36,7 +37,7 @@ export function HomeFeed() {
       if (e.key === 'ArrowUp') {
         e.preventDefault()
         if (!isAuthenticated) {
-          alert(t('auth.sign_in_to_vote'))
+          toast.warning(t('auth.sign_in_to_vote'))
           return
         }
         setIsVoting(true)
@@ -59,7 +60,7 @@ export function HomeFeed() {
       } else if (e.key === 'ArrowDown') {
         e.preventDefault()
         if (!isAuthenticated) {
-          alert(t('auth.sign_in_to_vote'))
+          toast.warning(t('auth.sign_in_to_vote'))
           return
         }
         setIsVoting(true)
