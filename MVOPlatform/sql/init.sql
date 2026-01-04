@@ -593,3 +593,11 @@ CREATE POLICY "Authenticated insert variant_media" ON variant_media FOR INSERT W
 
 CREATE POLICY "Public read post_media" ON post_media FOR SELECT USING (true);
 CREATE POLICY "Authenticated insert post_media" ON post_media FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+ALTER PUBLICATION supabase_realtime DROP TABLE idea_votes;
+ALTER PUBLICATION supabase_realtime DROP TABLE comments;
+
+ALTER PUBLICATION supabase_realtime ADD TABLE idea_votes;
+ALTER PUBLICATION supabase_realtime ADD TABLE comments;
+
+SELECT * FROM pg_publication_tables WHERE pubname = 'supabase_realtime';
