@@ -1,9 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
 import { supabase } from '@/core/lib/supabase'
 import {
   setUserId,
-  setNotifications,
   addNotification as addNotificationAction,
   markAsRead,
   markAllAsRead,
@@ -15,9 +14,7 @@ export const useNotifications = () => {
   const { notifications, userId } = useAppSelector(state => state.notifications)
   const { user, profile } = useAppSelector(state => state.auth)
 
-  const getStorageKey = (key: string) => {
-    return `${userId}_${key}`
-  }
+  const userIdeasSetRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     if (user?.id) {
@@ -28,107 +25,82 @@ export const useNotifications = () => {
   }, [user?.id, dispatch])
 
   useEffect(() => {
-    console.log('=== TESTING REALTIME CONNECTION ===')
-    const testChannel = supabase
-      .channel('realtime-test')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'idea_votes',
-        },
-        payload => {
-          console.log('🔥 TEST: Vote detected globally:', payload)
-        }
-      )
-      .subscribe((status, err) => {
-        console.log('TEST channel status:', status)
-        if (err) console.error('TEST channel error:', err)
-      })
-
-    return () => {
-      supabase.removeChannel(testChannel)
-    }
-  }, [])
-
-  useEffect(() => {
     if (!userId || !profile) {
-      console.log(
-        'useNotifications: Skipping setup - userId:',
-        userId,
-        'profile:',
-        !!profile
-      )
       return
     }
-
-    console.log('useNotifications: Setting up subscriptions for user:', userId)
 
     const fetchUserIdeas = async () => {
       const { data: userIdeas, error } = await supabase
         .from('ideas')
-        .select('id, title')
+        .select('id')
         .eq('creator_id', userId)
 
       if (error) {
         console.error('useNotifications: Error fetching user ideas:', error)
-        return []
+        return
       }
+
+      userIdeasSetRef.current.clear()
+      userIdeas?.forEach(idea => {
+        userIdeasSetRef.current.add(idea.id)
+      })
+
       console.log(
-        'useNotifications: User ideas fetched:',
-        userIdeas?.length || 0
+        'useNotifications: User ideas loaded:',
+        userIdeasSetRef.current.size
       )
-      return userIdeas || []
     }
 
-    let userIdeasMap = new Map<string, string>()
-
-    fetchUserIdeas().then(ideas => {
-      ideas.forEach(idea => {
-        userIdeasMap.set(idea.id, idea.title)
-      })
-      console.log('useNotifications: Ideas cached in Map:', userIdeasMap.size)
-    })
+    fetchUserIdeas()
 
     const ideasChannel = supabase
       .channel(`ideas-updates-${userId}`)
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'ideas',
           filter: `creator_id=eq.${userId}`,
         },
         payload => {
-          console.log('useNotifications: Ideas event received:', payload)
-
-          if (payload.eventType === 'INSERT') {
-            const newNotification: Notification = {
-              id: Date.now().toString(),
-              type: 'idea_created',
-              title: 'New Idea Created',
-              message: `Your idea "${payload.new?.title || 'Untitled'}" has been created successfully!`,
-              timestamp: new Date().toISOString(),
-              read: false,
-              ideaId: payload.new?.id,
-              ideaTitle: payload.new?.title,
-            }
-            dispatch(addNotificationAction(newNotification))
-          } else if (payload.eventType === 'UPDATE') {
-            const newNotification: Notification = {
-              id: Date.now().toString(),
-              type: 'idea_updated',
-              title: 'Idea Updated',
-              message: `Your idea "${payload.new?.title || 'Untitled'}" has been updated.`,
-              timestamp: new Date().toISOString(),
-              read: false,
-              ideaId: payload.new?.id,
-              ideaTitle: payload.new?.title,
-            }
-            dispatch(addNotificationAction(newNotification))
+          if (payload.new?.id) {
+            userIdeasSetRef.current.add(payload.new.id)
           }
+
+          const newNotification: Notification = {
+            id: Date.now().toString() + Math.random().toString(36).substring(2),
+            type: 'idea_created',
+            title: 'New Idea Created',
+            message: `Your idea "${payload.new?.title || 'Untitled'}" has been created successfully!`,
+            timestamp: new Date().toISOString(),
+            read: false,
+            ideaId: payload.new?.id,
+            ideaTitle: payload.new?.title,
+          }
+          dispatch(addNotificationAction(newNotification))
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'ideas',
+          filter: `creator_id=eq.${userId}`,
+        },
+        payload => {
+          const newNotification: Notification = {
+            id: Date.now().toString() + Math.random().toString(36).substring(2),
+            type: 'idea_updated',
+            title: 'Idea Updated',
+            message: `Your idea "${payload.new?.title || 'Untitled'}" has been updated.`,
+            timestamp: new Date().toISOString(),
+            read: false,
+            ideaId: payload.new?.id,
+            ideaTitle: payload.new?.title,
+          }
+          dispatch(addNotificationAction(newNotification))
         }
       )
       .subscribe(status => {
@@ -136,7 +108,7 @@ export const useNotifications = () => {
       })
 
     const votesChannel = supabase
-      .channel(`all-votes-${userId}`)
+      .channel('global-votes')
       .on(
         'postgres_changes',
         {
@@ -145,44 +117,34 @@ export const useNotifications = () => {
           table: 'idea_votes',
         },
         async payload => {
-          console.log('useNotifications: Vote event received:', {
-            voter_id: payload.new?.voter_id,
-            idea_id: payload.new?.idea_id,
-            vote_type: payload.new?.vote_type,
-            current_user: userId,
-          })
+          console.log('useNotifications: Vote event received:', payload.new)
 
           if (!payload.new?.voter_id || !payload.new?.idea_id) {
-            console.log('useNotifications: Invalid vote payload, skipping')
             return
           }
 
           if (payload.new.voter_id === userId) {
-            console.log('useNotifications: Self-vote detected, skipping')
+            console.log('useNotifications: Self-vote, skipping')
             return
           }
 
-          if (userIdeasMap.size === 0) {
-            console.log('useNotifications: Cache empty, fetching ideas...')
-            const ideas = await fetchUserIdeas()
-            userIdeasMap.clear()
-            ideas.forEach(idea => {
-              userIdeasMap.set(idea.id, idea.title)
-            })
-            console.log('useNotifications: Cache refreshed:', userIdeasMap.size)
-          }
-
-          const ideaTitle = userIdeasMap.get(payload.new.idea_id)
-
-          if (!ideaTitle) {
-            console.log('useNotifications: Vote not for user idea, skipping', {
-              idea_id: payload.new.idea_id,
-              cached_ideas: Array.from(userIdeasMap.keys()),
-            })
+          if (!userIdeasSetRef.current.has(payload.new.idea_id)) {
+            console.log('useNotifications: Vote not for user idea, skipping')
             return
           }
 
-          console.log('useNotifications: Vote IS for user idea:', ideaTitle)
+          console.log('useNotifications: Vote IS for user idea!')
+
+          const { data: idea } = await supabase
+            .from('ideas')
+            .select('title')
+            .eq('id', payload.new.idea_id)
+            .single()
+
+          if (!idea) {
+            console.error('useNotifications: Could not fetch idea title')
+            return
+          }
 
           const voteType = payload.new.vote_type || 'use'
           let notificationType: 'vote_up' | 'vote_down' | 'vote_pay' = 'vote_up'
@@ -203,11 +165,11 @@ export const useNotifications = () => {
             id: Date.now().toString() + Math.random().toString(36).substring(2),
             type: notificationType,
             title,
-            message: `${message}: "${ideaTitle}"`,
+            message: `${message}: "${idea.title}"`,
             timestamp: new Date().toISOString(),
             read: false,
             ideaId: payload.new.idea_id,
-            ideaTitle: ideaTitle,
+            ideaTitle: idea.title,
             userId: payload.new.voter_id,
           }
 
@@ -223,7 +185,7 @@ export const useNotifications = () => {
       })
 
     const commentsChannel = supabase
-      .channel(`all-comments-${userId}`)
+      .channel('global-comments')
       .on(
         'postgres_changes',
         {
@@ -232,50 +194,44 @@ export const useNotifications = () => {
           table: 'comments',
         },
         async payload => {
-          console.log('useNotifications: Comment event received:', {
-            user_id: payload.new?.user_id,
-            idea_id: payload.new?.idea_id,
-            current_user: userId,
-          })
+          console.log('useNotifications: Comment event received:', payload.new)
 
           if (!payload.new?.user_id || !payload.new?.idea_id) {
-            console.log('useNotifications: Invalid comment payload, skipping')
             return
           }
 
           if (payload.new.user_id === userId) {
-            console.log('useNotifications: Self-comment detected, skipping')
+            console.log('useNotifications: Self-comment, skipping')
             return
           }
 
-          if (userIdeasMap.size === 0) {
-            console.log('useNotifications: Cache empty, fetching ideas...')
-            const ideas = await fetchUserIdeas()
-            userIdeasMap.clear()
-            ideas.forEach(idea => {
-              userIdeasMap.set(idea.id, idea.title)
-            })
-            console.log('useNotifications: Cache refreshed:', userIdeasMap.size)
-          }
-
-          const ideaTitle = userIdeasMap.get(payload.new.idea_id)
-
-          if (!ideaTitle) {
+          if (!userIdeasSetRef.current.has(payload.new.idea_id)) {
             console.log('useNotifications: Comment not for user idea, skipping')
             return
           }
 
-          console.log('useNotifications: Comment IS for user idea:', ideaTitle)
+          console.log('useNotifications: Comment IS for user idea!')
+
+          const { data: idea } = await supabase
+            .from('ideas')
+            .select('title')
+            .eq('id', payload.new.idea_id)
+            .single()
+
+          if (!idea) {
+            console.error('useNotifications: Could not fetch idea title')
+            return
+          }
 
           const newNotification: Notification = {
             id: Date.now().toString() + Math.random().toString(36).substring(2),
             type: 'comment',
             title: 'New Comment',
-            message: `Someone commented on your idea "${ideaTitle}": "${payload.new.content || ''}"`,
+            message: `Someone commented on your idea "${idea.title}": "${payload.new.content || ''}"`,
             timestamp: new Date().toISOString(),
             read: false,
             ideaId: payload.new.idea_id,
-            ideaTitle: ideaTitle,
+            ideaTitle: idea.title,
             userId: payload.new.user_id,
           }
 

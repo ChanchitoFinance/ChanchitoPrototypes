@@ -596,8 +596,10 @@ CREATE POLICY "Authenticated insert post_media" ON post_media FOR INSERT WITH CH
 
 ALTER PUBLICATION supabase_realtime DROP TABLE idea_votes;
 ALTER PUBLICATION supabase_realtime DROP TABLE comments;
+ALTER PUBLICATION supabase_realtime DROP TABLE ideas;
 
 ALTER PUBLICATION supabase_realtime ADD TABLE idea_votes;
 ALTER PUBLICATION supabase_realtime ADD TABLE comments;
+ALTER PUBLICATION supabase_realtime ADD TABLE ideas;
 
 SELECT * FROM pg_publication_tables WHERE pubname = 'supabase_realtime';

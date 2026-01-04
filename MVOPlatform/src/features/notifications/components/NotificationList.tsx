@@ -21,7 +21,7 @@ export default function NotificationList({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 min-h-screen">
       {notifications.map(notification => (
         <NotificationItem
           key={notification.id}
