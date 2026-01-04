@@ -43,6 +43,21 @@ export const useNotifications = () => {
     console.log('useNotifications: Setting up subscriptions for user:', userId)
     console.log('useNotifications: Profile:', profile)
 
+    // Log the current user's authentication state
+    const checkAuthState = async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
+      if (error) {
+        console.error('useNotifications: Error getting user:', error)
+      } else {
+        console.log('useNotifications: Current authenticated user:', user?.id)
+      }
+    }
+
+    checkAuthState()
+
     // First, fetch the user's ideas to know which ones to monitor
     const fetchUserIdeas = async () => {
       const { data: userIdeas, error } = await supabase
@@ -122,6 +137,8 @@ export const useNotifications = () => {
         },
         async payload => {
           console.log('useNotifications: Vote received:', payload.new)
+          console.log('useNotifications: Current userId:', userId)
+
           // Check if this vote is on one of the user's ideas
           const userIdeas = await fetchUserIdeas()
           const isUserIdea = userIdeas.some(
@@ -138,6 +155,23 @@ export const useNotifications = () => {
             'userIdeas:',
             userIdeas
           )
+
+          // Log the RLS policies for idea_votes
+          const { data: policies, error: policiesError } = await supabase.rpc(
+            'get_rls_policies',
+            { table_name: 'idea_votes' }
+          )
+          if (policiesError) {
+            console.error(
+              'useNotifications: Error fetching RLS policies:',
+              policiesError
+            )
+          } else {
+            console.log(
+              'useNotifications: RLS policies for idea_votes:',
+              policies
+            )
+          }
 
           if (isUserIdea && payload.new?.voter_id !== userId) {
             console.log('useNotifications: Creating notification for vote')
@@ -179,6 +213,10 @@ export const useNotifications = () => {
               newNotification
             )
             dispatch(addNotificationAction(newNotification))
+          } else {
+            console.log(
+              'useNotifications: Vote does not match user ideas or is self-vote'
+            )
           }
         }
       )

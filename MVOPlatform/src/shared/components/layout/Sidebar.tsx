@@ -468,18 +468,11 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                     null,
                 }}
                 onSignOut={() => dispatch(signOut())}
-                showProfileLink={!showExpanded}
+                showProfileLink={false}
                 position="above"
                 hasUnreadNotifications={hasUnreadNotifications}
                 currentLocale={currentLocale}
               />
-              {!showExpanded && (
-                <div className="mt-1 text-center">
-                  <p className="text-xs text-text-secondary truncate max-w-16">
-                    {profile?.full_name || 'User'}
-                  </p>
-                </div>
-              )}
             </div>
           ) : (
             <button
@@ -524,7 +517,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       </AnimatePresence>
 
       <aside
-        className={`fixed left-0 top-0 h-screen z-50 transition-all duration-300 flex-shrink-0 ${
+        className={`fixed left-0 top-0 h-screen z-[9998] transition-all duration-300 flex-shrink-0 ${
           showExpanded
             ? SIDEBAR_STYLES.width.expanded
             : SIDEBAR_STYLES.width.collapsed
