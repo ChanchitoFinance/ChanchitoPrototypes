@@ -532,12 +532,30 @@ CREATE POLICY "Users manage own topics" ON user_topics FOR ALL USING (auth.uid()
 CREATE POLICY "Users manage own badges" ON user_badges FOR ALL USING (auth.uid() = user_id);
 
 -- For teams/spaces: members can view, admins manage
--- Simplified for now
 CREATE POLICY "Public read teams" ON teams FOR SELECT USING (true);
 CREATE POLICY "Authenticated create teams" ON teams FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
 CREATE POLICY "Public read spaces" ON enterprise_spaces FOR SELECT USING (true);
 CREATE POLICY "Authenticated create spaces" ON enterprise_spaces FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+-- Space owners (admins) can update and delete spaces
+CREATE POLICY "Space owners can update spaces" ON enterprise_spaces FOR UPDATE USING (
+  EXISTS (
+    SELECT 1 FROM space_memberships
+    WHERE space_memberships.space_id = enterprise_spaces.id
+    AND space_memberships.user_id = auth.uid()
+    AND space_memberships.role = 'admin'
+  )
+);
+
+CREATE POLICY "Space owners can delete spaces" ON enterprise_spaces FOR DELETE USING (
+  EXISTS (
+    SELECT 1 FROM space_memberships
+    WHERE space_memberships.space_id = enterprise_spaces.id
+    AND space_memberships.user_id = auth.uid()
+    AND space_memberships.role = 'admin'
+  )
+);
 
 -- Add RLS policy to allow users to add themselves to teams
 CREATE POLICY "Users can add themselves to teams" 
