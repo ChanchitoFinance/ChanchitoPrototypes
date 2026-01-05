@@ -29,9 +29,8 @@ export function SpaceCard({ space }: SpaceCardProps) {
     private: t('spaces.private'),
   }
 
-  // Get space image/video from settings if available
-  const spaceMedia =
-    space.settings?.space_image || space.settings?.space_video
+  // Get space image from settings if available
+  const spaceMedia = space.settings?.space_image
 
   return (
     <Link href={`/${locale}/spaces/${space.id}`}>
@@ -42,47 +41,24 @@ export function SpaceCard({ space }: SpaceCardProps) {
         {/* Space Media - Vertical aspect ratio */}
         {spaceMedia && (
           <div className="relative w-full aspect-[3/4] mb-0 overflow-hidden bg-gradient-to-br from-accent/20 via-background to-accent/10">
-            {space.settings?.space_video ? (
-              <video
-                src={space.settings.space_video}
-                className="w-full h-full object-cover"
-                style={{
-                  objectPosition: space.settings?.header_crop
-                    ? `${space.settings.header_crop.x}% ${space.settings.header_crop.y}%`
-                    : 'center',
-                  transform: space.settings?.header_crop
-                    ? `scale(${space.settings.header_crop.scale || 1})`
-                    : 'scale(1)',
-                  transformOrigin: space.settings?.header_crop
-                    ? `${space.settings.header_crop.x}% ${space.settings.header_crop.y}%`
-                    : 'center',
-                }}
-                loop
-                muted
-                playsInline
-                autoPlay
-                preload="auto"
-              />
-            ) : space.settings?.space_image ? (
-              <Image
-                src={space.settings.space_image}
-                alt={space.name}
-                fill
-                className="object-cover"
-                style={{
-                  objectPosition: space.settings?.header_crop
-                    ? `${space.settings.header_crop.x}% ${space.settings.header_crop.y}%`
-                    : 'center',
-                  transform: space.settings?.header_crop
-                    ? `scale(${space.settings.header_crop.scale || 1})`
-                    : 'scale(1)',
-                  transformOrigin: space.settings?.header_crop
-                    ? `${space.settings.header_crop.x}% ${space.settings.header_crop.y}%`
-                    : 'center',
-                }}
-                onError={() => setImageError(true)}
-              />
-            ) : null}
+            <Image
+              src={space.settings.space_image!}
+              alt={space.name}
+              fill
+              className="object-cover"
+              style={{
+                objectPosition: space.settings?.header_crop
+                  ? `${space.settings.header_crop.x}% ${space.settings.header_crop.y}%`
+                  : 'center',
+                transform: space.settings?.header_crop
+                  ? `scale(${space.settings.header_crop.scale || 1})`
+                  : 'scale(1)',
+                transformOrigin: space.settings?.header_crop
+                  ? `${space.settings.header_crop.x}% ${space.settings.header_crop.y}%`
+                  : 'center',
+              }}
+              onError={() => setImageError(true)}
+            />
           </div>
         )}
 

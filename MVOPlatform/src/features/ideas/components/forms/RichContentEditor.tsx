@@ -22,6 +22,7 @@ import {
   ChevronDown,
   ZoomIn,
   ZoomOut,
+  HelpCircle,
 } from 'lucide-react'
 import { ContentBlock } from '@/core/types/content'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
@@ -405,6 +406,7 @@ function BlockEditor({
   const [urlValidationError, setUrlValidationError] = useState<string | null>(
     null
   )
+  const [hasBeenClicked, setHasBeenClicked] = useState(false)
   const blockRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const headingTextareaRef = useRef<HTMLTextAreaElement>(null)
@@ -428,6 +430,16 @@ function BlockEditor({
       headingTextareaRef.current.style.height = `${headingTextareaRef.current.scrollHeight}px`
     }
   }, [block.type === 'heading' ? block.text || '' : '', block.type])
+
+  // Set hasBeenClicked when block becomes selected
+  useEffect(() => {
+    if (isSelected && !isPlaceholder) {
+      setHasBeenClicked(true)
+    } else if (!isSelected) {
+      // Reset when deselected
+      setHasBeenClicked(false)
+    }
+  }, [isSelected, isPlaceholder])
 
   // Handle click outside to deselect
   useEffect(() => {
@@ -539,12 +551,13 @@ function BlockEditor({
           e.target === e.currentTarget ||
           (e.target as HTMLElement).closest('.block-content')
         ) {
+          setHasBeenClicked(true)
           onSelect()
         }
       }}
     >
-      {/* Toolbar - positioned below the block */}
-      {isSelected && !isPlaceholder && (
+      {/* Toolbar - positioned below the block - only show after first click */}
+      {isSelected && !isPlaceholder && hasBeenClicked && (
         <div className="toolbar-container absolute top-full left-0 right-0 mt-2 flex items-center justify-between bg-background border border-border-color rounded-lg p-2 shadow-lg z-10">
           <div className="flex items-center gap-1">
             <button
@@ -942,9 +955,12 @@ function BlockEditor({
             {!block.src ? (
               <div className="border-2 border-dashed border-border-color rounded-lg p-6">
                 <div className="flex flex-col items-center gap-4">
-                  <p className="text-sm text-text-secondary">
-                    {t('editor.messages.add_image')}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-text-secondary">
+                      {t('editor.messages.add_image')}
+                    </p>
+                    <HelpTooltip content={t('editor.help.image_upload')} />
+                  </div>
                   <div className="flex gap-3">
                     <label className="flex flex-col items-center gap-2 px-4 py-2 bg-background border border-border-color rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
                       <Upload className="w-5 h-5 text-text-secondary" />
@@ -1092,9 +1108,12 @@ function BlockEditor({
             {!block.src ? (
               <div className="border-2 border-dashed border-border-color rounded-lg p-6">
                 <div className="flex flex-col items-center gap-4">
-                  <p className="text-sm text-text-secondary">
-                    {t('editor.messages.add_video')}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-text-secondary">
+                      {t('editor.messages.add_video')}
+                    </p>
+                    <HelpTooltip content={t('editor.help.video_upload')} />
+                  </div>
                   <div className="flex gap-3">
                     <label className="flex flex-col items-center gap-2 px-4 py-2 bg-background border border-border-color rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
                       <Upload className="w-5 h-5 text-text-secondary" />
@@ -1345,6 +1364,43 @@ function BlockEditor({
   )
 }
 
+// Help Tooltip Component
+function HelpTooltip({
+  content,
+  className = '',
+}: {
+  content: string
+  className?: string
+}) {
+  const [isHovered, setIsHovered] = useState(false)
+  const t = useTranslations()
+  
+  // Translate content if it's a translation key
+  let displayContent = content
+  if (content.startsWith('editor.help.')) {
+    const translated = t(content)
+    // If translation returns the key itself, it means translation doesn't exist
+    displayContent = translated !== content ? translated : ''
+  }
+  
+  if (!displayContent) return null
+  
+  return (
+    <div className={`relative inline-flex items-center ${className}`}>
+      <HelpCircle
+        className="w-3.5 h-3.5 text-text-secondary/60 hover:text-text-secondary cursor-help transition-colors flex-shrink-0"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      />
+      {isHovered && (
+        <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-[100] w-64 p-2 bg-background border border-border-color rounded-lg shadow-xl text-xs text-text-primary whitespace-normal pointer-events-none">
+          {displayContent}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function InsertButton({
   icon,
   label,
@@ -1358,7 +1414,7 @@ function InsertButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded text-left text-sm transition-colors"
+      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded text-left text-sm transition-colors w-full"
     >
       {icon}
       <span>{label}</span>

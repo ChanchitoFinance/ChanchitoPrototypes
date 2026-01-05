@@ -11,18 +11,7 @@ export default function IdeaDetailPage({
 }) {
   const resolvedParams = React.use(params)
   const [sidebarWidth, setSidebarWidth] = useState(256) // Default to expanded width (w-64 = 256px)
-  const [activeTab, setActiveTab] = useState<'home' | 'foryou'>('home')
-
-  // Load active tab from localStorage on mount
-  useEffect(() => {
-    const savedTab = localStorage.getItem('activeTab') as
-      | 'home'
-      | 'foryou'
-      | null
-    if (savedTab) {
-      setActiveTab(savedTab)
-    }
-  }, [])
+  const [activeTab, setActiveTab] = useState<'home'>('home')
 
   useEffect(() => {
     // Listen for sidebar state changes

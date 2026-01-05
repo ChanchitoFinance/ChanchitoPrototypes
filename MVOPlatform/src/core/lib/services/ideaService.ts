@@ -215,44 +215,6 @@ class SupabaseIdeaService implements IIdeaService {
     return data?.map(this.mapDbIdeaToIdea) || []
   }
 
-  async getForYouIdeas(limit?: number, offset = 0): Promise<Idea[]> {
-    const { data, error } = await supabase
-      .from('ideas')
-      .select(
-        `
-        id,
-        title,
-        status_flag,
-        content,
-        created_at,
-        anonymous,
-        users!ideas_creator_id_fkey (
-          username,
-          full_name,
-          email
-        ),
-        idea_votes (
-          vote_type
-        ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
-        comments!left (
-          id
-        )
-      `
-      )
-      .neq('status_flag', 'validated')
-      .order('created_at', { ascending: false })
-      .range(offset, limit ? offset + limit - 1 : undefined)
-
-    if (error) throw error
-
-    return data?.map(this.mapDbIdeaToIdea) || []
-  }
-
   async getExploreIdeas(limit?: number, offset = 0): Promise<Idea[]> {
     // Fetch more ideas to sort by popularity (score)
     const fetchLimit = limit ? Math.max(limit * 5, 50) : 100

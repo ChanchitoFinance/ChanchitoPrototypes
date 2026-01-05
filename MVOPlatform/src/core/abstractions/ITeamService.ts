@@ -21,6 +21,7 @@ export interface ITeamService {
     id: string,
     updates: Partial<EnterpriseSpace>
   ): Promise<EnterpriseSpace>
+  deleteSpace(id: string): Promise<void>
 
   addTeamMember(
     teamId: string,
@@ -48,4 +49,5 @@ export interface ITeamService {
   ): Promise<SpaceMembership>
   getUserSpaceRole(spaceId: string, userId: string): Promise<SpaceMembership['role'] | null>
   isSpaceAdmin(spaceId: string, userId: string): Promise<boolean>
+  isSpaceMember(spaceId: string, userId: string): Promise<boolean>
 }

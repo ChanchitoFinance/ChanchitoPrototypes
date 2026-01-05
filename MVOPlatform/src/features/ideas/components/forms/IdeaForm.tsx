@@ -26,6 +26,8 @@ import {
   Globe,
   Lock,
   Search,
+  UserPlus,
+  HelpCircle,
 } from 'lucide-react'
 import Image from 'next/image'
 import {
@@ -60,6 +62,43 @@ interface IdeaFormProps {
   onCustomSubmit?: (data: IdeaFormData) => void
 }
 
+// Help Tooltip Component
+function HelpTooltip({
+  content,
+  className = '',
+}: {
+  content: string
+  className?: string
+}) {
+  const [isHovered, setIsHovered] = useState(false)
+  const t = useTranslations()
+  
+  // Translate content if it's a translation key
+  let displayContent = content
+  if (content.startsWith('editor.help.')) {
+    const translated = t(content)
+    // If translation returns the key itself, it means translation doesn't exist
+    displayContent = translated !== content ? translated : ''
+  }
+  
+  if (!displayContent) return null
+  
+  return (
+    <div className={`relative inline-flex items-center ${className}`}>
+      <HelpCircle
+        className="w-3.5 h-3.5 text-white/60 hover:text-white cursor-help transition-colors flex-shrink-0"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      />
+      {isHovered && (
+        <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-[100] w-64 p-2 bg-background border border-border-color rounded-lg shadow-xl text-xs text-text-primary whitespace-normal pointer-events-none">
+          {displayContent}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function IdeaForm({
   defaultSpaceId,
   ideaId,
@@ -73,6 +112,8 @@ export function IdeaForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitProgress, setSubmitProgress] = useState('')
   const [spaces, setSpaces] = useState<SpaceWithTeam[]>([])
+  const [spaceMemberships, setSpaceMemberships] = useState<Set<string>>(new Set())
+  const [joiningSpaceId, setJoiningSpaceId] = useState<string | null>(null)
   const [spaceSearchQuery, setSpaceSearchQuery] = useState('')
   const [isSpaceDropdownOpen, setIsSpaceDropdownOpen] = useState(false)
   const spaceDropdownRef = useRef<HTMLDivElement>(null)
@@ -293,12 +334,29 @@ export function IdeaForm({
     }
   }, [setValue, defaultSpaceId, ideaId])
 
-  // Fetch available spaces from Supabase
+  // Fetch available spaces from Supabase and check memberships
   useEffect(() => {
     const loadSpaces = async () => {
       try {
         const spacesData = await teamService.getVisibleSpaces(user?.id)
         setSpaces(spacesData)
+        
+        // Check which spaces the user is a member of
+        if (user?.id) {
+          const membershipChecks = await Promise.all(
+            spacesData.map(async (space) => {
+              const isMember = await teamService.isSpaceMember(space.id, user.id)
+              return { spaceId: space.id, isMember }
+            })
+          )
+          
+          const memberSpaceIds = new Set(
+            membershipChecks
+              .filter(check => check.isMember)
+              .map(check => check.spaceId)
+          )
+          setSpaceMemberships(memberSpaceIds)
+        }
       } catch (error) {
         console.error('Error loading spaces:', error)
       }
@@ -448,6 +506,11 @@ export function IdeaForm({
   const addTag = () => {
     const tag = tagInput.trim()
     if (tag && !selectedTags.includes(tag)) {
+      // Limit to 4 tags total
+      if (selectedTags.length >= 4) {
+        alert(t('form.max_tags_reached') || 'Maximum 4 tags allowed')
+        return
+      }
       const newTags = [...selectedTags, tag]
       setSelectedTags(newTags)
       setValue('tags', newTags.join(','))
@@ -554,6 +617,23 @@ export function IdeaForm({
   }
 
   const onSubmit = async (data: IdeaFormData) => {
+    // Validate that user is a member of the selected space
+    if (data.space_id && !spaceMemberships.has(data.space_id)) {
+      // Check again in case membership was just added
+      if (user?.id) {
+        const isMember = await teamService.isSpaceMember(data.space_id, user.id)
+        if (!isMember) {
+          alert(t('spaces.must_join_to_post') || 'You must join this space before posting ideas.')
+          return
+        }
+        // Update membership set if user just joined
+        setSpaceMemberships(prev => new Set([...prev, data.space_id]))
+      } else {
+        alert(t('auth.sign_in_required') || 'You must sign in to post ideas.')
+        return
+      }
+    }
+
     // Filter out empty blocks (blocks with no content)
     const validBlocks = contentBlocks.filter(block => {
       if (block.type === 'heading') return block.text.trim().length > 0
@@ -572,6 +652,12 @@ export function IdeaForm({
 
     if (validBlocks.length === 0) {
       alert(t('validation.content_required'))
+      return
+    }
+
+    // Validate tag limit
+    if (selectedTags.length > 4) {
+      alert(t('form.max_tags_reached') || 'Maximum 4 tags allowed')
       return
     }
 
@@ -922,19 +1008,20 @@ export function IdeaForm({
             <div className="text-center px-6 max-w-2xl z-10">
               {showImageUpload ? (
                 <div className="space-y-4">
-                  <label
-                    className={`flex flex-col items-center gap-2 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-white transition-colors ${isUploadingHeroImage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                  >
-                    {isUploadingHeroImage ? (
-                      <Loader2 className="w-8 h-8 animate-spin" />
-                    ) : (
-                      <Upload className="w-8 h-8" />
-                    )}
-                    <span>
-                      {isUploadingHeroImage
-                        ? t('status.loading')
-                        : `${t('form.upload_image')} (max 50MB)`}
-                    </span>
+                  <div className="flex items-center gap-2 justify-center">
+                    <label
+                      className={`flex flex-col items-center gap-2 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-white transition-colors ${isUploadingHeroImage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      {isUploadingHeroImage ? (
+                        <Loader2 className="w-8 h-8 animate-spin" />
+                      ) : (
+                        <Upload className="w-8 h-8" />
+                      )}
+                      <span>
+                        {isUploadingHeroImage
+                          ? t('status.loading')
+                          : `${t('form.upload_image')} (max 50MB)`}
+                      </span>
                     <input
                       type="file"
                       accept="image/*"
@@ -942,7 +1029,9 @@ export function IdeaForm({
                       className="hidden"
                       disabled={isUploadingHeroImage}
                     />
-                  </label>
+                    </label>
+                    <HelpTooltip content={t('editor.help.image_upload')} />
+                  </div>
                   <div className="flex gap-2 justify-center">
                     <button
                       type="button"
@@ -975,19 +1064,20 @@ export function IdeaForm({
                 </div>
               ) : showVideoUpload ? (
                 <div className="space-y-4">
-                  <label
-                    className={`flex flex-col items-center gap-2 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-white transition-colors ${isUploadingHeroVideo ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                  >
-                    {isUploadingHeroVideo ? (
-                      <Loader2 className="w-8 h-8 animate-spin" />
-                    ) : (
-                      <Upload className="w-8 h-8" />
-                    )}
-                    <span>
-                      {isUploadingHeroVideo
-                        ? t('status.loading')
-                        : `${t('form.upload_video')} (max 50MB)`}
-                    </span>
+                  <div className="flex items-center gap-2 justify-center">
+                    <label
+                      className={`flex flex-col items-center gap-2 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-white transition-colors ${isUploadingHeroVideo ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      {isUploadingHeroVideo ? (
+                        <Loader2 className="w-8 h-8 animate-spin" />
+                      ) : (
+                        <Upload className="w-8 h-8" />
+                      )}
+                      <span>
+                        {isUploadingHeroVideo
+                          ? t('status.loading')
+                          : `${t('form.upload_video')} (max 50MB)`}
+                      </span>
                     <input
                       type="file"
                       accept="video/*"
@@ -995,7 +1085,9 @@ export function IdeaForm({
                       className="hidden"
                       disabled={isUploadingHeroVideo}
                     />
-                  </label>
+                    </label>
+                    <HelpTooltip content={t('editor.help.video_upload')} />
+                  </div>
                   <div className="flex gap-2 justify-center">
                     <button
                       type="button"
@@ -1238,34 +1330,99 @@ export function IdeaForm({
                         const VisibilityIcon =
                           space.visibility === 'public' ? Globe : Lock
                         const isSelected = selectedSpaceId === space.id
+                        const isMember = spaceMemberships.has(space.id)
+                        const isJoining = joiningSpaceId === space.id
+                        const isDisabled = !isMember && space.visibility !== 'public'
 
-                        return (
-                          <button
-                            key={space.id}
-                            type="button"
-                            onClick={() => {
+                        const handleJoinSpace = async (e: React.MouseEvent) => {
+                          e.stopPropagation()
+                          if (!user?.id || isMember) return
+                          
+                          try {
+                            setJoiningSpaceId(space.id)
+                            await teamService.addSpaceMember(space.id, user.id, 'member')
+                            setSpaceMemberships(prev => new Set([...prev, space.id]))
+                            // Auto-select the space after joining
+                            setValue('space_id', space.id)
+                            setIsSpaceDropdownOpen(false)
+                            setSpaceSearchQuery('')
+                          } catch (error: any) {
+                            console.error('Error joining space:', error)
+                            // Handle 409 conflict gracefully
+                            if (error?.code === '23505' || error?.message?.includes('duplicate') || error?.status === 409) {
+                              setSpaceMemberships(prev => new Set([...prev, space.id]))
                               setValue('space_id', space.id)
                               setIsSpaceDropdownOpen(false)
                               setSpaceSearchQuery('')
-                            }}
-                            className={`w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-accent/10 transition-colors ${
-                              isSelected ? 'bg-accent/20' : ''
+                            }
+                          } finally {
+                            setJoiningSpaceId(null)
+                          }
+                        }
+
+                        return (
+                          <div
+                            key={space.id}
+                            className={`w-full px-4 py-3 flex items-center gap-3 transition-colors ${
+                              isSelected && isMember ? 'bg-accent/20' : ''
+                            } ${
+                              !isMember && space.visibility === 'public'
+                                ? 'opacity-50'
+                                : ''
                             }`}
                           >
-                            <VisibilityIcon
-                              className={`w-4 h-4 flex-shrink-0 ${
-                                space.visibility === 'public'
-                                  ? 'text-green-500'
-                                  : 'text-gray-500'
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isMember) {
+                                  setValue('space_id', space.id)
+                                  setIsSpaceDropdownOpen(false)
+                                  setSpaceSearchQuery('')
+                                }
+                              }}
+                              disabled={!isMember}
+                              className={`flex-1 text-left flex items-center gap-3 ${
+                                isMember
+                                  ? 'hover:bg-accent/10 cursor-pointer'
+                                  : 'cursor-not-allowed'
                               }`}
-                            />
-                            <span className="flex-1 truncate text-text-primary">
-                              {space.name}
-                            </span>
-                            {isSelected && (
-                              <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                            >
+                              <VisibilityIcon
+                                className={`w-4 h-4 flex-shrink-0 ${
+                                  space.visibility === 'public'
+                                    ? 'text-green-500'
+                                    : 'text-gray-500'
+                                }`}
+                              />
+                              <span className={`flex-1 truncate ${
+                                isMember ? 'text-text-primary' : 'text-text-secondary'
+                              }`}>
+                                {space.name}
+                              </span>
+                              {isSelected && isMember && (
+                                <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                              )}
+                            </button>
+                            {!isMember && space.visibility === 'public' && (
+                              <Button
+                                type="button"
+                                onClick={handleJoinSpace}
+                                variant="outline"
+                                size="sm"
+                                disabled={isJoining || !user?.id}
+                                className="flex-shrink-0 h-7 px-2 text-xs"
+                              >
+                                {isJoining ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <>
+                                    <UserPlus className="w-3 h-3 mr-1" />
+                                    {t('spaces.join_space') || 'Join'}
+                                  </>
+                                )}
+                              </Button>
                             )}
-                          </button>
+                          </div>
                         )
                       })}
                     {spaces.filter(space =>
@@ -1306,25 +1463,34 @@ export function IdeaForm({
             </button>
             {isTagsExpanded && (
               <div>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={tagInput}
-                    onChange={e => setTagInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        addTag()
-                      }
-                    }}
-                    placeholder={t('form.type_tag_placeholder')}
-                    className="flex-1 px-3 py-2 bg-background border border-border-color rounded-lg text-text-primary text-sm"
-                  />
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={tagInput}
+                      onChange={e => setTagInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          addTag()
+                        }
+                      }}
+                      placeholder={t('form.type_tag_placeholder')}
+                      disabled={selectedTags.length >= 4}
+                      className="w-full px-3 py-2 bg-background border border-border-color rounded-lg text-text-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    {selectedTags.length > 0 && (
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-text-secondary">
+                        {selectedTags.length}/4
+                      </span>
+                    )}
+                  </div>
                   <Button
                     type="button"
                     onClick={addTag}
                     variant="outline"
                     size="sm"
+                    disabled={selectedTags.length >= 4 || !tagInput.trim()}
                   >
                     {t('actions.add')}
                   </Button>

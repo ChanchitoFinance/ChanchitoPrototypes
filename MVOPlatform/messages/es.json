@@ -279,7 +279,8 @@
     "drag_position": "Arrastrar para posicionar",
     "zoom": "Zoom",
     "post_anonymously": "Publicar de forma anónima",
-    "post_anonymously_description": "Ocultar tu nombre cuando esta idea se muestre al público"
+    "post_anonymously_description": "Ocultar tu nombre cuando esta idea se muestre al público",
+    "max_tags_reached": "Máximo 4 etiquetas permitidas"
   },
   "prompts": {
     "enter_image_url": "Ingresa la URL de la imagen:",
@@ -371,11 +372,32 @@
       "change_image": "Cambiar Imagen",
       "change_video": "Cambiar Video",
       "change_url": "Cambiar URL"
+    },
+    "help": {
+      "heading_1": "Título principal grande. Usa para títulos de sección importantes.",
+      "heading_2": "Subtítulo mediano. Usa para dividir secciones dentro de tu idea.",
+      "heading_3": "Subtítulo pequeño. Usa para subsecciones o puntos destacados.",
+      "text": "Párrafo de texto normal. Usa para el contenido principal de tu idea.",
+      "image": "Imagen estática. Formatos: JPG, PNG, WebP. Tamaño máximo: 50MB. Recomendado: 1200x800px o similar.",
+      "video": "Video embebido. Formatos: MP4, WebM. Tamaño máximo: 50MB. Duración recomendada: menos de 5 minutos.",
+      "carousel": "Carrusel de imágenes o videos. Muestra múltiples elementos en una presentación deslizable.",
+      "html": "Código HTML personalizado. Usa solo si conoces HTML. Puede incluir CSS inline.",
+      "image_upload": "Formatos aceptados: JPG, PNG, WebP, GIF. Tamaño máximo: 50MB. Resolución recomendada: 1200x800px o superior.",
+      "video_upload": "Formatos aceptados: MP4, WebM. Tamaño máximo: 50MB. Duración recomendada: menos de 5 minutos. Resolución recomendada: 1080p o superior."
     }
   },
   "spaces": {
     "title": "Espacios",
     "create_space": "Crear Espacio",
+    "edit_space": "Editar Espacio",
+    "edit_space_description": "Actualiza la información de tu espacio",
+    "update_space": "Actualizar Espacio",
+    "save_changes": "Guardar Cambios",
+    "updating_space": "Actualizando...",
+    "space_update_rls_error": "Error al actualizar el espacio. La política RLS para actualizar espacios puede no estar configurada. Por favor ejecuta el SQL en sql/add_space_update_rls.sql en el editor SQL de Supabase.",
+    "delete_space": "Eliminar Espacio",
+    "confirm_delete_space": "¿Estás seguro de que quieres eliminar este espacio? Esta acción no se puede deshacer y todas las ideas en este espacio serán eliminadas.",
+    "space_delete_error": "Error al eliminar el espacio",
     "create_team": "Crear Equipo",
     "no_spaces": "No hay espacios disponibles",
     "no_spaces_description": "Crea tu primer espacio para empezar a organizar ideas",
@@ -423,7 +445,18 @@
     "view_ideas": "Ver Ideas",
     "invite_members_description": "Invita usuarios por nombre de usuario o email para unirse a tu equipo",
     "username_or_email": "Nombre de Usuario o Email",
-    "invite": "Invitar"
+    "invite": "Invitar",
+    "joined_space": "Te has unido al espacio exitosamente",
+    "left_space": "Has dejado el espacio exitosamente",
+    "joining": "Uniéndose...",
+    "already_member": "Ya eres miembro de este espacio",
+    "error_joining_space": "Error al unirse al espacio. Por favor, inténtalo de nuevo.",
+    "error_leaving_space": "Error al dejar el espacio. Por favor, inténtalo de nuevo.",
+    "confirm_leave_space": "¿Estás seguro de que quieres dejar este espacio? Ya no podrás publicar ideas aquí.",
+    "industry_niche": "Industria/Nicho",
+    "max_industry_niche_selected": "Máximo 2 selecciones de Industria/Nicho permitidas",
+    "max_tags_reached": "Máximo 4 etiquetas permitidas (incluyendo Industria/Nicho)",
+    "must_join_to_post": "Debes unirte a este espacio antes de publicar ideas."
   },
   "premium": {
     "title": "Actualizar a Premium",

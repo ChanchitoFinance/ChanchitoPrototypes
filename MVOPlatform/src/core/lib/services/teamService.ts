@@ -177,13 +177,19 @@ class SupabaseTeamService implements ITeamService {
     // Get member and idea counts for each space
     const spacesWithCounts = await Promise.all(
       uniqueSpaces.map(async space => {
-        const [memberCount, ideaCount] = await Promise.all([
+        const [directMembersResult, teamMembersResult, ideaCount] = await Promise.all([
           supabase
             .from('space_memberships')
-            .select('id', { count: 'exact', head: true })
+            .select('user_id')
             .eq('space_id', space.id)
-            .eq('status', 'active')
-            .then(({ count }) => count || 0),
+            .eq('status', 'active'),
+          space.team_id
+            ? supabase
+                .from('team_memberships')
+                .select('user_id')
+                .eq('team_id', space.team_id)
+                .eq('status', 'active')
+            : Promise.resolve({ data: [], error: null }),
           supabase
             .from('ideas')
             .select('id', { count: 'exact', head: true })
@@ -191,10 +197,23 @@ class SupabaseTeamService implements ITeamService {
             .then(({ count }) => count || 0),
         ])
 
+        // Safely extract member IDs with error handling
+        const directMemberIds = new Set(
+          directMembersResult.data?.map((m: any) => m.user_id).filter(Boolean) || []
+        )
+        
+        const teamMemberIds = new Set(
+          teamMembersResult.data?.map((m: any) => m.user_id).filter(Boolean) || []
+        )
+
+        // Combine sets to get unique member count
+        const allMemberIds = new Set([...directMemberIds, ...teamMemberIds])
+        const totalMemberCount = allMemberIds.size
+
         return {
           ...space,
           team: space.teams || space.team,
-          member_count: memberCount,
+          member_count: totalMemberCount,
           idea_count: ideaCount,
         }
       })
@@ -222,14 +241,20 @@ class SupabaseTeamService implements ITeamService {
 
     if (error) return null
 
-    // Get counts
-    const [memberCount, ideaCount] = await Promise.all([
+    // Get counts - use user_id queries to avoid double counting
+    const [directMembersResult, teamMembersResult, ideaCount] = await Promise.all([
       supabase
         .from('space_memberships')
-        .select('id', { count: 'exact', head: true })
+        .select('user_id')
         .eq('space_id', id)
-        .eq('status', 'active')
-        .then(({ count }) => count || 0),
+        .eq('status', 'active'),
+      data.team_id
+        ? supabase
+            .from('team_memberships')
+            .select('user_id')
+            .eq('team_id', data.team_id)
+            .eq('status', 'active')
+        : Promise.resolve({ data: [], error: null }),
       supabase
         .from('ideas')
         .select('id', { count: 'exact', head: true })
@@ -237,10 +262,23 @@ class SupabaseTeamService implements ITeamService {
         .then(({ count }) => count || 0),
     ])
 
+    // Safely extract member IDs with error handling
+    const directMemberIds = new Set(
+      directMembersResult.data?.map((m: any) => m.user_id).filter(Boolean) || []
+    )
+    
+    const teamMemberIds = new Set(
+      teamMembersResult.data?.map((m: any) => m.user_id).filter(Boolean) || []
+    )
+
+    // Combine sets to get unique member count
+    const allMemberIds = new Set([...directMemberIds, ...teamMemberIds])
+    const totalMemberCount = allMemberIds.size
+
     return {
       ...data,
       team: data.teams,
-      member_count: memberCount,
+      member_count: totalMemberCount,
       idea_count: ideaCount,
     }
   }
@@ -249,15 +287,72 @@ class SupabaseTeamService implements ITeamService {
     id: string,
     updates: Partial<EnterpriseSpace>
   ): Promise<EnterpriseSpace> {
+    // Get current user to verify permissions
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error('User not authenticated')
+    }
+
+    // Verify user is admin of the space
+    const isAdmin = await this.isSpaceAdmin(id, user.id)
+    if (!isAdmin) {
+      throw new Error('Only space admins can update spaces')
+    }
+
+    // Ensure settings is properly formatted if present
+    const updateData: any = { ...updates }
+    if (updateData.settings !== undefined) {
+      // If settings is null or empty object, set to null
+      if (updateData.settings === null || (typeof updateData.settings === 'object' && Object.keys(updateData.settings).length === 0)) {
+        updateData.settings = null
+      }
+    }
+
     const { data, error } = await supabase
       .from('enterprise_spaces')
-      .update(updates)
+      .update(updateData)
       .eq('id', id)
       .select()
-      .single()
+      .maybeSingle()
 
-    if (error) throw error
+    if (error) {
+      console.error('Supabase updateSpace error:', error)
+      throw error
+    }
+
+    if (!data) {
+      throw new Error('Space not found or update failed. Please check your permissions.')
+    }
+
     return data
+  }
+
+  async deleteSpace(id: string): Promise<void> {
+    // Get current user to verify permissions
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error('User not authenticated')
+    }
+
+    // Verify user is admin of the space
+    const isAdmin = await this.isSpaceAdmin(id, user.id)
+    if (!isAdmin) {
+      throw new Error('Only space admins can delete spaces')
+    }
+
+    const { error } = await supabase
+      .from('enterprise_spaces')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      console.error('Supabase deleteSpace error:', error)
+      throw error
+    }
   }
 
   async addTeamMember(
@@ -321,6 +416,36 @@ class SupabaseTeamService implements ITeamService {
     userId: string,
     role: SpaceMembership['role'] = 'member'
   ): Promise<SpaceMembership> {
+    // Check if membership already exists
+    const existingRole = await this.getUserSpaceRole(spaceId, userId)
+    if (existingRole !== null) {
+      // If membership exists but is inactive, update it
+      const { data: existing } = await supabase
+        .from('space_memberships')
+        .select('*')
+        .eq('space_id', spaceId)
+        .eq('user_id', userId)
+        .maybeSingle()
+      
+      if (existing && existing.status !== 'active') {
+        const { data, error } = await supabase
+          .from('space_memberships')
+          .update({ status: 'active', role })
+          .eq('space_id', spaceId)
+          .eq('user_id', userId)
+          .select()
+          .single()
+        
+        if (error) throw error
+        return data
+      }
+      
+      // If active membership exists, return it
+      if (existing && existing.status === 'active') {
+        return existing
+      }
+    }
+
     const { data, error } = await supabase
       .from('space_memberships')
       .insert({
@@ -332,7 +457,44 @@ class SupabaseTeamService implements ITeamService {
       .select()
       .single()
 
-    if (error) throw error
+    // Handle 409 conflict (duplicate key) gracefully
+    if (error) {
+      // Check for various conflict error indicators
+      const isConflictError = 
+        error.code === '23505' || // PostgreSQL unique violation
+        error.code === 'PGRST116' || // PostgREST conflict
+        error.message?.includes('duplicate') ||
+        error.message?.includes('already exists') ||
+        error.message?.includes('409') ||
+        (error as any)?.status === 409 ||
+        (error as any)?.statusCode === 409
+      
+      if (isConflictError) {
+        // If it's a conflict error, check if membership exists and return it
+        const { data: existing } = await supabase
+          .from('space_memberships')
+          .select('*')
+          .eq('space_id', spaceId)
+          .eq('user_id', userId)
+          .maybeSingle()
+        
+        if (existing) {
+          return existing
+        }
+        // If no existing membership found, it might be a race condition - try to get it again
+        const { data: retryExisting } = await supabase
+          .from('space_memberships')
+          .select('*')
+          .eq('space_id', spaceId)
+          .eq('user_id', userId)
+          .maybeSingle()
+        
+        if (retryExisting) {
+          return retryExisting
+        }
+      }
+      throw error
+    }
     return data
   }
 
@@ -392,6 +554,20 @@ class SupabaseTeamService implements ITeamService {
     const role = await this.getUserSpaceRole(spaceId, userId)
     return role === 'admin' || role === 'moderator'
   }
+
+  async isSpaceMember(spaceId: string, userId: string): Promise<boolean> {
+    // Check direct space membership
+    const role = await this.getUserSpaceRole(spaceId, userId)
+    if (role !== null) return true
+
+    // Check if user is a team member (team members are automatically space members)
+    const space = await this.getSpaceById(spaceId)
+    if (!space || !space.team_id) return false
+
+    const teamMembers = await this.getTeamMembers(space.team_id)
+    return teamMembers.some(m => m.user_id === userId && m.status === 'active')
+  }
+
 
   generateTeamInviteLink(teamId: string): string {
     if (typeof window === 'undefined') return ''

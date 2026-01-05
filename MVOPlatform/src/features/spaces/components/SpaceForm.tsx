@@ -11,13 +11,13 @@ import {
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
-  Video,
   Loader2,
   Plus,
   Crop,
   ZoomIn,
   ZoomOut,
   Crown,
+  HelpCircle,
 } from 'lucide-react'
 import Image from 'next/image'
 import {
@@ -30,6 +30,7 @@ import { Team } from '@/core/types/team'
 import { teamService } from '@/core/lib/services/teamService'
 import { adminService } from '@/core/lib/services/adminService'
 import { Button } from '@/shared/components/ui/Button'
+import { SpaceWithTeam, EnterpriseSpace } from '@/core/types/space'
 
 type SpaceFormData = {
   space_name: string
@@ -41,11 +42,50 @@ type SpaceFormData = {
 }
 
 interface SpaceFormProps {
+  space?: SpaceWithTeam // Optional: if provided, form is in edit mode
   onSuccess?: () => void
   onCancel?: () => void
 }
 
-export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
+// Help Tooltip Component
+function HelpTooltip({
+  content,
+  className = '',
+}: {
+  content: string
+  className?: string
+}) {
+  const [isHovered, setIsHovered] = useState(false)
+  const t = useTranslations()
+  
+  // Translate content if it's a translation key
+  let displayContent = content
+  if (content.startsWith('editor.help.')) {
+    const translated = t(content)
+    // If translation returns the key itself, it means translation doesn't exist
+    displayContent = translated !== content ? translated : ''
+  }
+  
+  if (!displayContent) return null
+  
+  return (
+    <div className={`relative inline-flex items-center ${className}`}>
+      <HelpCircle
+        className="w-3.5 h-3.5 text-text-secondary/60 hover:text-text-secondary cursor-help transition-colors flex-shrink-0"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      />
+      {isHovered && (
+        <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-[100] w-64 p-2 bg-background border border-border-color rounded-lg shadow-xl text-xs text-text-primary whitespace-normal pointer-events-none">
+          {displayContent}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function SpaceForm({ space, onSuccess, onCancel }: SpaceFormProps) {
+  const isEditMode = !!space
   const router = useRouter()
   const t = useTranslations()
   const { locale } = useLocale()
@@ -64,7 +104,6 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
   const [isTagsExpanded, setIsTagsExpanded] = useState(true)
   const [isTopicsExpanded, setIsTopicsExpanded] = useState(true)
   const [headerImage, setHeaderImage] = useState<string | null>(null)
-  const [headerVideo, setHeaderVideo] = useState<string | null>(null)
   const [headerCrop, setHeaderCrop] = useState<{
     x: number
     y: number
@@ -73,12 +112,9 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
     scale?: number
   } | null>(null)
   const [showImageUpload, setShowImageUpload] = useState(false)
-  const [showVideoUpload, setShowVideoUpload] = useState(false)
   const [showHeaderCrop, setShowHeaderCrop] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
-  const [isUploadingVideo, setIsUploadingVideo] = useState(false)
   const imageInputRef = useRef<HTMLInputElement>(null)
-  const videoInputRef = useRef<HTMLInputElement>(null)
 
   const spaceSchema = z
     .object({
@@ -91,6 +127,8 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
     })
     .refine(
       data => {
+        // Skip team validation in edit mode
+        if (isEditMode) return true
         if (!data.create_new_team) {
           return !!data.team_id && data.team_id.length > 0
         }
@@ -103,6 +141,8 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
     )
     .refine(
       data => {
+        // Skip team name validation in edit mode
+        if (isEditMode) return true
         if (data.create_new_team) {
           return !!data.new_team_name && data.new_team_name.trim().length > 0
         }
@@ -123,10 +163,25 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
   } = useForm<SpaceFormData>({
     resolver: zodResolver(spaceSchema),
     defaultValues: {
+      space_name: space?.name || '',
+      team_id: space?.team_id || '',
+      visibility: space?.visibility || 'public',
       create_new_team: false,
-      visibility: 'public',
     },
   })
+
+  // Initialize form data when editing
+  useEffect(() => {
+    if (space) {
+      setValue('space_name', space.name)
+      setValue('team_id', space.team_id)
+      setValue('visibility', space.visibility)
+      setHeaderImage(space.settings?.space_image || null)
+      setHeaderCrop(space.settings?.header_crop || null)
+      setSelectedTags(space.settings?.tags || [])
+      setSelectedTopics(space.settings?.topics || [])
+    }
+  }, [space, setValue])
 
   const onError = (errors: any) => {
     console.error('Form validation errors:', errors)
@@ -224,7 +279,6 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
         setIsUploadingImage(true)
         const url = await uploadFile(file, 'images')
         setHeaderImage(url)
-        setHeaderVideo(null)
         setShowImageUpload(false)
       } catch (error) {
         alert(error instanceof Error ? error.message : 'Upload failed')
@@ -234,26 +288,15 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
     }
   }
 
-  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      try {
-        setIsUploadingVideo(true)
-        const url = await uploadFile(file, 'videos')
-        setHeaderVideo(url)
-        setHeaderImage(null)
-        setShowVideoUpload(false)
-      } catch (error) {
-        alert(error instanceof Error ? error.message : 'Upload failed')
-      } finally {
-        setIsUploadingVideo(false)
-      }
-    }
-  }
-
   const addTag = () => {
     const tag = tagInput.trim()
     if (tag && !selectedTags.includes(tag)) {
+      // Limit to 4 tags total (including Industry/niche)
+      const totalTags = selectedTags.length + selectedTopics.length
+      if (totalTags >= 4) {
+        alert(t('spaces.max_tags_reached') || 'Maximum 4 tags allowed (including Industry/niche)')
+        return
+      }
       setSelectedTags([...selectedTags, tag])
       setTagInput('')
     }
@@ -267,91 +310,177 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
     if (selectedTopics.includes(topicId)) {
       setSelectedTopics(selectedTopics.filter(t => t !== topicId))
     } else {
+      // Limit to 2 Industry/niche selections
+      if (selectedTopics.length >= 2) {
+        alert(t('spaces.max_industry_niche_selected') || 'Maximum 2 Industry/niche selections allowed')
+        return
+      }
       setSelectedTopics([...selectedTopics, topicId])
     }
   }
 
   const onSubmit = async (data: SpaceFormData) => {
     if (!user?.id) {
-      alert('You must be logged in to create a space')
+      alert(isEditMode ? 'You must be logged in to edit a space' : 'You must be logged in to create a space')
       return
     }
 
-    // Validate team selection
-    if (!data.create_new_team && !data.team_id) {
-      alert('Please select a team or create a new one')
+    // Validate tag limits
+    if (selectedTopics.length > 2) {
+      alert(t('spaces.max_industry_niche_selected') || 'Maximum 2 Industry/niche selections allowed')
       return
     }
 
-    if (
-      data.create_new_team &&
-      (!data.new_team_name || data.new_team_name.trim().length === 0)
-    ) {
-      alert('Please enter a team name')
+    const totalTags = selectedTags.length + selectedTopics.length
+    if (totalTags > 4) {
+      alert(t('spaces.max_tags_reached') || 'Maximum 4 tags allowed (including Industry/niche)')
       return
     }
 
     setIsSubmitting(true)
     try {
-      let teamId = data.team_id
-
-      // Create new team if needed
-      if (data.create_new_team && data.new_team_name) {
-        const newTeam = await teamService.createTeam(
-          {
-            name: data.new_team_name,
-            description: data.new_team_description || '',
-          },
-          user.id
-        )
-        teamId = newTeam.id
-      }
-
-      // Create space with settings
-      const spaceSettings: any = {}
-      if (headerImage) {
-        spaceSettings.space_image = headerImage
-        if (headerCrop) {
-          spaceSettings.header_crop = headerCrop
+      if (isEditMode && space) {
+        // Update existing space
+        // Build update object with only changed fields
+        const updateData: Partial<EnterpriseSpace> = {
+          name: data.space_name,
+          visibility: data.visibility,
         }
-      }
-      if (headerVideo) {
-        spaceSettings.space_video = headerVideo
-        if (headerCrop) {
-          spaceSettings.header_crop = headerCrop
+        
+        // Prepare space settings - start with existing settings or empty object
+        const spaceSettings: any = space.settings ? { ...space.settings } : {}
+        
+        // Update image if changed
+        if (headerImage) {
+          spaceSettings.space_image = headerImage
+          if (headerCrop) {
+            spaceSettings.header_crop = headerCrop
+          }
+        } else if (headerImage === null && space.settings?.space_image) {
+          // If image was explicitly removed (set to null), clear it
+          delete spaceSettings.space_image
+          delete spaceSettings.header_crop
         }
-      }
-      if (selectedTags.length > 0) {
-        spaceSettings.tags = selectedTags
-      }
-      if (selectedTopics.length > 0) {
-        spaceSettings.topics = selectedTopics
-      }
+        
+        // Update tags and topics
+        spaceSettings.tags = selectedTags.length > 0 ? selectedTags : []
+        spaceSettings.topics = selectedTopics.length > 0 ? selectedTopics : []
+        
+        // Only include settings if there are actual settings to save
+        // Check if settings has any meaningful content
+        const hasSettings = 
+          spaceSettings.space_image || 
+          spaceSettings.header_crop ||
+          (Array.isArray(spaceSettings.tags) && spaceSettings.tags.length > 0) ||
+          (Array.isArray(spaceSettings.topics) && spaceSettings.topics.length > 0)
+        
+        if (hasSettings) {
+          updateData.settings = spaceSettings
+        } else {
+          // If settings is empty, set it to null to clear it
+          updateData.settings = null
+        }
+        
+        await teamService.updateSpace(space.id, updateData)
 
-      const newSpace = await teamService.createSpace({
-        team_id: teamId,
-        name: data.space_name,
-        visibility: data.visibility,
-        settings:
-          Object.keys(spaceSettings).length > 0 ? spaceSettings : undefined,
-      })
+        // Call onSuccess callback if provided
+        if (onSuccess) {
+          onSuccess()
+        }
+      } else {
+        // Create new space
+        // Validate team selection for new spaces
+        if (!data.create_new_team && !data.team_id) {
+          alert('Please select a team or create a new one')
+          setIsSubmitting(false)
+          return
+        }
 
-      // Add creator as admin
-      await teamService.addSpaceMember(newSpace.id, user.id, 'admin')
+        if (
+          data.create_new_team &&
+          (!data.new_team_name || data.new_team_name.trim().length === 0)
+        ) {
+          alert('Please enter a team name')
+          setIsSubmitting(false)
+          return
+        }
 
-      // Call onSuccess callback if provided (for refreshing lists, etc.)
-      if (onSuccess) {
-        onSuccess()
+        let teamId = data.team_id
+
+        // Create new team if needed
+        if (data.create_new_team && data.new_team_name) {
+          const newTeam = await teamService.createTeam(
+            {
+              name: data.new_team_name,
+              description: data.new_team_description || '',
+            },
+            user.id
+          )
+          teamId = newTeam.id
+        }
+
+        // Prepare space settings for new space
+        const newSpaceSettings: any = {}
+        if (headerImage) {
+          newSpaceSettings.space_image = headerImage
+          if (headerCrop) {
+            newSpaceSettings.header_crop = headerCrop
+          }
+        }
+        if (selectedTags.length > 0) {
+          newSpaceSettings.tags = selectedTags
+        }
+        if (selectedTopics.length > 0) {
+          newSpaceSettings.topics = selectedTopics
+        }
+
+        const newSpace = await teamService.createSpace({
+          team_id: teamId,
+          name: data.space_name,
+          visibility: data.visibility,
+          settings:
+            Object.keys(newSpaceSettings).length > 0 ? newSpaceSettings : undefined,
+        })
+
+        // Add creator as admin
+        await teamService.addSpaceMember(newSpace.id, user.id, 'admin')
+
+        // Call onSuccess callback if provided
+        if (onSuccess) {
+          onSuccess()
+        }
+
+        // Redirect to the space detail page
+        router.push(`/${locale}/spaces/${newSpace.id}`)
       }
-
-      // Always redirect to the space detail page
-      router.push(`/${locale}/spaces/${newSpace.id}`)
-    } catch (error) {
-      console.error('Error creating space:', error)
-      const errorMsg =
-        error instanceof Error
-          ? error.message
+    } catch (error: any) {
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} space:`, error)
+      
+      // Extract more detailed error message
+      let errorMsg = ''
+      if (error instanceof Error) {
+        errorMsg = error.message
+      } else if (error?.message) {
+        errorMsg = error.message
+      } else if (error?.error?.message) {
+        errorMsg = error.error.message
+      } else if (typeof error === 'string') {
+        errorMsg = error
+      } else {
+        errorMsg = isEditMode
+          ? t('spaces.space_update_error') || 'Error updating space'
           : t('spaces.space_creation_error')
+      }
+      
+      // Handle specific Supabase errors
+      if (error?.code === 'PGRST116' || error?.status === 406 || error?.code === '406') {
+        errorMsg = t('spaces.space_update_rls_error') || 'Error updating space. The RLS policy for updating spaces may not be configured. Please run the SQL in sql/add_space_update_rls.sql in your Supabase SQL editor.'
+      } else if (error?.message?.includes('Only space admins')) {
+        errorMsg = error.message
+      } else if (error?.message?.includes('not authenticated')) {
+        errorMsg = t('auth.sign_in_required') || 'You must be signed in to update spaces.'
+      }
+      
       setErrorMessage(errorMsg)
       setIsSubmitting(false)
     }
@@ -368,10 +497,12 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
         >
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-text-primary mb-2">
-              {t('spaces.create_space')}
+              {isEditMode ? t('spaces.edit_space') : t('spaces.create_space')}
             </h1>
             <p className="text-text-secondary">
-              {t('spaces.no_spaces_description')}
+              {isEditMode 
+                ? t('spaces.edit_space_description')
+                : t('spaces.no_spaces_description')}
             </p>
           </div>
 
@@ -416,7 +547,8 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
             </motion.div>
           )}
 
-          {/* Team Selection */}
+          {/* Team Selection - Only show when creating new space */}
+          {!isEditMode && (
           <div className="mb-8 pb-8 border-b border-border-color">
             <label className="text-sm font-medium text-text-secondary mb-4 block">
               {t('spaces.select_team')} <span className="text-red-500">*</span>
@@ -553,6 +685,7 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
               </p>
             )}
           </div>
+          )}
 
           {/* Space Name */}
           <div className="mb-8">
@@ -619,7 +752,7 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
           {/* Space Media - Vertical aspect ratio */}
           <div className="mb-8">
             <label className="text-sm font-medium text-text-secondary mb-2 block">
-              {t('spaces.space_image')} / {t('spaces.space_video')}
+              {t('spaces.space_image')}
             </label>
             <div className="space-y-4">
               {headerImage && (
@@ -663,74 +796,26 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
                   </div>
                 </div>
               )}
-              {headerVideo && (
-                <div className="relative w-full max-w-md mx-auto aspect-[3/4] rounded-lg overflow-hidden border border-border-color">
-                  <video
-                    src={headerVideo}
-                    className="w-full h-full object-cover"
-                    style={{
-                      objectPosition: headerCrop
-                        ? `${headerCrop.x}% ${headerCrop.y}%`
-                        : 'center',
-                      transform: headerCrop
-                        ? `scale(${headerCrop.scale || 1})`
-                        : 'scale(1)',
-                      transformOrigin: headerCrop
-                        ? `${headerCrop.x}% ${headerCrop.y}%`
-                        : 'center',
-                    }}
-                    controls
-                  />
-                  <div className="absolute top-2 right-2 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowHeaderCrop(!showHeaderCrop)}
-                      className="p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
-                      title={t('form.crop_adjust')}
-                    >
-                      <Crop className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setHeaderVideo(null)
-                        setHeaderCrop(null)
-                      }}
-                      className="p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+              {!headerImage && (
+                <div className="flex flex-col items-center gap-4">
+                  <div className="flex gap-4 justify-center">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => imageInputRef.current?.click()}
+                        disabled={isUploadingImage}
+                        className="flex items-center gap-2 px-6 py-3 bg-background border border-border-color rounded-lg hover:bg-gray-50/10 hover:border-accent/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isUploadingImage ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-accent" />
+                        ) : (
+                          <ImageIcon className="w-4 h-4 text-accent" />
+                        )}
+                        {t('form.upload_image')}
+                      </button>
+                      <HelpTooltip content={t('editor.help.image_upload')} />
+                    </div>
                   </div>
-                </div>
-              )}
-              {!headerImage && !headerVideo && (
-                <div className="flex gap-4 justify-center">
-                  <button
-                    type="button"
-                    onClick={() => imageInputRef.current?.click()}
-                    disabled={isUploadingImage}
-                    className="flex items-center gap-2 px-6 py-3 bg-background border border-border-color rounded-lg hover:bg-gray-50/10 hover:border-accent/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isUploadingImage ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-accent" />
-                    ) : (
-                      <ImageIcon className="w-4 h-4 text-accent" />
-                    )}
-                    {t('form.upload_image')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => videoInputRef.current?.click()}
-                    disabled={isUploadingVideo}
-                    className="flex items-center gap-2 px-6 py-3 bg-background border border-border-color rounded-lg hover:bg-gray-50/10 hover:border-accent/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isUploadingVideo ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-accent" />
-                    ) : (
-                      <Video className="w-4 h-4 text-accent" />
-                    )}
-                    {t('form.upload_video')}
-                  </button>
                 </div>
               )}
             </div>
@@ -741,19 +826,12 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
               onChange={handleImageUpload}
               className="hidden"
             />
-            <input
-              ref={videoInputRef}
-              type="file"
-              accept="video/*"
-              onChange={handleVideoUpload}
-              className="hidden"
-            />
             {/* Crop Editor */}
-            {showHeaderCrop && (headerImage || headerVideo) && (
+            {showHeaderCrop && headerImage && (
               <div className="mt-4 p-4 border border-border-color rounded-lg bg-background">
                 <SpaceCropEditor
-                  src={headerImage || headerVideo}
-                  isVideo={!!headerVideo}
+                  src={headerImage}
+                  isVideo={false}
                   crop={headerCrop}
                   onSave={crop => {
                     setHeaderCrop(crop)
@@ -774,7 +852,7 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
               className="flex items-center justify-between w-full mb-3"
             >
               <label className="text-sm font-medium text-text-secondary cursor-pointer">
-                {t('spaces.tags')}
+                {t('spaces.tags')} {selectedTags.length > 0 && `(${selectedTags.length + selectedTopics.length}/4)`}
               </label>
               {isTagsExpanded ? (
                 <ChevronUp className="w-4 h-4 text-text-secondary" />
@@ -785,20 +863,33 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
             {isTagsExpanded && (
               <div className="space-y-3">
                 <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={tagInput}
-                    onChange={e => setTagInput(e.target.value)}
-                    onKeyPress={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        addTag()
-                      }
-                    }}
-                    placeholder={t('form.type_tag_placeholder')}
-                    className="flex-1 px-4 py-2 bg-background border border-border-color rounded-lg text-text-primary"
-                  />
-                  <Button type="button" onClick={addTag} variant="outline">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={tagInput}
+                      onChange={e => setTagInput(e.target.value)}
+                      onKeyPress={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          addTag()
+                        }
+                      }}
+                      placeholder={t('form.type_tag_placeholder')}
+                      disabled={selectedTags.length + selectedTopics.length >= 4}
+                      className="w-full px-4 py-2 bg-background border border-border-color rounded-lg text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    {selectedTags.length + selectedTopics.length > 0 && (
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-text-secondary">
+                        {selectedTags.length + selectedTopics.length}/4
+                      </span>
+                    )}
+                  </div>
+                  <Button 
+                    type="button" 
+                    onClick={addTag} 
+                    variant="outline"
+                    disabled={selectedTags.length + selectedTopics.length >= 4 || !tagInput.trim()}
+                  >
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
@@ -825,7 +916,7 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
             )}
           </div>
 
-          {/* Topics */}
+          {/* Industry/niche */}
           <div className="mb-8">
             <button
               type="button"
@@ -833,7 +924,7 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
               className="flex items-center justify-between w-full mb-3"
             >
               <label className="text-sm font-medium text-text-secondary cursor-pointer">
-                {t('spaces.topics')}
+                {t('spaces.industry_niche')} {selectedTopics.length > 0 && `(${selectedTopics.length}/2)`}
               </label>
               {isTopicsExpanded ? (
                 <ChevronUp className="w-4 h-4 text-text-secondary" />
@@ -849,6 +940,8 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
                     className={`flex items-center gap-2 cursor-pointer p-3 rounded-lg border transition-colors ${
                       selectedTopics.includes(topic.id)
                         ? 'bg-accent/10 border-accent/30 text-accent'
+                        : selectedTopics.length >= 2
+                        ? 'bg-background border-border-color opacity-50 cursor-not-allowed'
                         : 'bg-background border-border-color hover:border-accent/20 hover:bg-gray-50/10'
                     }`}
                   >
@@ -856,7 +949,8 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
                       type="checkbox"
                       checked={selectedTopics.includes(topic.id)}
                       onChange={() => toggleTopic(topic.id)}
-                      className="w-4 h-4 text-accent focus:ring-accent focus:ring-2 rounded"
+                      disabled={selectedTopics.length >= 2 && !selectedTopics.includes(topic.id)}
+                      className="w-4 h-4 text-accent focus:ring-accent focus:ring-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <span className="text-sm font-medium text-text-primary">
                       {topic.name}
@@ -873,10 +967,10 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>{t('spaces.creating_space')}</span>
+                  <span>{isEditMode ? t('spaces.updating_space') : t('spaces.creating_space')}</span>
                 </div>
               ) : (
-                t('spaces.create_space')
+                isEditMode ? t('spaces.save_changes') : t('spaces.create_space')
               )}
             </Button>
             {onCancel && (

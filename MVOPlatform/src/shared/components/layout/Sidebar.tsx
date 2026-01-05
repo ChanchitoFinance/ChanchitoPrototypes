@@ -22,8 +22,8 @@ import {
 import { UserMenu } from '@/shared/components/ui/UserMenu'
 
 interface SidebarProps {
-  activeTab?: 'home' | 'foryou'
-  onTabChange?: (tab: 'home' | 'foryou') => void
+  activeTab?: 'home'
+  onTabChange?: (tab: 'home') => void
 }
 
 const SIDEBAR_STYLES = {
@@ -194,13 +194,6 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         pathname === '/' ||
         pathname === `/${currentLocale}` ||
         pathname === `/${currentLocale}/home`,
-    },
-    {
-      id: 'foryou',
-      label: t('navigation.for_you'),
-      icon: Heart,
-      href: `/${currentLocale}/for-you`,
-      active: pathname === `/${currentLocale}/for-you`,
     },
     {
       id: 'spaces',

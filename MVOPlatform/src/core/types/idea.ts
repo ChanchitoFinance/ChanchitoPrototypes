@@ -45,7 +45,6 @@ export interface Idea {
   // Categorization for different sections (deprecated - use status_flag instead)
   featured?: boolean // For carousel (deprecated - use status_flag: 'trending')
   trending?: boolean // For trending section (deprecated)
-  forYou?: boolean // For personalized "For You" section
   // Anonymous flag - if true, don't show author in public views
   anonymous?: boolean
   // Creator email for ownership verification

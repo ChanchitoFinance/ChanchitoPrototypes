@@ -13,8 +13,6 @@ export interface IIdeaService {
 
   getNewIdeas(limit?: number): Promise<Idea[]>
 
-  getForYouIdeas(limit?: number, offset?: number): Promise<Idea[]>
-
   getExploreIdeas(limit?: number, offset?: number): Promise<Idea[]>
 
   getIdeasBySpace(

@@ -209,6 +209,40 @@ a {
     background-color: transparent;
   }
 
+  /* Space page specific - cards with backdrop blur like footer */
+  body:not(.light-theme) .space-page-container .card-hover {
+    background-color: transparent !important;
+    border-color: transparent !important;
+  }
+
+  body:not(.light-theme) .space-page-container .light-theme-card {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+
+  /* Light theme - space page cards with white transparent background */
+  body.light-theme .space-page-container .card-hover {
+    background-color: transparent !important;
+    border-color: transparent !important;
+  }
+
+  body.light-theme .space-page-container .light-theme-card {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+
+  /* Hero carousel fade overlay - dark theme (black) */
+  .carousel-fade-overlay {
+    background: linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4), transparent);
+  }
+
+  /* Hero carousel fade overlay - light theme (white) */
+  body.light-theme .carousel-fade-overlay {
+    background: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4), transparent);
+  }
+
   /* Card variants */
   .card-white {
     background-color: var(--gray-100);

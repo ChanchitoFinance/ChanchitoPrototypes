@@ -14,9 +14,6 @@ export function SidebarWrapper({ children }: SidebarWrapperProps) {
   // Check if we're on the landing page
   const isLandingPage = pathname === `/${currentLocale}`
 
-  // Check if we're on the For You page to disable scrolling
-  const isForYouPage = pathname.includes('/for-you')
-
   return (
     <div className="w-fullbg-background">
       {!isLandingPage && <Sidebar />}

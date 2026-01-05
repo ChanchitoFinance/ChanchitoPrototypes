@@ -118,7 +118,7 @@ function CarouselVideoItem({
         muted
         playsInline
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 via-black/40 to-transparent" />
+      <div className="absolute inset-0 carousel-fade-overlay" />
     </div>
   )
 }
@@ -325,7 +325,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                         className="object-cover"
                         priority={index === activeIndex}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 via-black/40 to-transparent" />
+                      <div className="absolute inset-0 carousel-fade-overlay" />
                     </div>
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-blue-900 to-purple-900" />

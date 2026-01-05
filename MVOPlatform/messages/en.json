@@ -278,7 +278,8 @@
     "drag_position": "Drag to position",
     "zoom": "Zoom",
     "post_anonymously": "Post anonymously",
-    "post_anonymously_description": "Hide your name when this idea is shown to the public"
+    "post_anonymously_description": "Hide your name when this idea is shown to the public",
+    "max_tags_reached": "Maximum 4 tags allowed"
   },
   "prompts": {
     "enter_image_url": "Enter image URL:",
@@ -370,11 +371,32 @@
       "change_image": "Change Image",
       "change_video": "Change Video",
       "change_url": "Change URL"
+    },
+    "help": {
+      "heading_1": "Large main title. Use for important section titles.",
+      "heading_2": "Medium subtitle. Use to divide sections within your idea.",
+      "heading_3": "Small subtitle. Use for subsections or highlighted points.",
+      "text": "Normal text paragraph. Use for the main content of your idea.",
+      "image": "Static image. Formats: JPG, PNG, WebP. Max size: 50MB. Recommended: 1200x800px or similar.",
+      "video": "Embedded video. Formats: MP4, WebM. Max size: 50MB. Recommended duration: less than 5 minutes.",
+      "carousel": "Image or video carousel. Display multiple items in a swipeable presentation.",
+      "html": "Custom HTML code. Use only if you know HTML. May include inline CSS.",
+      "image_upload": "Accepted formats: JPG, PNG, WebP, GIF. Max size: 50MB. Recommended resolution: 1200x800px or higher.",
+      "video_upload": "Accepted formats: MP4, WebM. Max size: 50MB. Recommended duration: less than 5 minutes. Recommended resolution: 1080p or higher."
     }
   },
   "spaces": {
     "title": "Spaces",
     "create_space": "Create Space",
+    "edit_space": "Edit Space",
+    "edit_space_description": "Update your space information",
+    "update_space": "Update Space",
+    "save_changes": "Save Changes",
+    "updating_space": "Updating...",
+    "space_update_rls_error": "Error updating space. The RLS policy for updating spaces may not be configured. Please run the SQL in sql/add_space_update_rls.sql in your Supabase SQL editor.",
+    "delete_space": "Delete Space",
+    "confirm_delete_space": "Are you sure you want to delete this space? This action cannot be undone and all ideas in this space will be removed.",
+    "space_delete_error": "Error deleting space",
     "create_team": "Create Team",
     "no_spaces": "No spaces available",
     "no_spaces_description": "Create your first space to start organizing ideas",
@@ -422,7 +444,18 @@
     "invite_members": "Invite Team Members",
     "invite_members_description": "Invite users by username or email to join your team",
     "username_or_email": "Username or Email",
-    "invite": "Invite"
+    "invite": "Invite",
+    "joined_space": "Successfully joined space",
+    "left_space": "Successfully left space",
+    "joining": "Joining...",
+    "already_member": "You are already a member of this space",
+    "error_joining_space": "Error joining space. Please try again.",
+    "error_leaving_space": "Error leaving space. Please try again.",
+    "confirm_leave_space": "Are you sure you want to leave this space? You will no longer be able to post ideas here.",
+    "industry_niche": "Industry/Niche",
+    "max_industry_niche_selected": "Maximum 2 Industry/Niche selections allowed",
+    "max_tags_reached": "Maximum 4 tags allowed (including Industry/Niche)",
+    "must_join_to_post": "You must join this space before posting ideas."
   },
   "premium": {
     "title": "Upgrade to Premium",
