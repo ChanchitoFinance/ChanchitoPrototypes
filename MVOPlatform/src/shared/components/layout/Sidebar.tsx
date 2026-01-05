@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAppSelector } from '@/core/lib/hooks'
 import { signInWithGoogle, signOut } from '@/core/lib/slices/authSlice'
 import { useAppDispatch } from '@/core/lib/hooks'
+import { useNotifications } from '@/features/notifications/hooks/useNotifications'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import {
@@ -18,6 +19,7 @@ import {
   LogIn,
   FolderKanban,
   Shield,
+  Bell,
 } from 'lucide-react'
 import { UserMenu } from '@/shared/components/ui/UserMenu'
 
@@ -116,6 +118,8 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const { user, profile, isAuthenticated } = useAppSelector(state => state.auth)
   const pathname = usePathname()
   const router = useRouter()
+  const { getUnreadCount } = useNotifications()
+  const hasUnreadNotifications = getUnreadCount() > 0
 
   // Extract current locale from pathname
   const currentLocale = pathname.startsWith('/es') ? 'es' : 'en'
@@ -464,16 +468,11 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                     null,
                 }}
                 onSignOut={() => dispatch(signOut())}
-                showProfileLink={!showExpanded}
+                showProfileLink={false}
                 position="above"
+                hasUnreadNotifications={hasUnreadNotifications}
+                currentLocale={currentLocale}
               />
-              {!showExpanded && (
-                <div className="mt-1 text-center">
-                  <p className="text-xs text-text-secondary truncate max-w-16">
-                    {profile?.full_name || 'User'}
-                  </p>
-                </div>
-              )}
             </div>
           ) : (
             <button
@@ -518,7 +517,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       </AnimatePresence>
 
       <aside
-        className={`fixed left-0 top-0 h-screen z-50 transition-all duration-300 flex-shrink-0 ${
+        className={`fixed left-0 top-0 h-screen z-[9998] transition-all duration-300 flex-shrink-0 ${
           showExpanded
             ? SIDEBAR_STYLES.width.expanded
             : SIDEBAR_STYLES.width.collapsed

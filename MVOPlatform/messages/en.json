@@ -12,7 +12,8 @@
     "upload": "Upload",
     "profile": "Profile",
     "more": "More",
-    "admin": "Admin"
+    "admin": "Admin",
+    "notifications": "Notifications"
   },
   "actions": {
     "sign_in": "Sign In",
@@ -221,6 +222,11 @@
     "no_ideas": "No ideas found.",
     "see_results": "See Results",
     "idea_not_found": "Idea not found"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "clear_all": "Clear All",
+    "clear_all_confirm": "Are you sure you want to clear all notifications?"
   },
   "comments": {
     "title": "Comments",
