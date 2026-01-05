@@ -20,10 +20,9 @@ import { useVideoPlayer } from '@/core/hooks/useVideoPlayer'
 import { useMediaValidation } from '@/core/hooks/useMediaValidation'
 import { formatDate } from '@/core/lib/utils/date'
 import { ideaService } from '@/core/lib/services/ideaService'
-import {
-  getMostVotedType,
-  VoteDistributionBar,
-} from '@/shared/components/ui/VoteDistributionBar'
+import { getMostVotedType } from '@/core/lib/utils/idea.utils'
+import { VoteDistributionRing } from '@/shared/components/ui/VoteDistributionRing'
+import { toast } from 'sonner'
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
 
 type IdeaCardVariant = 'interactive' | 'metrics' | 'admin'
@@ -93,7 +92,7 @@ export function IdeaCard({
   ) => {
     e.preventDefault()
     if (!isAuthenticated) {
-      alert(t('auth.sign_in_to_vote'))
+      toast.warning(t('auth.sign_in_to_vote'))
       return
     }
     if (isVoting) return
@@ -225,56 +224,45 @@ export function IdeaCard({
             )}
           </div>
 
-          {/* Content Section */}
-          <div className="flex items-start justify-between gap-3 mb-3 flex-1">
-            <div className="flex-1 min-w-0 max-w-[calc(100%-80px)]">
-              <h2 className="text-lg font-semibold text-text-primary mb-1 line-clamp-2 break-words">
-                {currentIdea.title}
-              </h2>
-              <p className="text-sm text-text-secondary line-clamp-2 mb-2 break-words">
-                {currentIdea.description}
-              </p>
-            </div>
-            <div className="text-right flex-shrink-0 w-16">
-              <div className="text-2xl font-semibold text-accent whitespace-nowrap">
-                {currentIdea.score}
-              </div>
-              <div className="text-xs text-text-secondary whitespace-nowrap">
-                {t('common.score')}
-              </div>
-            </div>
+          {/* Content Section - Title Only */}
+          <div className="mb-4 flex-1">
+            <h2 className="text-xl font-bold text-text-primary line-clamp-3 break-words leading-tight">
+              {currentIdea.title}
+            </h2>
           </div>
 
-          {/* Metrics Section */}
-          <div className="flex items-center gap-3 mb-2 min-h-[32px] overflow-hidden">
+          {/* Engagement Metrics - Prominent Display */}
+          <div className="flex items-center gap-4 mb-3 p-3 bg-background/50 rounded-lg">
             {/* Upvote Metric */}
-            <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-              <ArrowUp className="w-3.5 h-3.5 text-green-500" />
-              <span className="text-sm font-medium">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <ArrowUp className="w-5 h-5 text-green-500" />
+              <span className="text-lg font-bold text-text-primary">
                 {currentIdea.votesByType.use}
               </span>
             </div>
 
             {/* Downvote Metric */}
-            <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-              <ArrowDown className="w-3.5 h-3.5 text-red-500" />
-              <span className="text-sm font-medium">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <ArrowDown className="w-5 h-5 text-red-500" />
+              <span className="text-lg font-bold text-text-primary">
                 {currentIdea.votesByType.dislike}
               </span>
             </div>
 
             {/* Pay Vote Metric */}
-            <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-              <DollarSign className="w-3.5 h-3.5 text-blue-500" />
-              <span className="text-sm font-medium">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <DollarSign className="w-5 h-5 text-blue-500" />
+              <span className="text-lg font-bold text-text-primary">
                 {currentIdea.votesByType.pay}
               </span>
             </div>
 
             {/* Comments Metric */}
-            <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span className="text-sm">{currentIdea.commentCount}</span>
+            <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+              <MessageSquare className="w-5 h-5 text-text-secondary" />
+              <span className="text-lg font-bold text-text-primary">
+                {currentIdea.commentCount}
+              </span>
             </div>
           </div>
 
@@ -347,199 +335,154 @@ export function IdeaCard({
               )}
             </div>
 
-            {/* Content Section */}
-            <div className="flex items-start justify-between gap-3 mb-3 flex-1">
-              <div className="flex-1 min-w-0 max-w-[calc(100%-80px)]">
-                <h2 className="text-lg font-semibold text-text-primary mb-1 line-clamp-2 break-words">
+            {/* Content Section - Title with Sentiment Indicator */}
+            <div className="flex items-center justify-between gap-3 mb-4 flex-1">
+              {/* Title */}
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl font-bold text-text-primary line-clamp-3 break-words leading-tight">
                   {currentIdea.title}
                 </h2>
-                <p className="text-sm text-text-secondary line-clamp-2 mb-2 break-words">
-                  {currentIdea.description}
-                </p>
               </div>
-              <div className="text-right flex-shrink-0 w-16">
-                <div className="text-2xl font-semibold text-accent whitespace-nowrap">
-                  {currentIdea.score}
-                </div>
-                <div className="text-xs text-text-secondary whitespace-nowrap">
-                  {t('common.score')}
-                </div>
-              </div>
-            </div>
 
-            {/* Vote Distribution Bar - Only for interactive variant */}
-            {isInteractive && (
-              <div className="mb-3">
-                <VoteDistributionBar votes={currentIdea.votesByType} />
-              </div>
-            )}
-
-            {/* Actions Section */}
-            <div className="flex items-center justify-between gap-2 mb-2 min-h-[32px] overflow-hidden">
-              {isInteractive ? (
-                // Interactive variant: Show voting buttons
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={handleUpVote}
-                    disabled={isVoting}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-250 text-sm whitespace-nowrap flex-shrink-0 ${
-                      upvoted
-                        ? 'bg-accent text-text-primary'
-                        : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
-                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
-                  >
-                    {isVoting ? (
-                      <LoadingSpinner size={16} color="var(--text-secondary)" />
-                    ) : (
-                      <motion.div
-                        animate={upvoted ? { scale: [1, 1.2, 1] } : {}}
-                        transition={{ duration: 0.3 }}
-                        className="flex-shrink-0"
-                      >
-                        <ArrowUp className="w-3.5 h-3.5" />
-                      </motion.div>
-                    )}
-                    <span className="font-medium">
-                      {currentIdea.votesByType.use}
-                    </span>
-                  </button>
-                  <button
-                    onClick={handleDownVote}
-                    disabled={isVoting}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-250 text-sm whitespace-nowrap flex-shrink-0 ${
-                      downvoted
-                        ? 'bg-red-500 text-white'
-                        : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
-                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
-                  >
-                    {isVoting ? (
-                      <LoadingSpinner size={16} color="var(--text-secondary)" />
-                    ) : (
-                      <motion.div
-                        animate={downvoted ? { scale: [1, 1.2, 1] } : {}}
-                        transition={{ duration: 0.3 }}
-                        className="flex-shrink-0"
-                      >
-                        <ArrowDown className="w-3.5 h-3.5" />
-                      </motion.div>
-                    )}
-                    <span className="font-medium">
-                      {currentIdea.votesByType.dislike}
-                    </span>
-                  </button>
-                  <button
-                    onClick={e => handleVote(e, 'pay')}
-                    disabled={isVoting}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-250 text-sm whitespace-nowrap flex-shrink-0 ${
-                      votedPay
-                        ? 'bg-accent-alt text-white'
-                        : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
-                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
-                    title="I'd pay for it"
-                  >
-                    {isVoting ? (
-                      <LoadingSpinner size={16} color="var(--text-secondary)" />
-                    ) : (
-                      <motion.div
-                        animate={votedPay ? { scale: [1, 1.2, 1] } : {}}
-                        transition={{ duration: 0.3 }}
-                        className="flex-shrink-0"
-                      >
-                        <DollarSign className="w-3.5 h-3.5" />
-                      </motion.div>
-                    )}
-                    <span className="font-medium">
-                      {currentIdea.votesByType.pay}
-                    </span>
-                  </button>
-                  <motion.div
-                    className={`flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
-                      currentIdea.status_flag === 'active_discussion'
-                        ? 'text-accent'
-                        : 'text-text-secondary'
-                    }`}
-                    animate={
-                      currentIdea.status_flag === 'active_discussion'
-                        ? {
-                            opacity: [0.7, 1, 0.7],
-                          }
-                        : {}
-                    }
-                    transition={{
-                      duration: 3,
-                      repeat:
-                        currentIdea.status_flag === 'active_discussion'
-                          ? Infinity
-                          : 0,
-                      ease: 'easeInOut',
-                    }}
-                  >
-                    <MessageSquare
-                      className={
-                        currentIdea.status_flag === 'active_discussion'
-                          ? 'w-[15px] h-[15px]'
-                          : 'w-3.5 h-3.5'
-                      }
-                    />
-                    <span className="text-sm">{currentIdea.commentCount}</span>
-                  </motion.div>
-                </div>
-              ) : (
-                // Metrics variant: Show vote counts as metrics
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  {/* Upvote Metric */}
-                  <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-                    <ArrowUp className="w-3.5 h-3.5 text-green-500" />
-                    <span className="text-sm font-medium">
-                      {currentIdea.votesByType.use}
-                    </span>
-                  </div>
-
-                  {/* Downvote Metric */}
-                  <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-                    <ArrowDown className="w-3.5 h-3.5 text-red-500" />
-                    <span className="text-sm font-medium">
-                      {currentIdea.votesByType.dislike}
-                    </span>
-                  </div>
-
-                  {/* Pay Vote Metric */}
-                  <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-                    <DollarSign className="w-3.5 h-3.5 text-blue-500" />
-                    <span className="text-sm font-medium">
-                      {currentIdea.votesByType.pay}
-                    </span>
-                  </div>
-
-                  {/* Comments Metric */}
-                  <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    <span className="text-sm">{currentIdea.commentCount}</span>
-                  </div>
+              {/* Vote Distribution Ring - Right Side */}
+              {isInteractive && (
+                <div className="flex-shrink-0">
+                  <VoteDistributionRing votes={currentIdea.votesByType} size={40} />
                 </div>
               )}
             </div>
 
-            {/* Tags Section - Always below metrics */}
-            <div className="flex items-center gap-1.5 flex-wrap mb-2 overflow-hidden">
-              {currentIdea.tags.slice(0, isInteractive ? 2 : 3).map(tag => {
-                const truncatedTag =
-                  tag.length > 7 ? `${tag.substring(0, 7)}...` : tag
-                return (
-                  <span
-                    key={tag}
-                    className="badge-gray text-xs px-2 py-0.5 whitespace-nowrap flex-shrink-0 truncate max-w-[80px]"
-                    title={tag}
-                  >
-                    #{truncatedTag}
+            {/* Actions Section - Prominent Voting Buttons */}
+            {isInteractive ? (
+              <div className="flex items-center gap-2 mb-3">
+                <button
+                  onClick={handleUpVote}
+                  disabled={isVoting}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${upvoted
+                    ? 'bg-green-500 text-white shadow-md'
+                    : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                >
+                  {isVoting ? (
+                    <LoadingSpinner size={18} color="currentColor" />
+                  ) : (
+                    <motion.div
+                      animate={upvoted ? { scale: [1, 1.2, 1] } : {}}
+                      transition={{ duration: 0.3 }}
+                      className="flex-shrink-0"
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                    </motion.div>
+                  )}
+                  <span className="text-sm font-semibold">
+                    {currentIdea.votesByType.use}
                   </span>
-                )
-              })}
-              {currentIdea.tags.length > (isInteractive ? 2 : 3) && (
-                <span className="text-xs text-text-secondary whitespace-nowrap flex-shrink-0">
-                  +{currentIdea.tags.length - (isInteractive ? 2 : 3)}
-                </span>
-              )}
+                </button>
+                <button
+                  onClick={handleDownVote}
+                  disabled={isVoting}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${downvoted
+                    ? 'bg-red-500 text-white shadow-md'
+                    : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                >
+                  {isVoting ? (
+                    <LoadingSpinner size={18} color="currentColor" />
+                  ) : (
+                    <motion.div
+                      animate={downvoted ? { scale: [1, 1.2, 1] } : {}}
+                      transition={{ duration: 0.3 }}
+                      className="flex-shrink-0"
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                    </motion.div>
+                  )}
+                  <span className="text-sm font-semibold">
+                    {currentIdea.votesByType.dislike}
+                  </span>
+                </button>
+                <button
+                  onClick={e => handleVote(e, 'pay')}
+                  disabled={isVoting}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${votedPay
+                    ? 'bg-blue-500 text-white shadow-md'
+                    : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  title="I'd pay for it"
+                >
+                  {isVoting ? (
+                    <LoadingSpinner size={18} color="currentColor" />
+                  ) : (
+                    <motion.div
+                      animate={votedPay ? { scale: [1, 1.2, 1] } : {}}
+                      transition={{ duration: 0.3 }}
+                      className="flex-shrink-0"
+                    >
+                      <DollarSign className="w-4 h-4" />
+                    </motion.div>
+                  )}
+                  <span className="text-sm font-semibold">
+                    {currentIdea.votesByType.pay}
+                  </span>
+                </button>
+              </div>
+            ) : null}
+
+            {/* Comments and Tags Section */}
+            <div className="flex items-center justify-between gap-2 mb-2">
+              {/* Comments indicator */}
+              <motion.div
+                className={`flex items-center gap-1.5 ${currentIdea.status_flag === 'active_discussion'
+                  ? 'text-accent'
+                  : 'text-text-secondary'
+                  }`}
+                animate={
+                  currentIdea.status_flag === 'active_discussion'
+                    ? {
+                      opacity: [0.7, 1, 0.7],
+                    }
+                    : {}
+                }
+                transition={{
+                  duration: 3,
+                  repeat:
+                    currentIdea.status_flag === 'active_discussion'
+                      ? Infinity
+                      : 0,
+                  ease: 'easeInOut',
+                }}
+              >
+                <MessageSquare
+                  className={
+                    currentIdea.status_flag === 'active_discussion'
+                      ? 'w-4 h-4'
+                      : 'w-4 h-4'
+                  }
+                />
+                <span className="text-sm font-medium">{currentIdea.commentCount} {t('common.comments') || 'comments'}</span>
+              </motion.div>
+
+              {/* Tags Section */}
+              <div className="flex items-center gap-1.5 flex-wrap overflow-hidden">
+                {currentIdea.tags.slice(0, 2).map(tag => {
+                  const truncatedTag =
+                    tag.length > 8 ? `${tag.substring(0, 8)}...` : tag
+                  return (
+                    <span
+                      key={tag}
+                      className="badge-gray text-xs px-2 py-0.5 whitespace-nowrap flex-shrink-0"
+                      title={tag}
+                    >
+                      #{truncatedTag}
+                    </span>
+                  )
+                })}
+                {currentIdea.tags.length > 2 && (
+                  <span className="text-xs text-text-secondary whitespace-nowrap flex-shrink-0">
+                    +{currentIdea.tags.length - 2}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Author and Date */}

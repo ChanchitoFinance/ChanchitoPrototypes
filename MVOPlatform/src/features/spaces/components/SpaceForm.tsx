@@ -30,6 +30,7 @@ import { Team } from '@/core/types/team'
 import { teamService } from '@/core/lib/services/teamService'
 import { adminService } from '@/core/lib/services/adminService'
 import { Button } from '@/shared/components/ui/Button'
+import { toast } from 'sonner'
 
 type SpaceFormData = {
   space_name: string
@@ -227,7 +228,7 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
         setHeaderVideo(null)
         setShowImageUpload(false)
       } catch (error) {
-        alert(error instanceof Error ? error.message : 'Upload failed')
+        toast.error(error instanceof Error ? error.message : 'Upload failed')
       } finally {
         setIsUploadingImage(false)
       }
@@ -244,7 +245,7 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
         setHeaderImage(null)
         setShowVideoUpload(false)
       } catch (error) {
-        alert(error instanceof Error ? error.message : 'Upload failed')
+        toast.error(error instanceof Error ? error.message : 'Upload failed')
       } finally {
         setIsUploadingVideo(false)
       }
@@ -273,13 +274,13 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
 
   const onSubmit = async (data: SpaceFormData) => {
     if (!user?.id) {
-      alert('You must be logged in to create a space')
+      toast.warning('You must be logged in to create a space')
       return
     }
 
     // Validate team selection
     if (!data.create_new_team && !data.team_id) {
-      alert('Please select a team or create a new one')
+      toast.warning('Please select a team or create a new one')
       return
     }
 
@@ -287,7 +288,7 @@ export function SpaceForm({ onSuccess, onCancel }: SpaceFormProps) {
       data.create_new_team &&
       (!data.new_team_name || data.new_team_name.trim().length === 0)
     ) {
-      alert('Please enter a team name')
+      toast.warning('Please enter a team name')
       return
     }
 

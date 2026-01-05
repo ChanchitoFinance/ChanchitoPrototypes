@@ -26,6 +26,7 @@ import {
 } from '@/shared/components/providers/I18nProvider'
 import { Button } from '@/shared/components/ui/Button'
 import { IdeaAnalytics } from './IdeaAnalytics'
+import { toast } from 'sonner'
 
 interface IdeaDetailProps {
   ideaId: string
@@ -132,7 +133,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
 
   const handleVoteUp = () => {
     if (!isAuthenticated) {
-      alert(t('auth.sign_in_to_vote'))
+      toast.warning(t('auth.sign_in_to_vote'))
       return
     }
     if (!ideaData || isVoting) return
@@ -142,7 +143,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
 
   const handleVoteDown = () => {
     if (!isAuthenticated) {
-      alert(t('auth.sign_in_to_vote'))
+      toast.warning(t('auth.sign_in_to_vote'))
       return
     }
     if (!ideaData || isVoting) return
@@ -152,7 +153,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
 
   const handleLike = () => {
     if (!isAuthenticated) {
-      alert(t('auth.sign_in_to_vote'))
+      toast.warning(t('auth.sign_in_to_vote'))
       return
     }
     if (!ideaData || isVoting) return
