@@ -7,7 +7,9 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { formatDate } from '@/core/lib/utils/date'
 import { Idea } from '@/core/types/idea'
+import { Comment } from '@/core/types/comment'
 import { ideaService } from '@/core/lib/services/ideaService'
+import { commentService } from '@/core/lib/services/commentService'
 import {
   toggleVote,
   fetchUserVotes,
@@ -27,6 +29,7 @@ import {
 import { Button } from '@/shared/components/ui/Button'
 import { IdeaAnalytics } from './IdeaAnalytics'
 import { toast } from 'sonner'
+import { AIPersonasEvaluation } from '@/features/ai/components/AIPersonasEvaluation'
 
 interface IdeaDetailProps {
   ideaId: string
@@ -38,6 +41,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   const [idea, setIdea] = useState<Idea | null>(null)
   const [loading, setLoading] = useState(true)
   const [commentCount, setCommentCount] = useState(0)
+  const [comments, setComments] = useState<Comment[]>([])
   const [validCardMedia, setValidCardMedia] = useState<{
     video?: string
     image?: string
@@ -96,6 +100,22 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
 
     loadIdea()
   }, [ideaId, isAuthenticated])
+
+  // Fetch comments when idea is loaded
+  useEffect(() => {
+    if (ideaId) {
+      const fetchComments = async () => {
+        try {
+          const commentsData = await commentService.getComments(ideaId)
+          setComments(commentsData)
+        } catch (error) {
+          console.error('Error fetching comments:', error)
+        }
+      }
+
+      fetchComments()
+    }
+  }, [ideaId])
 
   const ideaData = currentIdea || idea
 
@@ -368,6 +388,18 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
             />
           </motion.div>
         )}
+
+        {isAuthenticated &&
+          ideaData &&
+          user?.email === ideaData.creatorEmail && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
+              <AIPersonasEvaluation idea={ideaData} comments={comments} />
+            </motion.div>
+          )}
       </article>
     </div>
   )

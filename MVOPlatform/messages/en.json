@@ -501,5 +501,20 @@
     "re_analyze": "Re-analyze",
     "clear_all": "Clear All",
     "advisory_note": "This feedback is advisory only. You decide what to post."
+  },
+  "ai_personas_evaluation": {
+    "analyzing": "Analyzing your idea's progress...",
+    "view_evaluation": "View AI Personas Evaluation",
+    "get_evaluation": "Get AI Personas Evaluation",
+    "clear_history_confirm": "Are you sure you want to clear all evaluation history?",
+    "try_again": "Try again",
+    "evaluation_title": "AI Personas Evaluation",
+    "version": "Version",
+    "of": "of",
+    "previous": "← Previous",
+    "next": "Next →",
+    "re_evaluate": "Re-evaluate",
+    "clear_all": "Clear All",
+    "advisory_note": "This evaluation is advisory only. AI personas provide perspectives to help you improve your idea."
   }
 }

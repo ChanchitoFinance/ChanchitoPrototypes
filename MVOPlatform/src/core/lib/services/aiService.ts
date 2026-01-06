@@ -1,5 +1,7 @@
 import { ContentBlock } from '@/core/types/content'
+import { Idea } from '@/core/types/idea'
 import { clientEnv } from '@/env-validation/config/env'
+import { Comment } from '@/core/types/comment'
 
 const GEMINI_API_KEY = clientEnv.geminiApiKey
 const GEMINI_MODEL = clientEnv.geminiModel
@@ -26,6 +28,11 @@ export interface AIFeedback {
   feedback: string
   suggestions: string[]
   warnings?: string[]
+  timestamp: Date
+}
+
+export interface AIPersonaFeedback {
+  conversation: string
   timestamp: Date
 }
 
@@ -574,6 +581,72 @@ Keep response under 500 words. Be protective but non-judgmental. Use ⚠️ for 
     ])
 
     return feedbacks
+  }
+
+  async evaluateIdeaProgress(
+    idea: Idea,
+    comments: Comment[],
+    language: 'en' | 'es'
+  ): Promise<AIPersonaFeedback> {
+    const systemPrompt = `You are a panel of 5 AI advisors evaluating a business idea's progress. You must respond as ALL 5 personas in a single conversation, where each persona addresses the user and can reference other personas' points.
+
+PERSONAS (in order of speaking):
+1. AI · Technical Feasibility - Architecture & scalability expert
+2. AI · Founder Reality Check - Execution & capacity advisor
+3. AI · Market Skeptic - Demand & assumptions challenger
+4. AI · GTM & Distribution - Growth & channels strategist
+5. AI · Investor Lens - Narrative & positioning expert
+
+CONVERSATION RULES:
+- Each persona speaks ONCE in the order listed above
+- Each persona starts with "AI · [Name]:" on a new line
+- After each persona's message, add THREE blank lines before the next persona
+- Each persona addresses the USER directly (use "you", "your idea")
+- Personas CAN reference each other's points (e.g., "Building on what Technical Feasibility mentioned...")
+- Keep each persona's message to 3-5 sentences maximum
+- Focus on PROGRESS evaluation, not just validation
+
+FORMAT EXAMPLE:
+AI · Technical Feasibility: [message addressing user]
+
+
+AI · Founder Reality Check: [message addressing user, can reference Technical]
+
+
+AI · Market Skeptic: [message]
+
+
+AI · GTM & Distribution: [message]
+
+
+AI · Investor Lens: [message]`
+
+    const voteAnalysis = `
+Votes: ${idea.votes} total (${idea.votesByType.use} would use, ${idea.votesByType.pay} would pay, ${idea.votesByType.dislike} wouldn't use)
+Comments: ${comments.length} total
+Top comments: ${comments
+      .slice(0, 3)
+      .map(c => `"${c.content.substring(0, 100)}..."`)
+      .join('; ')}`
+
+    const prompt = `Evaluate this idea's progress:
+
+Title: ${idea.title}
+Description: ${idea.description}
+Tags: ${idea.tags.join(', ')}
+Created: ${idea.createdAt}
+Score: ${idea.score}
+
+${voteAnalysis}
+
+Provide a role-based conversation where all 5 personas evaluate the idea's progress, addressing the user directly. Each persona should comment on market validation signals, areas for improvement, and next steps based on their expertise.`
+
+    const conversation = await this.callGemini(prompt, systemPrompt, language)
+
+    return {
+      conversation,
+      timestamp: new Date(),
+    }
   }
 }
 

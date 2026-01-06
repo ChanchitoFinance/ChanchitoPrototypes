@@ -33,7 +33,7 @@ import {
   useTranslations,
 } from '@/shared/components/providers/I18nProvider'
 import { SpaceWithTeam } from '@/core/types/space'
-import { AIRiskFeedback } from './AIRiskFeedback'
+import { AIRiskFeedback } from '../../../ai/components/AIRiskFeedback'
 import { useAppSelector } from '@/core/lib/hooks'
 import { supabase } from '@/core/lib/supabase'
 import { ideaService } from '@/core/lib/services/ideaService'

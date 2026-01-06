@@ -496,5 +496,20 @@
     "re_analyze": "Reanalizar",
     "clear_all": "Limpiar Todo",
     "advisory_note": "Esta retroalimentación es solo una sugerencia. Tú decides qué publicar."
+  },
+  "ai_personas_evaluation": {
+    "analyzing": "Analizando el progreso de tu idea...",
+    "view_evaluation": "Ver Evaluación de AI Personas",
+    "get_evaluation": "Obtener Evaluación de AI Personas",
+    "clear_history_confirm": "¿Estás seguro de que quieres eliminar todo el historial de evaluación?",
+    "try_again": "Intentar de nuevo",
+    "evaluation_title": "Evaluación de AI Personas",
+    "version": "Versión",
+    "of": "de",
+    "previous": "← Anterior",
+    "next": "Siguiente →",
+    "re_evaluate": "Re-evaluar",
+    "clear_all": "Limpiar Todo",
+    "advisory_note": "Esta evaluación es solo una sugerencia. Las AI Personas proporcionan perspectivas para ayudarte a mejorar tu idea."
   }
 }
