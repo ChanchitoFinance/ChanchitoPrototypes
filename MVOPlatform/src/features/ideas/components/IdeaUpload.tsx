@@ -11,10 +11,10 @@ import { toast } from 'sonner'
 export function IdeaUpload() {
   const t = useTranslations()
   const dispatch = useAppDispatch()
-  const { isAuthenticated, loading } = useAppSelector(state => state.auth)
+  const { isAuthenticated, loading, initialized } = useAppSelector(state => state.auth)
   const router = useRouter()
 
-  if (loading) {
+  if (loading && !initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-text-secondary">{t('status.loading')}</div>
