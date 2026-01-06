@@ -260,7 +260,9 @@ Your focus:
 - Assumption exposure
 - Legal/sensitivity signals (light touch)
 
-Provide neutral, structured, non-alarmist feedback to protect founders from accidental risks. Never block posting, just highlight concerns.`,
+CRITICAL INSTRUCTION: Only report ACTUAL risks or problems you identify. DO NOT mention things that are fine or have "no concerns". If a category has no issues, skip it entirely. Be concise and only highlight what needs attention. Do not waste tokens on positive statements or "no issues found" messages.
+
+Provide neutral, structured, non-alarmist feedback to protect founders from accidental risks. Never block posting, just highlight concerns that exist.`,
     }
 
     return basePrompts[persona]
@@ -464,20 +466,22 @@ Tags: ${tags.join(', ')}
 Content blocks: ${content.length} blocks
 Anonymous posting: ${isAnonymous ? 'Yes' : 'No'}
 
-Flag any concerns about:
+IMPORTANT: Only report ACTUAL problems or risks. Skip any category that has no issues. DO NOT include statements like "no concerns here" or "everything looks good". Be direct and concise.
+
+Flag ONLY if there are real concerns about:
 1. Information gaps or unclear target user
 2. Oversharing of proprietary details
 3. Unvalidated assumptions presented as facts
 4. Sensitive topics (politics, sports teams, controversies)
 5. Missing context that could be misunderstood
 
-Also provide suggestions for:
-- Adding more content (images, videos, text)
-- Improving clarity
-- Adjusting tone or colors if needed
-- Making the idea more complete
+Provide suggestions ONLY for improvements that would meaningfully strengthen the idea:
+- Adding more content (images, videos, text) - only if truly needed
+- Improving clarity - only if something is confusing
+- Adjusting tone or colors - only if there's an issue
+- Making the idea more complete - only if it feels incomplete
 
-Keep response under 600 words. Be protective but non-judgmental. Use ⚠️ for warnings and 💡 for suggestions.`
+Keep response under 500 words. Be protective but non-judgmental. Use ⚠️ for warnings and 💡 for suggestions. If there are no significant risks or improvements needed, keep your response very brief.`
 
     const feedback = await this.callGemini(
       prompt,
