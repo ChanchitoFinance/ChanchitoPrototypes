@@ -479,5 +479,22 @@
     "dark_mode": "Modo Oscuro",
     "save_settings": "Guardar Configuración",
     "auto_save_message": "Tus configuraciones se guardan automáticamente cuando realizas cambios"
+  },
+  "ai_risk_feedback": {
+    "analyzing": "Analizando...",
+    "view_analysis": "Ver Análisis de Riesgos IA",
+    "receive_feedback": "Recibir Retroalimentación",
+    "clear_history_confirm": "¿Estás seguro de que quieres eliminar todo el historial de análisis?",
+    "try_again": "Intentar de nuevo",
+    "risk_analysis": "Análisis de Riesgos",
+    "version": "Versión",
+    "of": "de",
+    "warnings": "Advertencias",
+    "suggestions": "Sugerencias",
+    "previous": "← Anterior",
+    "next": "Siguiente →",
+    "re_analyze": "Reanalizar",
+    "clear_all": "Limpiar Todo",
+    "advisory_note": "Esta retroalimentación es solo una sugerencia. Tú decides qué publicar."
   }
 }

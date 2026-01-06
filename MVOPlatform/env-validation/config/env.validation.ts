@@ -40,10 +40,17 @@ export function validateEnvironmentVariables() {
       SUPABASE_STORAGE_SECRET_ACCESS_KEY:
         process.env.SUPABASE_STORAGE_SECRET_ACCESS_KEY,
       SUPABASE_STORAGE_BUCKET_NAME: process.env.SUPABASE_STORAGE_BUCKET_NAME,
+      NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+      NEXT_PUBLIC_GEMINI_MODEL: process.env.NEXT_PUBLIC_GEMINI_MODEL,
     }
 
     // Load schema from config directory
-    const schemaPath = path.join(process.cwd(), 'env-validation', 'config', 'env.schema.json')
+    const schemaPath = path.join(
+      process.cwd(),
+      'env-validation',
+      'config',
+      'env.schema.json'
+    )
 
     // Validate using schema
     const result = validator.validate(schemaPath, envVarsForValidation)

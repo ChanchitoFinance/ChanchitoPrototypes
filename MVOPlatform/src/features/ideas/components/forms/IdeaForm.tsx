@@ -33,6 +33,7 @@ import {
   useTranslations,
 } from '@/shared/components/providers/I18nProvider'
 import { SpaceWithTeam } from '@/core/types/space'
+import { AIRiskFeedback } from './AIRiskFeedback'
 import { useAppSelector } from '@/core/lib/hooks'
 import { supabase } from '@/core/lib/supabase'
 import { ideaService } from '@/core/lib/services/ideaService'
@@ -104,6 +105,7 @@ export function IdeaForm({
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
   const { profile, user } = useAppSelector(state => state.auth)
+  const { isAuthenticated } = useAppSelector(state => state.auth)
 
   const ideaSchema = z.object({
     title: z.string().min(10, t('validation.title_min_length')),
@@ -701,6 +703,10 @@ export function IdeaForm({
       if (typeof window !== 'undefined') {
         try {
           localStorage.removeItem(FORM_STORAGE_KEY)
+          // Clear AI feedback cache for this idea
+          const { aiFeedbackStorage } =
+            await import('@/core/lib/services/aiFeedbackStorage')
+          aiFeedbackStorage.clearAllFeedback()
         } catch (error) {
           console.error('Error clearing saved form data:', error)
         }
@@ -1439,6 +1445,21 @@ export function IdeaForm({
               </div>
             </motion.label>
           </div>
+
+          {isAuthenticated &&
+            titleValue &&
+            titleValue.length >= 10 &&
+            contentBlocks.length > 0 && (
+              <AIRiskFeedback
+                title={titleValue}
+                description={
+                  contentBlocks.find(b => b.type === 'text')?.content || ''
+                }
+                content={contentBlocks}
+                tags={selectedTags}
+                isAnonymous={isAnonymous}
+              />
+            )}
 
           {/* Submit Buttons */}
           <div className="flex gap-4">

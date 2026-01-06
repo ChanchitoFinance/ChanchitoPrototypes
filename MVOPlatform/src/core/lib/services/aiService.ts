@@ -488,8 +488,8 @@ Keep response under 600 words. Be protective but non-judgmental. Use ⚠️ for 
     return {
       persona: 'risk',
       feedback,
-      suggestions: this.extractSuggestions(feedback),
-      warnings: this.extractWarnings(feedback),
+      suggestions: [],
+      warnings: [],
       timestamp: new Date(),
     }
   }
@@ -498,22 +498,29 @@ Keep response under 600 words. Be protective but non-judgmental. Use ⚠️ for 
     const suggestions: string[] = []
     const lines = feedback.split('\n')
 
+    let currentSuggestion = ''
+    let inSuggestionsSection = false
     for (const line of lines) {
-      if (line.match(/^[0-9]+\./)) {
-        suggestions.push(line.replace(/^[0-9]+\.\s*/, '').trim())
-      } else if (
-        line.includes('💡') ||
-        line.toLowerCase().includes('suggest') ||
-        line.toLowerCase().includes('consider')
-      ) {
-        const cleaned = line.replace(/💡/g, '').trim()
-        if (cleaned.length > 10) {
-          suggestions.push(cleaned)
+      if (line.includes('Suggestions for Improvement:')) {
+        inSuggestionsSection = true
+        continue
+      }
+      if (inSuggestionsSection) {
+        if (line.trim().startsWith('•') || line.trim().startsWith('*')) {
+          if (currentSuggestion) {
+            suggestions.push(currentSuggestion.trim())
+          }
+          currentSuggestion = line.replace(/^[•*]\s*/, '').trim()
+        } else if (currentSuggestion && line.trim()) {
+          currentSuggestion += ' ' + line.trim()
         }
       }
     }
+    if (currentSuggestion) {
+      suggestions.push(currentSuggestion.trim())
+    }
 
-    return suggestions.slice(0, 5)
+    return suggestions.slice(0, 10)
   }
 
   private extractWarnings(feedback: string): string[] {
@@ -521,13 +528,8 @@ Keep response under 600 words. Be protective but non-judgmental. Use ⚠️ for 
     const lines = feedback.split('\n')
 
     for (const line of lines) {
-      if (
-        line.includes('⚠️') ||
-        line.toLowerCase().includes('warning') ||
-        line.toLowerCase().includes('concern') ||
-        line.toLowerCase().includes('risk')
-      ) {
-        const cleaned = line.replace(/⚠️/g, '').trim()
+      if (line.includes('• ⚠️')) {
+        const cleaned = line.replace(/• ⚠️/g, '').trim()
         if (cleaned.length > 10) {
           warnings.push(cleaned)
         }

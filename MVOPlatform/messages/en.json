@@ -484,5 +484,22 @@
     "dark_mode": "Dark Mode",
     "save_settings": "Save Settings",
     "auto_save_message": "Your settings are automatically saved when you make changes"
+  },
+  "ai_risk_feedback": {
+    "analyzing": "Analyzing...",
+    "view_analysis": "View AI Risk Analysis",
+    "receive_feedback": "Receive Feedback",
+    "clear_history_confirm": "Are you sure you want to clear all analysis history?",
+    "try_again": "Try again",
+    "risk_analysis": "Risk Analysis",
+    "version": "Version",
+    "of": "of",
+    "warnings": "Warnings",
+    "suggestions": "Suggestions",
+    "previous": "← Previous",
+    "next": "Next →",
+    "re_analyze": "Re-analyze",
+    "clear_all": "Clear All",
+    "advisory_note": "This feedback is advisory only. You decide what to post."
   }
 }
