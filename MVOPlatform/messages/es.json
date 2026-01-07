@@ -239,7 +239,11 @@
     "read_more": "Leer más",
     "read_less": "Leer menos",
     "character_limit": "Límite de {limit} caracteres",
-    "characters_remaining": "{count} caracteres restantes"
+    "characters_remaining": "{count} caracteres restantes",
+    "mention_ai_persona": "Menciona una AI Persona con @",
+    "ai_personas_responding": "Las AI Personas están respondiendo...",
+    "max_mentions_reached": "Puedes mencionar hasta 3 AI Personas por comentario",
+    "submit_error": "Error al enviar el comentario. Por favor intenta de nuevo."
   },
   "carousel": {
     "trending": "Tendencias",
@@ -479,5 +483,41 @@
     "dark_mode": "Modo Oscuro",
     "save_settings": "Guardar Configuración",
     "auto_save_message": "Tus configuraciones se guardan automáticamente cuando realizas cambios"
+  },
+  "ai_risk_feedback": {
+    "analyzing": "Analizando...",
+    "view_analysis": "Ver Análisis de Riesgos IA",
+    "receive_feedback": "Recibir Retroalimentación",
+    "clear_history_confirm": "¿Estás seguro de que quieres eliminar todo el historial de análisis?",
+    "try_again": "Intentar de nuevo",
+    "risk_analysis": "Análisis de Riesgos",
+    "version": "Versión",
+    "of": "de",
+    "warnings": "Advertencias",
+    "suggestions": "Sugerencias",
+    "previous": "← Anterior",
+    "next": "Siguiente →",
+    "re_analyze": "Reanalizar",
+    "clear_all": "Limpiar Todo",
+    "advisory_note": "Esta retroalimentación es solo una sugerencia. Tú decides qué publicar."
+  },
+  "ai_personas_evaluation": {
+    "analyzing": "Analizando el progreso de tu idea...",
+    "view_evaluation": "Ver Evaluación de AI Personas",
+    "get_evaluation": "Obtener Evaluación de AI Personas",
+    "clear_history_confirm": "¿Estás seguro de que quieres eliminar todo el historial de evaluación?",
+    "try_again": "Intentar de nuevo",
+    "evaluation_title": "Evaluación de AI Personas",
+    "version": "Versión",
+    "of": "de",
+    "previous": "← Anterior",
+    "next": "Siguiente →",
+    "re_evaluate": "Re-evaluar",
+    "clear_all": "Limpiar Todo",
+    "advisory_note": "Esta evaluación es solo una sugerencia. Las AI Personas proporcionan perspectivas para ayudarte a mejorar tu idea."
+  },
+  "ai": {
+    "daily_limit_exceeded": "El modelo de IA ha alcanzado el pico de uso diario. Por favor intenta de nuevo más tarde.",
+    "service_unavailable": "El servicio de IA no está disponible actualmente. Por favor intenta de nuevo más tarde."
   }
 }

@@ -244,7 +244,11 @@
     "read_more": "Read more",
     "read_less": "Read less",
     "character_limit": "{limit} character limit",
-    "characters_remaining": "{count} characters remaining"
+    "characters_remaining": "{count} characters remaining",
+    "mention_ai_persona": "Mention an AI Persona with @",
+    "ai_personas_responding": "AI Personas are responding...",
+    "max_mentions_reached": "You can mention up to 3 AI Personas per comment",
+    "submit_error": "Failed to submit comment. Please try again."
   },
   "carousel": {
     "trending": "Trending",
@@ -484,5 +488,41 @@
     "dark_mode": "Dark Mode",
     "save_settings": "Save Settings",
     "auto_save_message": "Your settings are automatically saved when you make changes"
+  },
+  "ai_risk_feedback": {
+    "analyzing": "Analyzing...",
+    "view_analysis": "View AI Risk Analysis",
+    "receive_feedback": "Receive Feedback",
+    "clear_history_confirm": "Are you sure you want to clear all analysis history?",
+    "try_again": "Try again",
+    "risk_analysis": "Risk Analysis",
+    "version": "Version",
+    "of": "of",
+    "warnings": "Warnings",
+    "suggestions": "Suggestions",
+    "previous": "← Previous",
+    "next": "Next →",
+    "re_analyze": "Re-analyze",
+    "clear_all": "Clear All",
+    "advisory_note": "This feedback is advisory only. You decide what to post."
+  },
+  "ai_personas_evaluation": {
+    "analyzing": "Analyzing your idea's progress...",
+    "view_evaluation": "View AI Personas Evaluation",
+    "get_evaluation": "Get AI Personas Evaluation",
+    "clear_history_confirm": "Are you sure you want to clear all evaluation history?",
+    "try_again": "Try again",
+    "evaluation_title": "AI Personas Evaluation",
+    "version": "Version",
+    "of": "of",
+    "previous": "← Previous",
+    "next": "Next →",
+    "re_evaluate": "Re-evaluate",
+    "clear_all": "Clear All",
+    "advisory_note": "This evaluation is advisory only. AI personas provide perspectives to help you improve your idea."
+  },
+  "ai": {
+    "daily_limit_exceeded": "AI model has reached daily usage peak. Please try again later.",
+    "service_unavailable": "AI service is currently unavailable. Please try again later."
   }
 }

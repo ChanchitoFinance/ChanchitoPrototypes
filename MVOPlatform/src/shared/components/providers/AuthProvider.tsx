@@ -21,7 +21,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   )
 
   useEffect(() => {
-    dispatch(checkAuth())
+    // Only check auth if not already initialized to prevent unnecessary loading states
+    if (!initialized) dispatch(checkAuth());
 
     const { data: authListener } = supabase.auth.onAuthStateChange(event => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
@@ -34,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => {
       authListener.subscription.unsubscribe()
     }
-  }, [dispatch])
+  }, [dispatch, initialized])
 
   useEffect(() => {
     const isAuthPage = pathname.startsWith('/auth')
