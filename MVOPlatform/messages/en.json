@@ -244,7 +244,11 @@
     "read_more": "Read more",
     "read_less": "Read less",
     "character_limit": "{limit} character limit",
-    "characters_remaining": "{count} characters remaining"
+    "characters_remaining": "{count} characters remaining",
+    "mention_ai_persona": "Mention an AI Persona with @",
+    "ai_personas_responding": "AI Personas are responding...",
+    "max_mentions_reached": "You can mention up to 3 AI Personas per comment",
+    "submit_error": "Failed to submit comment. Please try again."
   },
   "carousel": {
     "trending": "Trending",
@@ -516,5 +520,9 @@
     "re_evaluate": "Re-evaluate",
     "clear_all": "Clear All",
     "advisory_note": "This evaluation is advisory only. AI personas provide perspectives to help you improve your idea."
+  },
+  "ai": {
+    "daily_limit_exceeded": "AI model has reached daily usage peak. Please try again later.",
+    "service_unavailable": "AI service is currently unavailable. Please try again later."
   }
 }

@@ -151,7 +151,21 @@ class AIService {
     if (!response.ok) {
       const errorData = await response.json()
       if (errorData.error?.code === 429) {
-        // Handle rate limit error
+        // Check if it's a daily limit or rate limit
+        const isDailyLimit =
+          errorData.error?.message?.includes('daily') ||
+          errorData.error?.message?.includes('quota') ||
+          !errorData.error?.details?.find(
+            (detail: any) =>
+              detail['@type'] === 'type.googleapis.com/google.rpc.RetryInfo'
+          )
+
+        if (isDailyLimit) {
+          // Daily limit reached, don't retry
+          throw new Error('AI_DAILY_LIMIT_EXCEEDED')
+        }
+
+        // Handle rate limit error with retry
         const retryDelay = errorData.error?.details?.find(
           (detail: any) =>
             detail['@type'] === 'type.googleapis.com/google.rpc.RetryInfo'
@@ -646,6 +660,187 @@ Provide a role-based conversation where all 5 personas evaluate the idea's progr
     return {
       conversation,
       timestamp: new Date(),
+    }
+  }
+
+  async generateInitialComments(
+    idea: Idea,
+    language: 'en' | 'es'
+  ): Promise<{
+    comments: Array<{
+      personaKey: string
+      content: string
+      referencesPersona?: string
+    }>
+  }> {
+    const systemPrompt = `You are a panel of AI advisors providing initial feedback on a new business idea. You will evaluate the idea and return up to 3 AI personas' comments in order of priority.
+
+AVAILABLE PERSONAS (in priority consideration order):
+1. AI · Technical Feasibility - Architecture & scalability expert
+2. AI · Founder Reality Check - Execution & capacity advisor
+3. AI · Market Skeptic - Demand & assumptions challenger
+4. AI · GTM & Distribution - Growth & channels strategist
+5. AI · Investor Lens - Narrative & positioning expert
+
+RULES:
+- Select the 2-3 MOST RELEVANT personas for this specific idea
+- Return ONLY the personas that have valuable insights for THIS idea
+- Each persona speaks once
+- 70% chance personas can reference each other (use "As [Persona Name] mentioned..." format)
+- Keep each comment to 2-4 sentences maximum
+- Be constructive but honest
+
+RESPONSE FORMAT (JSON):
+{
+  "comments": [
+    {
+      "persona": "AI · Technical Feasibility",
+      "content": "Your technical assessment here...",
+      "references": null
+    },
+    {
+      "persona": "AI · Market Skeptic",
+      "content": "As AI · Technical Feasibility mentioned... [your assessment]",
+      "references": "AI · Technical Feasibility"
+    }
+  ]
+}
+
+Return ONLY valid JSON, no other text.`
+
+    const prompt = `Analyze this new idea and provide initial feedback:
+
+Title: ${idea.title}
+Description: ${idea.description}
+Tags: ${idea.tags.join(', ')}
+Content: ${idea.content?.length || 0} blocks
+
+Select 2-3 most relevant AI personas and provide their initial comments.`
+
+    const response = await this.callGemini(prompt, systemPrompt, language)
+
+    const cleanedResponse = response
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim()
+
+    try {
+      const parsed = JSON.parse(cleanedResponse)
+
+      const personaKeyMap: Record<string, string> = {
+        'AI · Technical Feasibility': 'technical',
+        'AI · Founder Reality Check': 'founder',
+        'AI · Market Skeptic': 'market',
+        'AI · GTM & Distribution': 'gtm',
+        'AI · Investor Lens': 'investor',
+      }
+
+      return {
+        comments: parsed.comments.slice(0, 3).map((comment: any) => ({
+          personaKey: personaKeyMap[comment.persona] || 'technical',
+          content: comment.content,
+          referencesPersona: comment.references
+            ? personaKeyMap[comment.references]
+            : undefined,
+        })),
+      }
+    } catch (error) {
+      console.error('Error parsing AI comments:', error)
+      return { comments: [] }
+    }
+  }
+
+  async respondToMention(
+    idea: Idea,
+    allComments: Comment[],
+    mentionComment: Comment,
+    mentionedPersonas: string[],
+    language: 'en' | 'es'
+  ): Promise<{
+    responses: Array<{
+      personaKey: string
+      content: string
+      referencesPersona?: string
+    }>
+  }> {
+    const personaNames: Record<string, string> = {
+      technical: 'AI · Technical Feasibility',
+      founder: 'AI · Founder Reality Check',
+      market: 'AI · Market Skeptic',
+      gtm: 'AI · GTM & Distribution',
+      investor: 'AI · Investor Lens',
+    }
+
+    const systemPrompt = `You are responding to a user who mentioned you in a comment thread. Provide helpful, contextual responses.
+
+MENTIONED PERSONAS: ${mentionedPersonas.map(p => personaNames[p]).join(', ')}
+
+RULES:
+- Each mentioned persona responds once
+- Keep responses to 2-4 sentences
+- Be helpful and address the user's specific question/comment
+- Personas CAN reference each other if relevant (70% chance)
+- Use "As [Persona Name] mentioned..." if referencing another persona
+
+RESPONSE FORMAT (JSON):
+{
+  "responses": [
+    {
+      "persona": "AI · Technical Feasibility",
+      "content": "Your response here...",
+      "references": null
+    }
+  ]
+}
+
+Return ONLY valid JSON, no other text.`
+
+    const commentsContext = allComments
+      .slice(0, 10)
+      .map(c => `${c.author}: ${c.content}`)
+      .join('\n')
+
+    const prompt = `Context:
+Idea: ${idea.title}
+Description: ${idea.description}
+
+Recent Comments:
+${commentsContext}
+
+User's Comment (mentioning you): ${mentionComment.content}
+
+Provide responses from the mentioned personas: ${mentionedPersonas.map(p => personaNames[p]).join(', ')}`
+
+    const response = await this.callGemini(prompt, systemPrompt, language)
+
+    const cleanedResponse = response
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim()
+
+    try {
+      const parsed = JSON.parse(cleanedResponse)
+
+      const personaKeyMap: Record<string, string> = {
+        'AI · Technical Feasibility': 'technical',
+        'AI · Founder Reality Check': 'founder',
+        'AI · Market Skeptic': 'market',
+        'AI · GTM & Distribution': 'gtm',
+        'AI · Investor Lens': 'investor',
+      }
+
+      return {
+        responses: parsed.responses.map((response: any) => ({
+          personaKey: personaKeyMap[response.persona] || mentionedPersonas[0],
+          content: response.content,
+          referencesPersona: response.references
+            ? personaKeyMap[response.references]
+            : undefined,
+        })),
+      }
+    } catch (error) {
+      console.error('Error parsing AI responses:', error)
+      return { responses: [] }
     }
   }
 }

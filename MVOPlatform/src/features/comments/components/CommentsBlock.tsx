@@ -6,8 +6,16 @@ import { ArrowUp } from 'lucide-react'
 import { Comment } from '@/core/types/comment'
 import { useAppSelector } from '@/core/lib/hooks'
 import { commentService } from '@/core/lib/services/commentService'
-import { useTranslations } from '@/shared/components/providers/I18nProvider'
+import {
+  useTranslations,
+  useLocale,
+} from '@/shared/components/providers/I18nProvider'
 import { CommentTree } from './CommentTree'
+import {
+  aiCommentService,
+  AI_PERSONA_HANDLES,
+} from '@/core/lib/services/aiCommentService'
+import { ideaService } from '@/core/lib/services/ideaService'
 
 interface CommentsBlockProps {
   ideaId: string
@@ -17,6 +25,7 @@ const MAX_COMMENT_LENGTH = 3000
 
 export function CommentsBlock({ ideaId }: CommentsBlockProps) {
   const t = useTranslations()
+  const { locale } = useLocale()
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
   const [loading, setLoading] = useState(true)
@@ -30,6 +39,9 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
   const { user, profile } = useAppSelector(state => state.auth)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const newCommentRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState(false)
+  const [mentionQuery, setMentionQuery] = useState('')
+  const [mentionSuggestions, setMentionSuggestions] = useState<string[]>([])
 
   useEffect(() => {
     loadComments()
@@ -249,19 +261,20 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
 
     const commentText = newComment.trim()
 
-    // Validate comment length
     if (commentText.length > MAX_COMMENT_LENGTH) {
       toast.error(
-        t('comments.character_limit').replace('{limit}', MAX_COMMENT_LENGTH.toString())
+        t('comments.character_limit').replace(
+          '{limit}',
+          MAX_COMMENT_LENGTH.toString()
+        )
       )
       return
     }
 
     setSubmitting(true)
-    setNewComment('') // Clear textarea immediately for better UX
+    setNewComment('')
 
     try {
-      // Use session data if available, otherwise use anonymous
       const authorName =
         profile?.full_name ||
         user?.user_metadata?.full_name ||
@@ -269,7 +282,10 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
         'Anonymous'
       const authorImage = user?.user_metadata?.avatar_url || undefined
 
-      await commentService.addComment(
+      const mentionedPersonas =
+        aiCommentService.extractMentionedPersonas(commentText)
+
+      const newCommentData = await commentService.addComment(
         ideaId,
         commentText,
         authorName,
@@ -277,15 +293,50 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
         replyingTo || undefined
       )
 
+      // Try to handle AI mentions after comment is posted
+      if (mentionedPersonas.length > 0) {
+        try {
+          const idea = await ideaService.getIdeaById(ideaId)
+          if (idea) {
+            await aiCommentService.handleMentionedPersonas(
+              idea,
+              comments,
+              newCommentData,
+              mentionedPersonas,
+              user.id,
+              locale as 'en' | 'es'
+            )
+          }
+        } catch (aiError) {
+          console.error('AI service error:', aiError)
+
+          // Handle specific AI errors
+          if (
+            aiError instanceof Error &&
+            aiError.message === 'AI_DAILY_LIMIT_EXCEEDED'
+          ) {
+            toast.error(
+              t('ai.daily_limit_exceeded') ||
+                'AI model has reached daily usage peak. Please try again later.'
+            )
+          } else {
+            toast.error(
+              t('ai.service_unavailable') ||
+                'AI service is currently unavailable. Please try again later.'
+            )
+          }
+
+          // Note: Comment is already posted, but user is notified of AI failure
+        }
+      }
+
       if (replyingTo) {
         setReplyingTo(null)
         setReplyText(new Map())
       }
 
-      // Reload comments to avoid duplicates and get the latest state
       const updatedComments = await commentService.getComments(ideaId)
 
-      // Re-apply user vote information
       if (user) {
         const allCommentIds: string[] = []
         const collectCommentIds = (comments: Comment[]) => {
@@ -323,25 +374,21 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
         setComments(updatedComments)
       }
 
-      // Find the newly added comment (should be the first one)
-      const newComment = updatedComments[0]
-      if (newComment) {
-        // Highlight the new comment
-        setHighlightedCommentId(newComment.id)
-        // Scroll directly to the new comment without intermediate movements
+      const newCommentElement = updatedComments[0]
+      if (newCommentElement) {
+        setHighlightedCommentId(newCommentElement.id)
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            const commentElement = newCommentRefs.current.get(newComment.id)
+            const commentElement = newCommentRefs.current.get(
+              newCommentElement.id
+            )
             if (commentElement) {
-              // Get the position before any scroll happens
               const elementTop =
                 commentElement.getBoundingClientRect().top + window.pageYOffset
-              // Scroll directly to the comment position
               window.scrollTo({
                 top: elementTop - 100,
                 behavior: 'smooth',
               })
-              // Remove highlight after animation
               setTimeout(() => {
                 setHighlightedCommentId(null)
               }, 2000)
@@ -351,11 +398,14 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
       }
     } catch (error) {
       console.error('Error submitting comment:', error)
-      // Restore comment text if there was an error
+      // Restore the comment text if submission failed
       setNewComment(commentText)
+      toast.error(
+        t('comments.submit_error') ||
+          'Failed to submit comment. Please try again.'
+      )
     } finally {
       setSubmitting(false)
-      // Keep focus on textarea after submitting - use requestAnimationFrame for better reliability
       requestAnimationFrame(() => {
         setTimeout(() => {
           textareaRef.current?.focus()
@@ -378,11 +428,39 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
                 value={newComment}
                 onChange={e => {
                   const value = e.target.value
-                  // Enforce character limit
                   if (value.length <= MAX_COMMENT_LENGTH) {
                     setNewComment(value)
+
+                    const cursorPosition = e.target.selectionStart
+                    const textBeforeCursor = value.substring(0, cursorPosition)
+                    const lastAtSymbol = textBeforeCursor.lastIndexOf('@')
+
+                    if (lastAtSymbol !== -1) {
+                      const query = textBeforeCursor.substring(lastAtSymbol + 1)
+                      if (query.length > 0 && !query.includes(' ')) {
+                        const matches = Object.entries(AI_PERSONA_HANDLES)
+                          .filter(([_, handle]) =>
+                            handle
+                              .toLowerCase()
+                              .includes(`@${query.toLowerCase()}`)
+                          )
+                          .map(([_, handle]) => handle)
+
+                        if (matches.length > 0) {
+                          setMentionQuery(query)
+                          setMentionSuggestions(matches)
+                          setShowMentionSuggestions(true)
+                        } else {
+                          setShowMentionSuggestions(false)
+                        }
+                      } else {
+                        setShowMentionSuggestions(false)
+                      }
+                    } else {
+                      setShowMentionSuggestions(false)
+                    }
                   }
-                  // Auto-resize textarea
+
                   if (textareaRef.current) {
                     textareaRef.current.style.height = 'auto'
                     textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
@@ -398,6 +476,40 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
                 }}
                 rows={1}
               />
+              {showMentionSuggestions && (
+                <div className="absolute bottom-full mb-2 bg-white dark:bg-gray-800 border border-border-color rounded-lg shadow-lg max-h-48 overflow-y-auto z-10">
+                  {mentionSuggestions.map(handle => (
+                    <button
+                      key={handle}
+                      type="button"
+                      onClick={() => {
+                        const cursorPosition =
+                          textareaRef.current?.selectionStart || 0
+                        const textBeforeCursor = newComment.substring(
+                          0,
+                          cursorPosition
+                        )
+                        const lastAtSymbol = textBeforeCursor.lastIndexOf('@')
+                        const textAfterCursor =
+                          newComment.substring(cursorPosition)
+
+                        const newText =
+                          textBeforeCursor.substring(0, lastAtSymbol) +
+                          handle +
+                          ' ' +
+                          textAfterCursor
+
+                        setNewComment(newText)
+                        setShowMentionSuggestions(false)
+                        textareaRef.current?.focus()
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm"
+                    >
+                      <span className="text-accent font-medium">{handle}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <button
               type="submit"
@@ -413,10 +525,11 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
           {/* Character count */}
           <div className="flex justify-end">
             <span
-              className={`text-xs ${newComment.length > MAX_COMMENT_LENGTH * 0.9
-                ? 'text-red-500'
-                : 'text-text-secondary'
-                }`}
+              className={`text-xs ${
+                newComment.length > MAX_COMMENT_LENGTH * 0.9
+                  ? 'text-red-500'
+                  : 'text-text-secondary'
+              }`}
             >
               {t('comments.characters_remaining').replace(
                 '{count}',

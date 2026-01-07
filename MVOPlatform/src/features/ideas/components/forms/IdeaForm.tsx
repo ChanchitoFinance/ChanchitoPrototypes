@@ -44,6 +44,7 @@ import { Button } from '@/shared/components/ui/Button'
 import { ContentBlock } from '@/core/types/content'
 import { isUrlValid } from '@/core/lib/utils/media'
 import { toast } from 'sonner'
+import { aiCommentService } from '@/core/lib/services/aiCommentService'
 
 type IdeaFormData = {
   title: string
@@ -578,8 +579,8 @@ export function IdeaForm({
       return
     }
 
-    // Call the onCustomSubmit prop if provided
-    if (onCustomSubmit) {
+    // Call the onCustomSubmit prop if provided and user is not authenticated
+    if (onCustomSubmit && !isAuthenticated) {
       onCustomSubmit(data)
       return
     }
@@ -726,6 +727,14 @@ export function IdeaForm({
         setShowImageUpload(false)
         setShowVideoUpload(false)
         setShowHeroCrop(false)
+      }
+
+      if (!ideaId && user) {
+        await aiCommentService.createInitialAIComments(
+          resultIdea,
+          user.id,
+          locale as 'en' | 'es'
+        )
       }
 
       // Call onSuccess callback if provided, otherwise redirect

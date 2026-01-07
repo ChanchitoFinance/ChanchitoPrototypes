@@ -15,6 +15,10 @@ import { useAppSelector } from '@/core/lib/hooks'
 import { Comment } from '@/core/types/comment'
 import { formatDate } from '@/core/lib/utils/date'
 import { CommentReadMore } from './CommentReadMore'
+import {
+  aiCommentService,
+  AI_PERSONA_NAMES,
+} from '@/core/lib/services/aiCommentService'
 
 const MAX_COMMENT_LENGTH = 3000
 
@@ -120,6 +124,21 @@ export function CommentTree({
     const actionSize = getActionSize(depth)
     const iconSize = getIconSize(depth)
 
+    // AI Persona detection logic
+    const aiPersonaData = aiCommentService.extractAIPersonaFromComment(
+      comment.content
+    )
+    const isAIComment = aiPersonaData.personaKey !== null
+    const displayContent = isAIComment
+      ? aiPersonaData.cleanContent
+      : comment.content
+    const displayAuthor = isAIComment
+      ? AI_PERSONA_NAMES[aiPersonaData.personaKey!]
+      : comment.author
+    const displayAvatar = isAIComment
+      ? `/ai-personas/${aiPersonaData.personaKey}.png`
+      : comment.authorImage
+
     const hasReplies = comment.replies && comment.replies.length > 0
     const canReply = depth < maxDepth - 1 // Allow replies up to maxDepth - 1
 
@@ -141,22 +160,23 @@ export function CommentTree({
         )}
 
         <div
-          className={`p-3 rounded-lg transition-all duration-300 ${highlightedCommentId === comment.id
-            ? isDark
-              ? 'bg-accent/20 ring-2 ring-accent'
-              : 'bg-accent/20 ring-2 ring-accent'
-            : isDark
-              ? 'bg-white/5 hover:bg-white/10'
-              : 'bg-gray-50 hover:bg-gray-100'
-            }`}
+          className={`p-3 rounded-lg transition-all duration-300 ${
+            highlightedCommentId === comment.id
+              ? isDark
+                ? 'bg-accent/20 ring-2 ring-accent'
+                : 'bg-accent/20 ring-2 ring-accent'
+              : isDark
+                ? 'bg-white/5 hover:bg-white/10'
+                : 'bg-gray-50 hover:bg-gray-100'
+          }`}
         >
           <div className="flex items-start gap-3">
             {/* Avatar */}
             <div className="flex-shrink-0">
-              {comment.authorImage ? (
+              {displayAvatar ? (
                 <Image
-                  src={comment.authorImage}
-                  alt={comment.author}
+                  src={displayAvatar}
+                  alt={displayAuthor}
                   width={avatarSize}
                   height={avatarSize}
                   className="rounded-full"
@@ -176,25 +196,34 @@ export function CommentTree({
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <span className={`font-semibold ${textSize} ${isDark ? 'text-white' : ''}`}>
-                  @{comment.author}
+                <span
+                  className={`font-semibold ${textSize} ${isDark ? 'text-white' : ''} ${isAIComment ? 'text-accent' : ''}`}
+                >
+                  {isAIComment ? displayAuthor : `@${displayAuthor}`}
                 </span>
-                <span className={`${secondaryTextSize} ${isDark ? 'text-white/60' : ''}`}>
+                <span
+                  className={`${secondaryTextSize} ${isDark ? 'text-white/60' : ''}`}
+                >
                   •
                 </span>
-                <span className={`${secondaryTextSize} ${isDark ? 'text-white/60' : ''}`}>
+                <span
+                  className={`${secondaryTextSize} ${isDark ? 'text-white/60' : ''}`}
+                >
                   {formatDate(comment.createdAt)}
                 </span>
                 {comment.usefulnessScore > 0 && (
                   <>
-                    <span className={`${secondaryTextSize} ${isDark ? 'text-white/60' : ''}`}>
+                    <span
+                      className={`${secondaryTextSize} ${isDark ? 'text-white/60' : ''}`}
+                    >
                       •
                     </span>
                     <span
-                      className={`text-xs px-1.5 py-0.5 rounded-full ${isDark
-                        ? 'bg-accent/30 text-accent'
-                        : 'bg-accent/20 text-accent'
-                        }`}
+                      className={`text-xs px-1.5 py-0.5 rounded-full ${
+                        isDark
+                          ? 'bg-accent/30 text-accent'
+                          : 'bg-accent/20 text-accent'
+                      }`}
                     >
                       {comment.usefulnessScore.toFixed(1)}
                     </span>
@@ -202,23 +231,22 @@ export function CommentTree({
                 )}
               </div>
 
-              <div className="mb-2">
-                <CommentReadMore
-                  content={comment.content}
-                  maxLines={3}
-                  className={depth >= 2 ? 'text-xs' : depth >= 1 ? 'text-sm' : ''}
-                  isDark={isDark}
-                />
-              </div>
+              <div
+                className="mb-2"
+                dangerouslySetInnerHTML={{
+                  __html: aiCommentService.highlightMentions(displayContent),
+                }}
+              />
 
               {/* Actions */}
               <div className="flex items-center gap-3 flex-wrap">
                 <button
                   onClick={() => onUpvote(comment.id)}
-                  className={`flex items-center gap-1 transition-colors ${actionSize} ${comment.upvoted
-                    ? 'text-accent'
-                    : `${isDark ? 'text-white/60 hover:text-accent' : 'text-text-secondary hover:text-accent'}`
-                    }`}
+                  className={`flex items-center gap-1 transition-colors ${actionSize} ${
+                    comment.upvoted
+                      ? 'text-accent'
+                      : `${isDark ? 'text-white/60 hover:text-accent' : 'text-text-secondary hover:text-accent'}`
+                  }`}
                   title="Upvote"
                 >
                   <ArrowUp
@@ -229,10 +257,11 @@ export function CommentTree({
 
                 <button
                   onClick={() => onDownvote(comment.id)}
-                  className={`flex items-center gap-1 transition-colors ${actionSize} ${comment.downvoted
-                    ? 'text-red-500'
-                    : `${isDark ? 'text-white/60 hover:text-red-500' : 'text-text-secondary hover:text-red-500'}`
-                    }`}
+                  className={`flex items-center gap-1 transition-colors ${actionSize} ${
+                    comment.downvoted
+                      ? 'text-red-500'
+                      : `${isDark ? 'text-white/60 hover:text-red-500' : 'text-text-secondary hover:text-red-500'}`
+                  }`}
                   title="Downvote"
                 >
                   <ArrowDown
@@ -244,10 +273,11 @@ export function CommentTree({
                 {canReply && (
                   <button
                     onClick={() => onReply(comment.id)}
-                    className={`flex items-center gap-1 transition-colors ${actionSize} ${isDark
-                      ? 'text-white/60 hover:text-accent'
-                      : 'text-text-secondary hover:text-accent'
-                      }`}
+                    className={`flex items-center gap-1 transition-colors ${actionSize} ${
+                      isDark
+                        ? 'text-white/60 hover:text-accent'
+                        : 'text-text-secondary hover:text-accent'
+                    }`}
                   >
                     <MessageSquare className={iconSize} />
                     <span>Reply</span>
@@ -257,10 +287,11 @@ export function CommentTree({
                 {hasReplies && (
                   <button
                     onClick={() => onToggleReplies(comment.id)}
-                    className={`flex items-center gap-1 transition-colors ${actionSize} ${isDark
-                      ? 'text-white/60 hover:text-accent'
-                      : 'text-text-secondary hover:text-accent'
-                      }`}
+                    className={`flex items-center gap-1 transition-colors ${actionSize} ${
+                      isDark
+                        ? 'text-white/60 hover:text-accent'
+                        : 'text-text-secondary hover:text-accent'
+                    }`}
                   >
                     {expandedReplies.has(comment.id) ? (
                       <ChevronUp className={iconSize} />
@@ -301,10 +332,11 @@ export function CommentTree({
                       }}
                       placeholder="Write a reply..."
                       maxLength={MAX_COMMENT_LENGTH}
-                      className={`flex-1 px-3 py-2 rounded-lg border resize-none overflow-hidden ${isDark
-                        ? 'bg-white/10 placeholder-white/50 border-white/20 focus:ring-accent text-white'
-                        : 'bg-gray-50 border-border-color focus:ring-accent'
-                        } focus:outline-none focus:ring-2`}
+                      className={`flex-1 px-3 py-2 rounded-lg border resize-none overflow-hidden ${
+                        isDark
+                          ? 'bg-white/10 placeholder-white/50 border-white/20 focus:ring-accent text-white'
+                          : 'bg-gray-50 border-border-color focus:ring-accent'
+                      } focus:outline-none focus:ring-2`}
                       style={{
                         minHeight: depth >= 2 ? '2rem' : '2.5rem',
                         maxHeight: depth >= 2 ? '8rem' : '10rem',
@@ -318,10 +350,11 @@ export function CommentTree({
                       disabled={
                         !replyText.get(comment.id)?.trim() || submitting
                       }
-                      className={`px-3 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center ${isDark
-                        ? 'bg-accent text-text-primary hover:bg-accent/90'
-                        : 'bg-accent text-text-primary hover:bg-accent/90'
-                        }`}
+                      className={`px-3 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center ${
+                        isDark
+                          ? 'bg-accent text-text-primary hover:bg-accent/90'
+                          : 'bg-accent text-text-primary hover:bg-accent/90'
+                      }`}
                     >
                       <ArrowUp className={iconSize} />
                     </button>
