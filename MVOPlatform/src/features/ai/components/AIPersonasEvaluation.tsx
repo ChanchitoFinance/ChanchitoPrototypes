@@ -10,7 +10,7 @@ import {
   RefreshCw,
   Sparkles,
 } from 'lucide-react'
-import { aiService, AIPersonaFeedback } from '@/core/lib/services/aiService'
+import { AIPersonaFeedback } from '@/core/types/ai'
 import { aiPersonasFeedbackStorage } from '@/core/lib/services/aiPersonasFeedbackStorage'
 import { Idea } from '@/core/types/idea'
 import { Comment } from '@/core/types/comment'
@@ -65,11 +65,30 @@ export function AIPersonasEvaluation({
     setError(null)
 
     try {
-      const result = await aiService.evaluateIdeaProgress(
-        idea,
-        comments,
-        locale as 'en' | 'es'
-      )
+      const response = await fetch('/api/ai/evaluate-progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          idea,
+          comments,
+          language: locale as 'en' | 'es',
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        if (
+          response.status === 429 &&
+          errorData.error === 'AI_DAILY_LIMIT_EXCEEDED'
+        ) {
+          throw new Error('AI_DAILY_LIMIT_EXCEEDED')
+        }
+        throw new Error('Failed to analyze')
+      }
+
+      const result = await response.json()
 
       aiPersonasFeedbackStorage.saveFeedback(
         result,

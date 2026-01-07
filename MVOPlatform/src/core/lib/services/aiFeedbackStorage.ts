@@ -1,4 +1,4 @@
-import { AIFeedback } from './aiService'
+import { AIFeedback } from '@/core/types/ai'
 
 interface StoredFeedback {
   feedback: AIFeedback

@@ -1,4 +1,4 @@
-import { AIPersonaFeedback } from './aiService'
+import { AIPersonaFeedback } from '@/core/types/ai'
 
 interface StoredFeedback {
   feedback: AIPersonaFeedback

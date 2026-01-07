@@ -1,5 +1,4 @@
 import { commentService } from './commentService'
-import { aiService } from './aiService'
 import { Idea } from '@/core/types/idea'
 import { Comment } from '@/core/types/comment'
 
@@ -26,7 +25,26 @@ class AICommentService {
     language: 'en' | 'es'
   ): Promise<void> {
     try {
-      const result = await aiService.generateInitialComments(idea, language)
+      const response = await fetch('/api/ai/generate-initial-comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          idea,
+          language,
+        }),
+      })
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          console.warn('AI daily limit exceeded for initial comments')
+          return
+        }
+        throw new Error('Failed to generate initial comments')
+      }
+
+      const result = await response.json()
 
       if (result.comments.length === 0) return
 
@@ -70,42 +88,62 @@ class AICommentService {
   ): Promise<void> {
     if (mentionedPersonas.length === 0 || mentionedPersonas.length > 3) return
 
-    const result = await aiService.respondToMention(
-      idea,
-      allComments,
-      userComment,
-      mentionedPersonas,
-      language
-    )
+    try {
+      const response = await fetch('/api/ai/respond-to-mention', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          idea,
+          allComments,
+          mentionComment: userComment,
+          mentionedPersonas,
+          language,
+        }),
+      })
 
-    if (result.responses.length === 0) return
-
-    const commentIdMap: Record<string, string> = {
-      user: userComment.id,
-    }
-
-    for (const aiResponse of result.responses) {
-      const personaName = AI_PERSONA_NAMES[aiResponse.personaKey]
-      const content = `${personaName}: ${aiResponse.content}`
-
-      let parentId = userComment.id
-
-      if (
-        aiResponse.referencesPersona &&
-        commentIdMap[aiResponse.referencesPersona]
-      ) {
-        parentId = commentIdMap[aiResponse.referencesPersona]
+      if (!response.ok) {
+        if (response.status === 429) {
+          console.warn('AI daily limit exceeded for mention response')
+          return
+        }
+        throw new Error('Failed to respond to mention')
       }
 
-      const newComment = await commentService.addComment(
-        idea.id,
-        content,
-        personaName,
-        `/ai-personas/${aiResponse.personaKey}.png`,
-        parentId
-      )
+      const result = await response.json()
 
-      commentIdMap[aiResponse.personaKey] = newComment.id
+      if (result.responses.length === 0) return
+
+      const commentIdMap: Record<string, string> = {
+        user: userComment.id,
+      }
+
+      for (const aiResponse of result.responses) {
+        const personaName = AI_PERSONA_NAMES[aiResponse.personaKey]
+        const content = `${personaName}: ${aiResponse.content}`
+
+        let parentId = userComment.id
+
+        if (
+          aiResponse.referencesPersona &&
+          commentIdMap[aiResponse.referencesPersona]
+        ) {
+          parentId = commentIdMap[aiResponse.referencesPersona]
+        }
+
+        const newComment = await commentService.addComment(
+          idea.id,
+          content,
+          personaName,
+          `/ai-personas/${aiResponse.personaKey}.png`,
+          parentId
+        )
+
+        commentIdMap[aiResponse.personaKey] = newComment.id
+      }
+    } catch (error) {
+      console.error('Error handling mentioned personas:', error)
     }
   }
 
