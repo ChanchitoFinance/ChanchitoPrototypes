@@ -11,7 +11,7 @@ import {
   RefreshCw,
   FileWarning,
 } from 'lucide-react'
-import { aiService, AIFeedback } from '@/core/lib/services/aiService'
+import { AIFeedback } from '@/core/types/ai'
 import { aiFeedbackStorage } from '@/core/lib/services/aiFeedbackStorage'
 import { ContentBlock } from '@/core/types/content'
 import {
@@ -77,14 +77,33 @@ export function AIRiskFeedback({
     setError(null)
 
     try {
-      const result = await aiService.analyzeRisks(
-        title,
-        description || '',
-        content,
-        tags,
-        isAnonymous,
-        locale as 'en' | 'es'
-      )
+      const response = await fetch('/api/ai/analyze-risks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          description: description || '',
+          content,
+          tags,
+          isAnonymous,
+          language: locale as 'en' | 'es',
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        if (
+          response.status === 429 &&
+          errorData.error === 'AI_DAILY_LIMIT_EXCEEDED'
+        ) {
+          throw new Error('AI_DAILY_LIMIT_EXCEEDED')
+        }
+        throw new Error('Failed to analyze')
+      }
+
+      const result = await response.json()
 
       aiFeedbackStorage.saveFeedback(
         result,

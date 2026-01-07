@@ -25,7 +25,7 @@ const rawClientEnv = {
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
   adminEmail: process.env.NEXT_PUBLIC_ADMIN_EMAIL!,
-  geminiApiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY!,
+  geminiApiKey: process.env.GEMINI_API_KEY!,
   geminiModel: process.env.NEXT_PUBLIC_GEMINI_MODEL!,
 } as const
 /* eslint-enable no-restricted-syntax */
