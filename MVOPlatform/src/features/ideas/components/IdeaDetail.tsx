@@ -204,18 +204,19 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
 
   return (
     <div className="bg-background relative">
-      {/* Back Button - Top Left, next to sidebar - fixed on scroll */}
-      <div className="fixed top-4 left-20 md:left-[272px] z-50 ">
+      {/* Back Button - Top Left, next to sidebar - fixed on scroll - Hidden on mobile */}
+      <div className="fixed top-4 left-4 md:left-[272px] z-50 hidden md:block">
         <Button
           onClick={handleBack}
           variant="outline"
           className="
             !text-gray-400
             !border-gray-400
+            px-3 py-2 md:px-4 md:py-2
           "
         >
           <ArrowLeft className="w-4 h-4" />
-          {t('actions.back')}
+          <span className="hidden sm:inline ml-2">{t('actions.back')}</span>
         </Button>
       </div>
 
@@ -261,8 +262,9 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           </div>
         ) : (
           <div className="relative w-full aspect-video bg-gradient-to-br from-accent/20 via-background to-accent/10 flex items-center justify-center">
-            <div className="text-center px-6 max-w-2xl">
-              <h1 className="text-4xl md:text-5xl font-bold text-text-primary mb-4">
+            {/* Title hidden on mobile to avoid duplication with overlay */}
+            <div className="text-center px-4 sm:px-6 max-w-2xl hidden md:block">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary mb-4 break-words">
                 {idea.title}
               </h1>
             </div>
@@ -270,20 +272,20 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         )}
 
         {/* Overlay Content - Title and Meta */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-6 md:p-12">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-4 sm:p-6 md:p-12">
           <div className="max-w-4xl mx-auto">
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
               {idea.tags.map(tag => (
                 <span
                   key={tag}
-                  className="px-3 py-1 text-xs font-medium text-white bg-white/20 backdrop-blur-sm rounded-full"
+                  className="px-2 sm:px-3 py-1 text-xs font-medium text-white bg-white/20 backdrop-blur-sm rounded-full"
                 >
                   #{tag}
                 </span>
               ))}
             </div>
             <h1
-              className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg break-words"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 drop-shadow-lg break-words"
               style={{
                 overflowWrap: 'break-word',
                 wordBreak: 'break-word',
@@ -292,24 +294,26 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
             >
               {idea.title}
             </h1>
-            <div className="flex items-center gap-4 text-white text-sm md:text-base">
-              {!idea.anonymous && (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-white text-sm md:text-base">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                {!idea.anonymous && (
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">@{idea.author}</span>
+                  </div>
+                )}
+                {idea.anonymous && (
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 flex-shrink-0" />
+                    <span>{t('common.anonymous')}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  <span>@{idea.author}</span>
+                  <Calendar className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{formatDate(idea.createdAt)}</span>
                 </div>
-              )}
-              {idea.anonymous && (
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  <span>{t('common.anonymous')}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                <span>{formatDate(idea.createdAt)}</span>
               </div>
-              <div className="text-accent font-semibold text-lg md:text-xl">
+              <div className="text-accent font-semibold text-base sm:text-lg md:text-xl">
                 {t('common.score')}: {idea.score}
               </div>
             </div>

@@ -62,9 +62,11 @@ export function CommentTree({
 
   const getIndentation = (currentDepth: number) => {
     // Progressive indentation that doesn't get too wide
-    const baseIndent = 8 // Base indentation in pixels (further reduced)
-    const indentStep = 12 // Pixels per level (further reduced)
-    const maxIndent = 44 // Maximum indentation (further reduced)
+    // Use smaller values on mobile to prevent excessive nesting
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+    const baseIndent = isMobile ? 4 : 8 // Smaller base on mobile
+    const indentStep = isMobile ? 8 : 12 // Smaller step on mobile
+    const maxIndent = isMobile ? 24 : 44 // Much smaller max on mobile
     return Math.min(baseIndent + currentDepth * indentStep, maxIndent)
   }
 

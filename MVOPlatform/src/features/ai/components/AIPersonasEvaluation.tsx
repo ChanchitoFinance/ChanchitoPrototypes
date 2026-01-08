@@ -190,7 +190,7 @@ export function AIPersonasEvaluation({
             alt="AI Personas"
             width={230}
             height={300}
-            className="absolute -top-9 right-3 w-230 h-300"
+            className="absolute -top-9 right-3 w-230 h-300 hidden md:block"
           />
         </button>
       </div>

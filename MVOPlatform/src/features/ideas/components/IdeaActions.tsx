@@ -73,100 +73,196 @@ export function IdeaActions({
   }
 
   return (
-    <div className="flex items-center gap-4 md:gap-6 mb-8 pb-8 border-b border-border-color">
-      {/* Upvote Button */}
-      <motion.button
-        onClick={onUpvote}
-        whileTap={{ scale: 0.95 }}
-        disabled={isVoting}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-          upvoted
-            ? 'bg-accent text-text-primary'
-            : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
-        } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
-      >
-        {isVoting ? (
-          <LoadingSpinner size={18} color="var(--text-secondary)" />
-        ) : (
-          <motion.div
-            animate={upvoted ? { scale: [1, 1.2, 1] } : {}}
-            transition={{ duration: 0.3 }}
-          >
-            <ArrowUp className="w-5 h-5" />
-          </motion.div>
-        )}
-        <span className="font-semibold">{useCount}</span>
-        <span className="text-sm hidden md:inline">{t('actions.up')}</span>
-      </motion.button>
+    <div className="mb-8 pb-8 border-b border-border-color">
+      {/* Mobile: Grid layout for better button distribution */}
+      <div className="grid grid-cols-2 gap-2 sm:hidden">
+        {/* Vote buttons in first row */}
+        <motion.button
+          onClick={onUpvote}
+          whileTap={{ scale: 0.95 }}
+          disabled={isVoting}
+          className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg transition-colors ${
+            upvoted
+              ? 'bg-accent text-text-primary'
+              : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+          } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+        >
+          {isVoting ? (
+            <LoadingSpinner size={18} color="var(--text-secondary)" />
+          ) : (
+            <motion.div
+              animate={upvoted ? { scale: [1, 1.2, 1] } : {}}
+              transition={{ duration: 0.3 }}
+            >
+              <ArrowUp className="w-5 h-5" />
+            </motion.div>
+          )}
+          <span className="font-semibold">{useCount}</span>
+        </motion.button>
 
-      {/* Downvote Button */}
-      <motion.button
-        onClick={onDownvote}
-        whileTap={{ scale: 0.95 }}
-        disabled={isVoting}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-          downvoted
-            ? 'bg-red-500 text-white'
-            : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
-        } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
-        title="Downvote"
-      >
-        {isVoting ? (
-          <LoadingSpinner size={18} color="var(--text-secondary)" />
-        ) : (
-          <motion.div
-            animate={downvoted ? { scale: [1, 1.2, 1] } : {}}
-            transition={{ duration: 0.3 }}
-          >
-            <ArrowDown className="w-5 h-5" />
-          </motion.div>
-        )}
-        <span className="font-semibold">{dislikeCount}</span>
-        <span className="text-sm hidden md:inline">{t('actions.down')}</span>
-      </motion.button>
+        <motion.button
+          onClick={onDownvote}
+          whileTap={{ scale: 0.95 }}
+          disabled={isVoting}
+          className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg transition-colors ${
+            downvoted
+              ? 'bg-red-500 text-white'
+              : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+          } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+          title="Downvote"
+        >
+          {isVoting ? (
+            <LoadingSpinner size={18} color="var(--text-secondary)" />
+          ) : (
+            <motion.div
+              animate={downvoted ? { scale: [1, 1.2, 1] } : {}}
+              transition={{ duration: 0.3 }}
+            >
+              <ArrowDown className="w-5 h-5" />
+            </motion.div>
+          )}
+          <span className="font-semibold">{dislikeCount}</span>
+        </motion.button>
 
-      {/* I'd Pay For It Button */}
-      <motion.button
-        onClick={onLike}
-        whileTap={{ scale: 0.95 }}
-        disabled={isVoting}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-          liked
-            ? 'bg-accent-alt text-white'
-            : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
-        } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
-        title="I'd pay for it"
-      >
-        {isVoting ? (
-          <LoadingSpinner size={18} color="var(--text-secondary)" />
-        ) : (
-          <DollarSign className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
-        )}
-        <span className="font-semibold">{likeCount}</span>
-        <span className="text-sm hidden md:inline">{t('actions.id_pay')}</span>
-      </motion.button>
+        {/* Second row */}
+        <motion.button
+          onClick={onLike}
+          whileTap={{ scale: 0.95 }}
+          disabled={isVoting}
+          className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg transition-colors ${
+            liked
+              ? 'bg-accent-alt text-white'
+              : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+          } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+          title="I'd pay for it"
+        >
+          {isVoting ? (
+            <LoadingSpinner size={18} color="var(--text-secondary)" />
+          ) : (
+            <DollarSign className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
+          )}
+          <span className="font-semibold">{likeCount}</span>
+        </motion.button>
 
-      {/* Comments Button */}
-      <button
-        onClick={onCommentsClick}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-text-secondary hover:bg-gray-200 transition-colors"
-      >
-        <MessageSquare className="w-5 h-5" />
-        <span className="font-semibold">{commentCount}</span>
-        <span className="text-sm hidden md:inline">
-          {t('actions.comments')}
-        </span>
-      </button>
+        <button
+          onClick={onCommentsClick}
+          className="flex items-center justify-center gap-2 px-3 py-3 rounded-lg bg-gray-100 text-text-secondary hover:bg-gray-200 transition-colors"
+        >
+          <MessageSquare className="w-5 h-5" />
+          <span className="font-semibold">{commentCount}</span>
+        </button>
+      </div>
 
-      {/* Share Button */}
-      <motion.button
-        onClick={handleShare}
-        whileTap={{ scale: 0.95 }}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-text-secondary hover:bg-gray-200 transition-colors ml-auto"
-      >
-        <Share2 className="w-5 h-5" />
-        <span className="text-sm hidden md:inline">{t('actions.share')}</span>
-      </motion.button>
+      {/* Share button on mobile - separate row */}
+      <div className="mt-2 sm:hidden">
+        <motion.button
+          onClick={handleShare}
+          whileTap={{ scale: 0.95 }}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-100 text-text-secondary hover:bg-gray-200 transition-colors"
+        >
+          <Share2 className="w-5 h-5" />
+          <span className="font-medium">{t('actions.share')}</span>
+        </motion.button>
+      </div>
+
+      {/* Desktop: Original horizontal layout */}
+      <div className="hidden sm:flex sm:flex-wrap sm:items-center sm:gap-4 md:gap-6">
+        {/* Upvote Button */}
+        <motion.button
+          onClick={onUpvote}
+          whileTap={{ scale: 0.95 }}
+          disabled={isVoting}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+            upvoted
+              ? 'bg-accent text-text-primary'
+              : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+          } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+        >
+          {isVoting ? (
+            <LoadingSpinner size={18} color="var(--text-secondary)" />
+          ) : (
+            <motion.div
+              animate={upvoted ? { scale: [1, 1.2, 1] } : {}}
+              transition={{ duration: 0.3 }}
+            >
+              <ArrowUp className="w-5 h-5" />
+            </motion.div>
+          )}
+          <span className="font-semibold">{useCount}</span>
+          <span className="text-sm hidden md:inline">{t('actions.up')}</span>
+        </motion.button>
+
+        {/* Downvote Button */}
+        <motion.button
+          onClick={onDownvote}
+          whileTap={{ scale: 0.95 }}
+          disabled={isVoting}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+            downvoted
+              ? 'bg-red-500 text-white'
+              : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+          } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+          title="Downvote"
+        >
+          {isVoting ? (
+            <LoadingSpinner size={18} color="var(--text-secondary)" />
+          ) : (
+            <motion.div
+              animate={downvoted ? { scale: [1, 1.2, 1] } : {}}
+              transition={{ duration: 0.3 }}
+            >
+              <ArrowDown className="w-5 h-5" />
+            </motion.div>
+          )}
+          <span className="font-semibold">{dislikeCount}</span>
+          <span className="text-sm hidden md:inline">{t('actions.down')}</span>
+        </motion.button>
+
+        {/* I'd Pay For It Button */}
+        <motion.button
+          onClick={onLike}
+          whileTap={{ scale: 0.95 }}
+          disabled={isVoting}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+            liked
+              ? 'bg-accent-alt text-white'
+              : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+          } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+          title="I'd pay for it"
+        >
+          {isVoting ? (
+            <LoadingSpinner size={18} color="var(--text-secondary)" />
+          ) : (
+            <DollarSign className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
+          )}
+          <span className="font-semibold">{likeCount}</span>
+          <span className="text-sm hidden md:inline">
+            {t('actions.id_pay')}
+          </span>
+        </motion.button>
+
+        {/* Comments Button */}
+        <button
+          onClick={onCommentsClick}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-text-secondary hover:bg-gray-200 transition-colors"
+        >
+          <MessageSquare className="w-5 h-5" />
+          <span className="font-semibold">{commentCount}</span>
+          <span className="text-sm hidden md:inline">
+            {t('actions.comments')}
+          </span>
+        </button>
+
+        {/* Share Button */}
+        <motion.button
+          onClick={handleShare}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-text-secondary hover:bg-gray-200 transition-colors ml-auto"
+        >
+          <Share2 className="w-5 h-5" />
+          <span className="text-sm hidden md:inline">{t('actions.share')}</span>
+        </motion.button>
+      </div>
     </div>
   )
 }
