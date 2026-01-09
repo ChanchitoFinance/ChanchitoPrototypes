@@ -362,7 +362,7 @@ export function UserAnalytics() {
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'var(--gray-100)',
+                  backgroundColor: '#ffffff',
                   border: '2px solid var(--border-color)',
                   borderRadius: 'var(--border-radius-md)',
                 }}
@@ -418,7 +418,7 @@ export function UserAnalytics() {
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'var(--gray-100)',
+                    backgroundColor: '#ffffff',
                     border: '2px solid var(--border-color)',
                     borderRadius: 'var(--border-radius-md)',
                   }}

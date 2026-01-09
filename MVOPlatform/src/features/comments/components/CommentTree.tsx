@@ -38,6 +38,7 @@ interface CommentTreeProps {
   onReplySubmit: (parentId: string, e: React.FormEvent) => void
   submitting: boolean
   isDark?: boolean // For TikTok-style dark theme
+  compactMode?: boolean // For tighter indentation in TikTok-style panels
 }
 
 export function CommentTree({
@@ -56,6 +57,7 @@ export function CommentTree({
   onReplySubmit,
   submitting,
   isDark = false,
+  compactMode = false,
 }: CommentTreeProps) {
   const { user } = useAppSelector(state => state.auth)
   const textareaRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map())
@@ -64,9 +66,9 @@ export function CommentTree({
     // Progressive indentation that doesn't get too wide
     // Use much smaller values on mobile to prevent excessive nesting
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
-    const baseIndent = isMobile ? 0 : 8 // No base indent on mobile
-    const indentStep = isMobile ? 0.25 : 12 // Very small step on mobile
-    const maxIndent = isMobile ? 1 : 44 // Very small max on mobile
+    const baseIndent = isMobile ? 0 : compactMode ? 4 : 8
+    const indentStep = isMobile ? 0.25 : compactMode ? 8 : 12
+    const maxIndent = isMobile ? 1 : compactMode ? 28 : 44
     return Math.min(baseIndent + currentDepth * indentStep, maxIndent)
   }
 
@@ -302,11 +304,11 @@ export function CommentTree({
                 )}
               </div>
 
-              <div
-                className={`mb-2 ${textSize}`}
-                dangerouslySetInnerHTML={{
-                  __html: aiCommentService.highlightMentions(displayContent),
-                }}
+              <CommentReadMore
+                content={aiCommentService.highlightMentions(displayContent)}
+                maxLines={3}
+                className={textSize}
+                isDark={isDark}
               />
 
               {/* Actions */}
@@ -406,7 +408,7 @@ export function CommentTree({
                       className={`flex-1 px-3 py-2 rounded-lg border resize-none overflow-hidden ${
                         isDark
                           ? 'bg-white/10 placeholder-white/50 border-white/20 focus:ring-accent text-white'
-                          : 'bg-gray-50 border-border-color focus:ring-accent'
+                          : 'bg-gray-50 border-border-color focus:ring-accent text-black placeholder-gray-500'
                       } focus:outline-none focus:ring-2`}
                       style={{
                         minHeight: depth >= 2 ? '2rem' : '2.5rem',
@@ -452,6 +454,7 @@ export function CommentTree({
                     onReplySubmit={onReplySubmit}
                     submitting={submitting}
                     isDark={isDark}
+                    compactMode={compactMode}
                   />
                 </div>
               )}

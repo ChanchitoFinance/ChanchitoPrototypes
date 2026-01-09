@@ -26,9 +26,12 @@ export function CommentReadMore({
   const t = useTranslations()
   const [isExpanded, setIsExpanded] = useState(false)
 
-  // Estimate if content needs truncation (rough estimate: ~50 chars per line)
-  const estimatedLines = Math.ceil(content.length / 50)
-  const needsTruncation = estimatedLines > maxLines
+  // Estimate if content needs truncation
+  // Strip HTML tags first (from AI mention highlighting) to get actual text length
+  const textContent = content.replace(/<[^>]*>/g, '')
+  // Only show "Read More" for comments that are clearly longer than 3 lines
+  // Using a conservative threshold of 300 chars (approximately 6+ lines)
+  const needsTruncation = textContent.length > 300
 
   if (!needsTruncation) {
     return (
@@ -36,9 +39,8 @@ export function CommentReadMore({
         className={`whitespace-pre-wrap break-words ${
           isDark ? 'text-white/90' : 'text-text-secondary'
         } ${className}`}
-      >
-        {content}
-      </p>
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
     )
   }
 
@@ -48,10 +50,18 @@ export function CommentReadMore({
         className={`whitespace-pre-wrap break-words ${
           isDark ? 'text-white/90' : 'text-text-secondary'
         } ${className} ${!isExpanded ? `line-clamp-${maxLines}` : ''}`}
-        style={!isExpanded ? { display: '-webkit-box', WebkitLineClamp: maxLines, WebkitBoxOrient: 'vertical', overflow: 'hidden' } : {}}
-      >
-        {content}
-      </p>
+        style={
+          !isExpanded
+            ? {
+                display: '-webkit-box',
+                WebkitLineClamp: maxLines,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }
+            : {}
+        }
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className={`mt-1 text-sm font-medium transition-colors ${

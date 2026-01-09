@@ -13,7 +13,8 @@
     "upload": "Subir",
     "profile": "Perfil",
     "more": "Más",
-    "admin": "Admin"
+    "admin": "Admin",
+    "notifications": "Notificaciones"
   },
   "actions": {
     "sign_in": "Iniciar Sesión",
@@ -222,6 +223,23 @@
     "no_ideas": "No se encontraron ideas.",
     "see_results": "Ver Resultados",
     "idea_not_found": "Idea no encontrada"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "clear_all": "Limpiar Todas",
+    "clear_all_confirm": "¿Estás seguro de querer eliminar todas tus notificaciones?",
+    "idea_created": "Nueva Idea Creada",
+    "idea_created_message": "¡Tu idea \"{title}\" ha sido creada exitosamente!",
+    "idea_updated": "Idea Actualizada",
+    "idea_updated_message": "Tu idea \"{title}\" ha sido actualizada.",
+    "vote_up": "Nuevo Voto Positivo",
+    "vote_up_message": "Alguien votó positivamente tu idea: \"{title}\"",
+    "vote_down": "Nuevo Voto Negativo",
+    "vote_down_message": "Alguien votó negativamente tu idea: \"{title}\"",
+    "vote_pay": "Nuevo Pago",
+    "vote_pay_message": "Alguien pagará por tu idea: \"{title}\"",
+    "comment": "Nuevo Comentario",
+    "comment_message": "Alguien comentó en tu idea \"{title}\": \"{content}\""
   },
   "comments": {
     "title": "Comentarios",

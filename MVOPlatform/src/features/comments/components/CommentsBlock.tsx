@@ -466,14 +466,10 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
                     textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
                   }
                 }}
+                style={{ color: '#000000' }}
                 placeholder={t('comments.write_comment')}
                 maxLength={MAX_COMMENT_LENGTH}
                 className="w-full px-4 py-3 bg-gray-100 rounded-lg border border-border-color focus:outline-none focus:ring-2 focus:ring-accent resize-none overflow-hidden"
-                style={{
-                  minHeight: '3rem',
-                  maxHeight: '20rem',
-                  color: '#ffffff',
-                }}
                 rows={1}
               />
               {showMentionSuggestions && (

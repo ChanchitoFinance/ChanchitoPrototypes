@@ -8,8 +8,10 @@ import {
   markAllAsRead,
 } from '@/core/lib/slices/notificationsSlice'
 import { Notification } from '@/core/types/notification'
+import { useTranslations } from '@/shared/components/providers/I18nProvider'
 
 export const useNotifications = () => {
+  const t = useTranslations()
   const dispatch = useAppDispatch()
   const { notifications, userId } = useAppSelector(state => state.notifications)
   const { user, profile } = useAppSelector(state => state.auth)
@@ -71,8 +73,11 @@ export const useNotifications = () => {
           const newNotification: Notification = {
             id: Date.now().toString() + Math.random().toString(36).substring(2),
             type: 'idea_created',
-            title: 'New Idea Created',
-            message: `Your idea "${payload.new?.title || 'Untitled'}" has been created successfully!`,
+            title: t('notifications.idea_created'),
+            message: t('notifications.idea_created_message').replace(
+              '{title}',
+              payload.new?.title || 'Untitled'
+            ),
             timestamp: new Date().toISOString(),
             read: false,
             ideaId: payload.new?.id,
@@ -93,8 +98,11 @@ export const useNotifications = () => {
           const newNotification: Notification = {
             id: Date.now().toString() + Math.random().toString(36).substring(2),
             type: 'idea_updated',
-            title: 'Idea Updated',
-            message: `Your idea "${payload.new?.title || 'Untitled'}" has been updated.`,
+            title: t('notifications.idea_updated'),
+            message: t('notifications.idea_updated_message').replace(
+              '{title}',
+              payload.new?.title || 'Untitled'
+            ),
             timestamp: new Date().toISOString(),
             read: false,
             ideaId: payload.new?.id,
@@ -148,24 +156,24 @@ export const useNotifications = () => {
 
           const voteType = payload.new.vote_type || 'use'
           let notificationType: 'vote_up' | 'vote_down' | 'vote_pay' = 'vote_up'
-          let title = 'New Upvote'
-          let message = 'Someone upvoted your idea'
+          let title = t('notifications.vote_up')
+          let message = t('notifications.vote_up_message')
 
           if (voteType === 'dislike') {
             notificationType = 'vote_down'
-            title = 'New Downvote'
-            message = 'Someone downvoted your idea'
+            title = t('notifications.vote_down')
+            message = t('notifications.vote_down_message')
           } else if (voteType === 'pay') {
             notificationType = 'vote_pay'
-            title = 'New Payment'
-            message = 'Someone paid for your idea'
+            title = t('notifications.vote_pay')
+            message = t('notifications.vote_pay_message')
           }
 
           const newNotification: Notification = {
             id: Date.now().toString() + Math.random().toString(36).substring(2),
             type: notificationType,
             title,
-            message: `${message}: "${idea.title}"`,
+            message: message.replace('{title}', idea.title),
             timestamp: new Date().toISOString(),
             read: false,
             ideaId: payload.new.idea_id,
@@ -226,8 +234,10 @@ export const useNotifications = () => {
           const newNotification: Notification = {
             id: Date.now().toString() + Math.random().toString(36).substring(2),
             type: 'comment',
-            title: 'New Comment',
-            message: `Someone commented on your idea "${idea.title}": "${payload.new.content || ''}"`,
+            title: t('notifications.comment'),
+            message: t('notifications.comment_message')
+              .replace('{title}', idea.title)
+              .replace('{content}', payload.new.content || ''),
             timestamp: new Date().toISOString(),
             read: false,
             ideaId: payload.new.idea_id,
@@ -277,19 +287,19 @@ export const useNotifications = () => {
   const getDefaultTitle = (type: Notification['type']): string => {
     switch (type) {
       case 'vote_up':
-        return 'New Upvote'
+        return t('notifications.vote_up')
       case 'vote_down':
-        return 'New Downvote'
+        return t('notifications.vote_down')
       case 'vote_pay':
-        return 'New Payment'
+        return t('notifications.vote_pay')
       case 'comment':
-        return 'New Comment'
+        return t('notifications.comment')
       case 'idea_created':
-        return 'Idea Created'
+        return t('notifications.idea_created')
       case 'idea_updated':
-        return 'Idea Updated'
+        return t('notifications.idea_updated')
       default:
-        return 'Notification'
+        return t('notifications.title')
     }
   }
 
