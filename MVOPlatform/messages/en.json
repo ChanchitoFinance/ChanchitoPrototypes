@@ -226,7 +226,19 @@
   "notifications": {
     "title": "Notifications",
     "clear_all": "Clear All",
-    "clear_all_confirm": "Are you sure you want to clear all notifications?"
+    "clear_all_confirm": "Are you sure you want to clear all notifications?",
+    "idea_created": "New Idea Created",
+    "idea_created_message": "Your idea \"{title}\" has been created successfully!",
+    "idea_updated": "Idea Updated",
+    "idea_updated_message": "Your idea \"{title}\" has been updated.",
+    "vote_up": "New Upvote",
+    "vote_up_message": "Someone upvoted your idea: \"{title}\"",
+    "vote_down": "New Downvote",
+    "vote_down_message": "Someone downvoted your idea: \"{title}\"",
+    "vote_pay": "New Payment",
+    "vote_pay_message": "Someone paid for your idea: \"{title}\"",
+    "comment": "New Comment",
+    "comment_message": "Someone commented on your idea \"{title}\": \"{content}\""
   },
   "comments": {
     "title": "Comments",

@@ -732,16 +732,16 @@ export default function ActivityPage() {
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="mb-8">
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-6">
               <Button
                 variant="outline"
                 onClick={() => router.back()}
-                className="p-2"
+                className="p-2 self-start"
               >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-text-primary">
+                <h1 className="text-2xl md:text-3xl font-bold text-text-primary">
                   {t('activity.title')}
                 </h1>
                 <p className="text-text-secondary mt-1">
@@ -751,10 +751,10 @@ export default function ActivityPage() {
               </div>
             </div>
 
-            <div className="flex space-x-1 bg-card p-1 rounded-lg w-fit">
+            <div className="flex bg-card p-1 rounded-lg w-full md:w-fit">
               <button
                 onClick={() => setActiveTab('ideas')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   activeTab === 'ideas'
                     ? 'bg-gray-100 text-text-primary shadow-sm'
                     : 'text-text-secondary hover:text-text-primary'
@@ -764,7 +764,7 @@ export default function ActivityPage() {
               </button>
               <button
                 onClick={() => setActiveTab('analytics')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   activeTab === 'analytics'
                     ? 'bg-gray-100 text-text-primary shadow-sm'
                     : 'text-text-secondary hover:text-text-primary'

@@ -154,7 +154,7 @@ export function UserAnalytics() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-xl font-semibold text-text-primary">
             {translate('activity.analytics.title', 'Analytics Dashboard')}
@@ -169,10 +169,10 @@ export function UserAnalytics() {
         <Button
           onClick={loadAnalytics}
           variant="outline"
-          className="inline-flex items-center gap-2"
+          className="inline-flex items-center gap-2 self-start md:self-auto"
         >
           <RefreshCw className="w-4 h-4" />
-          {t('common.refresh')}
+          <span className="hidden sm:inline">{t('common.refresh')}</span>
         </Button>
       </div>
 
@@ -362,7 +362,7 @@ export function UserAnalytics() {
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'var(--gray-100)',
+                  backgroundColor: '#ffffff',
                   border: '2px solid var(--border-color)',
                   borderRadius: 'var(--border-radius-md)',
                 }}
@@ -418,7 +418,7 @@ export function UserAnalytics() {
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'var(--gray-100)',
+                    backgroundColor: '#ffffff',
                     border: '2px solid var(--border-color)',
                     borderRadius: 'var(--border-radius-md)',
                   }}

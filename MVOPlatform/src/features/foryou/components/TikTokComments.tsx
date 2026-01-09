@@ -24,6 +24,7 @@ export function TikTokComments({
   onCommentCountChange,
 }: TikTokCommentsProps) {
   const t = useTranslations()
+  const [isMobile, setIsMobile] = useState(false)
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
   const [loading, setLoading] = useState(true)
@@ -36,12 +37,20 @@ export function TikTokComments({
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState<Map<string, string>>(new Map())
   const { user, profile } = useAppSelector(state => state.auth)
+  const { theme } = useAppSelector(state => state.theme)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const commentsEndRef = useRef<HTMLDivElement>(null)
   const commentsListRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const dragStartYRef = useRef<number>(0)
   const newCommentRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+
+  useEffect(() => {
+    const checkIsMobile = () => setIsMobile(window.innerWidth < 768)
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+    return () => window.removeEventListener('resize', checkIsMobile)
+  }, [])
 
   useEffect(() => {
     if (isOpen) {
@@ -396,114 +405,99 @@ export function TikTokComments({
           <motion.div
             ref={panelRef}
             initial={{ x: '100%' }}
-            animate={{ x: 0 }}
+            animate={{
+              x: 0,
+              height: isMobile
+                ? panelHeight === 'full'
+                  ? '100vh'
+                  : '50vh'
+                : undefined,
+            }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className={`fixed right-0 bottom-0 w-full md:h-auto md:max-h-none md:w-[400px] md:top-0 bg-black z-50 flex flex-col md:!translate-y-0 md:!translate-x-0 rounded-t-2xl md:rounded-none transition-all duration-300 ease-out ${
-              panelHeight === 'full' ? 'h-screen' : 'h-[50vh] max-h-[50vh]'
-            }`}
+            transition={{
+              type: 'spring',
+              damping: 25,
+              stiffness: 200,
+              height: { duration: 0.3, ease: 'easeOut' },
+            }}
+            className={`fixed right-0 bottom-0 w-full md:h-auto md:max-h-none md:w-[480px] lg:w-[520px] xl:w-[560px] md:top-0 ${theme === 'dark' ? 'bg-black' : 'bg-white'} z-50 flex flex-col md:!translate-y-0 md:!translate-x-0 rounded-t-2xl md:rounded-none transition-all duration-300 ease-out`}
           >
             {/* Drag Handle Area - Mobile only */}
-            <motion.div
-              drag="y"
-              dragConstraints={{ top: 0, bottom: 0 }}
-              dragElastic={0}
-              dragMomentum={false}
-              dragPropagation={false}
-              onDragStart={(event, info) => {
-                // Store initial drag position
-                dragStartYRef.current = info.point.y
-                // Change cursor when dragging starts
-                if (panelRef.current) {
-                  panelRef.current.style.cursor = 'grabbing'
-                }
-              }}
-              onDrag={(event, info) => {
-                // Only change height when dragging, don't move the panel
-                const deltaY = info.point.y - dragStartYRef.current
+            {isMobile && (
+              <div
+                className="touch-none select-none"
+                style={{ touchAction: 'none' }}
+                onTouchStart={e => {
+                  dragStartYRef.current = e.touches[0].clientY
+                }}
+                onTouchMove={e => {
+                  const currentY = e.touches[0].clientY
+                  const deltaY = currentY - dragStartYRef.current
 
-                if (panelHeight === 'half') {
-                  // If dragging up from half, extend to full
-                  if (deltaY < -30) {
+                  // Only change height when dragging, don't move the panel
+                  if (panelHeight === 'half' && deltaY < -80) {
                     setPanelHeight('full')
-                  }
-                }
-                // Reset transform to keep panel in place - only height changes
-                if (event && event.currentTarget) {
-                  const element = event.currentTarget as HTMLElement
-                  element.style.transform = 'translateY(0)'
-                }
-              }}
-              onDragEnd={(event, info) => {
-                // Reset cursor when dragging ends
-                if (panelRef.current) {
-                  panelRef.current.style.cursor = 'grab'
-                }
-
-                const deltaY = info.point.y - dragStartYRef.current
-                const threshold = 80
-
-                if (panelHeight === 'full') {
-                  // If dragging down from full height
-                  if (deltaY > threshold) {
-                    // Always go to half first when dragging down from full
+                    dragStartYRef.current = currentY
+                  } else if (panelHeight === 'full' && deltaY > 80) {
                     setPanelHeight('half')
+                    dragStartYRef.current = currentY
                   }
-                  // If dragged up or small movement down, stay full
-                } else {
-                  // If dragging from half height
-                  if (deltaY < -threshold) {
-                    // Dragged up significantly, extend to full
-                    setPanelHeight('full')
-                  } else if (deltaY > threshold || info.velocity.y > 500) {
-                    // Dragged down significantly past original position from half -> close
-                    onClose()
-                  }
-                  // Otherwise stay at half
-                }
-              }}
-              whileDrag={{ y: 0 }}
-              className="md:hidden cursor-grab active:cursor-grabbing select-none"
-              style={{
-                touchAction: 'pan-y',
-              }}
-            >
-              {/* Grabber Handle */}
-              <div className="flex justify-center pt-3 pb-2">
-                <div className="w-12 h-1.5 bg-white rounded-full" />
-              </div>
+                }}
+                onTouchEnd={() => {
+                  // Reset on touch end
+                }}
+              >
+                {/* Grabber Handle */}
+                <div className="flex justify-center pt-3 pb-2">
+                  <div
+                    className={`w-12 h-1.5 ${theme === 'dark' ? 'bg-white' : 'bg-gray-400'} rounded-full`}
+                  />
+                </div>
 
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 pb-4 border-b border-white/10">
-                <h2 className="text-lg font-semibold text-white">
-                  {t('comments.title')}
-                </h2>
-                <button
-                  onClick={onClose}
-                  className="p-2 rounded-full hover:bg-white/10 transition-colors pointer-events-auto"
+                {/* Header */}
+                <div
+                  className={`flex items-center justify-between px-4 pb-4 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'}`}
                 >
-                  <X className="w-5 h-5 text-white" />
-                </button>
+                  <h2
+                    className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
+                  >
+                    {t('comments.title')}
+                  </h2>
+                  <button
+                    onClick={onClose}
+                    className={`p-2 rounded-full hover:bg-white/10 transition-colors pointer-events-auto ${theme === 'dark' ? '' : 'hover:bg-gray-100'}`}
+                  >
+                    <X
+                      className={`w-5 h-5 ${theme === 'dark' ? 'text-white' : 'text-gray-600'}`}
+                    />
+                  </button>
+                </div>
               </div>
-            </motion.div>
+            )}
 
             {/* Header - Desktop only */}
-            <div className="hidden md:flex items-center justify-between p-4 border-b border-white/10">
-              <h2 className="text-lg font-semibold text-white">
+            <div
+              className={`hidden md:flex items-center justify-between p-4 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'}`}
+            >
+              <h2
+                className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
+              >
                 {t('comments.title')}
               </h2>
               <button
                 onClick={onClose}
-                className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                className={`p-2 rounded-full hover:bg-white/10 transition-colors ${theme === 'dark' ? '' : 'hover:bg-gray-100'}`}
               >
-                <X className="w-5 h-5 text-white" />
+                <X
+                  className={`w-5 h-5 ${theme === 'dark' ? 'text-white' : 'text-gray-600'}`}
+                />
               </button>
             </div>
 
             {/* Comments List */}
             <div
               ref={commentsListRef}
-              className="flex-1 overflow-y-auto px-4 py-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+              className={`flex-1 overflow-y-auto px-4 py-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${theme === 'dark' ? '' : 'bg-white'}`}
               onTouchStart={e => {
                 // Prevent drag when scrolling in comments list
                 e.stopPropagation()
@@ -526,11 +520,19 @@ export function TikTokComments({
             >
               {loading ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="text-white/60">{t('comments.loading')}</div>
+                  <div
+                    className={
+                      theme === 'dark' ? 'text-white/60' : 'text-gray-500'
+                    }
+                  >
+                    {t('comments.loading')}
+                  </div>
                 </div>
               ) : comments.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="text-center text-white/60">
+                  <div
+                    className={`text-center ${theme === 'dark' ? 'text-white/60' : 'text-gray-500'}`}
+                  >
                     <p className="text-lg mb-2">
                       {t('comments.no_comments_title')}
                     </p>
@@ -561,7 +563,8 @@ export function TikTokComments({
                     }}
                     onReplySubmit={handleReplySubmit}
                     submitting={submitting}
-                    isDark={true}
+                    isDark={theme === 'dark'}
+                    compactMode={true}
                   />
                   <div ref={commentsEndRef} />
                 </div>
@@ -571,7 +574,7 @@ export function TikTokComments({
             {/* Comment Input */}
             <form
               onSubmit={handleSubmitComment}
-              className="p-4 border-t border-white/10 bg-black"
+              className={`p-4 border-t ${theme === 'dark' ? 'border-white/10 bg-black' : 'border-gray-200 bg-white'}`}
             >
               <div className="flex gap-2">
                 <textarea
@@ -586,9 +589,9 @@ export function TikTokComments({
                     }
                   }}
                   placeholder={t('comments.add_comment')}
-                  className="flex-1 px-4 py-2 bg-white/10 placeholder-white/50 rounded-full focus:outline-none focus:ring-2 focus:ring-accent resize-none overflow-hidden"
+                  className={`flex-1 px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-accent resize-none overflow-hidden ${theme === 'dark' ? 'bg-white/10 placeholder-white/50' : 'bg-gray-100 placeholder-gray-500'}`}
                   style={{
-                    color: '#000000',
+                    color: theme === 'dark' ? '#ffffff' : '#000000',
                     minHeight: '2.5rem',
                     maxHeight: '10rem',
                   }}

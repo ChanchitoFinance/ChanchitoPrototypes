@@ -329,7 +329,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'var(--gray-100)',
+                  backgroundColor: '#ffffff',
                   border: '2px solid var(--border-color)',
                   borderRadius: 'var(--border-radius-md)',
                 }}

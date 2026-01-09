@@ -26,6 +26,8 @@ import { UserMenu } from '@/shared/components/ui/UserMenu'
 interface SidebarProps {
   activeTab?: 'home' | 'foryou'
   onTabChange?: (tab: 'home' | 'foryou') => void
+  isMobileOpen?: boolean
+  setIsMobileOpen?: (open: boolean) => void
 }
 
 const SIDEBAR_STYLES = {
@@ -108,12 +110,24 @@ const SIDEBAR_STYLES = {
   },
 } as const
 
-export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
+export function Sidebar({
+  activeTab,
+  onTabChange,
+  isMobileOpen: externalIsMobileOpen,
+  setIsMobileOpen: externalSetIsMobileOpen,
+}: SidebarProps) {
   const dispatch = useAppDispatch()
   const t = useTranslations()
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [internalIsMobileOpen, setInternalIsMobileOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+
+  // Use external state if provided, otherwise internal
+  const isMobileOpen =
+    externalIsMobileOpen !== undefined
+      ? externalIsMobileOpen
+      : internalIsMobileOpen
+  const setIsMobileOpen = externalSetIsMobileOpen || setInternalIsMobileOpen
   const [isNavigating, setIsNavigating] = useState(false)
   const { user, profile, isAuthenticated } = useAppSelector(state => state.auth)
   const pathname = usePathname()
@@ -141,15 +155,18 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
       // On mobile, start with sidebar closed (icon-only)
-      if (window.innerWidth < 768) {
-        setIsMobileOpen(false)
+      if (window.innerWidth < 768 && externalSetIsMobileOpen) {
+        externalSetIsMobileOpen(false)
+      } else if (window.innerWidth >= 768 && externalSetIsMobileOpen) {
+        // On desktop, ensure it's not open
+        externalSetIsMobileOpen(false)
       }
     }
 
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  }, [externalSetIsMobileOpen])
 
   const handleBack = () => {
     // Get the previous path from sessionStorage (set when navigating to idea)
@@ -518,9 +535,13 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
 
       <aside
         className={`fixed left-0 top-0 h-screen z-[9998] transition-all duration-300 flex-shrink-0 ${
-          showExpanded
-            ? SIDEBAR_STYLES.width.expanded
-            : SIDEBAR_STYLES.width.collapsed
+          isMobile
+            ? isMobileOpen
+              ? SIDEBAR_STYLES.width.expanded
+              : 'w-0 overflow-hidden'
+            : showExpanded
+              ? SIDEBAR_STYLES.width.expanded
+              : SIDEBAR_STYLES.width.collapsed
         } shadow-lg md:shadow-none`}
       >
         {sidebarContent}

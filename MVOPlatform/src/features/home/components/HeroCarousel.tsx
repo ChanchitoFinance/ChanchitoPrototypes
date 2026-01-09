@@ -349,7 +349,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                     </div>
 
                     {/* Title */}
-                    <h2 className="text-2xl md:text-4xl lg:text-6xl font-bold mb-3 md:mb-4 leading-tight">
+                    <h2 className="text-xl md:text-4xl lg:text-6xl font-bold mb-3 md:mb-4 leading-tight line-clamp-3">
                       {idea.title}
                     </h2>
 
@@ -392,7 +392,30 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                       </span>
                     </div>
 
-                    {/* Action Buttons - Simplified on mobile */}
+                    {/* Mobile: Show key stats */}
+                    <div className="md:hidden flex flex-wrap items-center gap-2 mb-4 text-xs text-gray-400">
+                      <span className="flex items-center gap-1 text-red-400">
+                        <ThumbsDown className="w-3 h-3" />
+                        {idea.votesByType.dislike}
+                      </span>
+                      <span className="flex items-center gap-1 text-green-400">
+                        <CheckCircle className="w-3 h-3" />
+                        {idea.votesByType.use}
+                      </span>
+                      <span className="flex items-center gap-1 text-yellow-400">
+                        <DollarSign className="w-3 h-3" />
+                        {idea.votesByType.pay}
+                      </span>
+                      <span className="flex items-center gap-1 text-blue-400">
+                        <MessageCircle className="w-3 h-3" />
+                        {idea.commentCount}
+                      </span>
+                      <span className="text-accent font-semibold">
+                        {t('carousel.score')}: {idea.score}
+                      </span>
+                    </div>
+
+                    {/* Action Buttons */}
                     <div className="flex items-center gap-2 md:gap-4">
                       <Link
                         href={`/${locale}/ideas/${idea.id}`}
@@ -421,8 +444,8 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                       >
                         {t('carousel.view_details')}
                       </Link>
-                      <button className="hidden md:block p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors">
-                        <Bookmark className="w-5 h-5" />
+                      <button className="p-2 md:p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors">
+                        <Bookmark className="w-4 h-4 md:w-5 md:h-5" />
                       </button>
                       <button
                         onClick={e => {
@@ -456,9 +479,9 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                             toast.success(t('actions.link_copied'))
                           }
                         }}
-                        className="hidden md:block p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"
+                        className="p-2 md:p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"
                       >
-                        <Share2 className="w-5 h-5" />
+                        <Share2 className="w-4 h-4 md:w-5 md:h-5" />
                       </button>
                     </div>
                   </div>
@@ -546,7 +569,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
             className={`transition-all ${
               index === activeIndex
                 ? 'w-8 h-2 bg-accent rounded-full shadow-lg'
-                : 'w-2 h-2 bg-[var(--text-primary)]/30 rounded-full hover:bg-[#66D3FF]/50'
+                : 'w-2 h-2 bg-[var(--text-primary)]/30 rounded-full hover:bg-[#66D3FF]/50 border border-gray-400'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />
