@@ -52,7 +52,7 @@ export function SidebarWrapper({ children }: SidebarWrapperProps) {
         />
       )}
       <main
-        className={`${isLandingPage ? 'ml-0' : isMobile ? 'ml-0' : 'ml-16 md:ml-64'}`}
+        className={`${isLandingPage ? 'ml-0' : isMobile ? `ml-0 ${!isForYouPage ? 'mt-16' : ''}` : 'ml-16 md:ml-64'}`}
       >
         {children}
       </main>

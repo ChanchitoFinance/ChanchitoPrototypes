@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTranslations, useLocale } from '@/shared/components/providers/I18nProvider'
+import {
+  useTranslations,
+  useLocale,
+} from '@/shared/components/providers/I18nProvider'
 import { ideaService } from '@/core/lib/services/ideaService'
 import { Idea } from '@/core/types/idea'
 import { IdeaCard } from '@/features/ideas/components/IdeaCard'
@@ -114,51 +117,53 @@ export function UserIdeasList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-text-primary">
-            {t('activity.ideas_list.title')}
-          </h2>
-          <p className="text-text-secondary">
-            {isInitialLoading
-              ? t('activity.ideas_list.subtitle')
-              : `${t('activity.ideas_list.subtitle')} (${ideas.length})`}
-          </p>
-        </div>
+      <div className="space-y-4 md:space-y-0">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <div>
+            <h2 className="text-xl font-semibold text-text-primary">
+              {t('activity.ideas_list.title')}
+            </h2>
+            <p className="text-text-secondary">
+              {isInitialLoading
+                ? t('activity.ideas_list.subtitle')
+                : `${t('activity.ideas_list.subtitle')} (${ideas.length})`}
+            </p>
+          </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <SortAsc className="w-4 h-4 text-text-secondary" />
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value as SortOption)}
-              className="border border-gray-200 rounded-md px-3 py-1 text-sm bg-gray-100 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <SortAsc className="w-4 h-4 text-text-secondary" />
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as SortOption)}
+                className="border border-gray-200 rounded-md px-2 md:px-3 py-1 text-sm bg-gray-100 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
+                disabled={loading}
+              >
+                <option value="recent">
+                  {t('activity.ideas_list.sort_options.recent')}
+                </option>
+                <option value="popular">
+                  {t('activity.ideas_list.sort_options.popular')}
+                </option>
+                <option value="most_votes">
+                  {t('activity.ideas_list.sort_options.most_votes')}
+                </option>
+                <option value="highest_score">
+                  {t('activity.ideas_list.sort_options.highest_score')}
+                </option>
+              </select>
+            </div>
+            <Button
+              onClick={refreshIdeas}
+              variant="outline"
+              className="inline-flex items-center gap-2"
+              size="sm"
               disabled={loading}
             >
-              <option value="recent">
-                {t('activity.ideas_list.sort_options.recent')}
-              </option>
-              <option value="popular">
-                {t('activity.ideas_list.sort_options.popular')}
-              </option>
-              <option value="most_votes">
-                {t('activity.ideas_list.sort_options.most_votes')}
-              </option>
-              <option value="highest_score">
-                {t('activity.ideas_list.sort_options.highest_score')}
-              </option>
-            </select>
+              <RefreshCw className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('common.refresh')}</span>
+            </Button>
           </div>
-          <Button
-            onClick={refreshIdeas}
-            variant="outline"
-            className="inline-flex items-center gap-2"
-            size="sm"
-            disabled={loading}
-          >
-            <RefreshCw className="w-4 h-4" />
-            {t('common.refresh')}
-          </Button>
         </div>
       </div>
 
