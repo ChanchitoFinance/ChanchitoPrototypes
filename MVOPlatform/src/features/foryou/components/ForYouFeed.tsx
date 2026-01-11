@@ -94,7 +94,10 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
         offset = 0,
         accumulatedIdeas: Idea[] = []
       ) => {
-        const batchSize = 3
+        // Start with smaller batch size for faster initial render
+        const batchSize = initialIdeaId ? 10 : 3
+        const maxIdeas = initialIdeaId ? 15 : 6
+
         const loadedIdeas = await ideaService.getExploreIdeas(batchSize, offset)
 
         if (loadedIdeas.length === 0) {

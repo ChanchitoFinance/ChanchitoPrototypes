@@ -97,28 +97,46 @@ export function IdeaCard({
     }
     if (isVoting) return
 
+    // Optimistic update: immediately update UI
+    const previousIdea = currentIdea
+    const previousUserVote = userVote
+    const isRemovingVote = userVote[voteType]
+
     setIsVoting(true)
+    setCurrentIdea(prev => ({
+      ...prev,
+      votes: isRemovingVote ? prev.votes - 1 : prev.votes + 1,
+      votesByType: {
+        ...prev.votesByType,
+        [voteType]: isRemovingVote
+          ? prev.votesByType[voteType] - 1
+          : prev.votesByType[voteType] + 1,
+      },
+    }))
+
+    // Update user vote state
+    if (voteType === 'use' || voteType === 'dislike') {
+      setUserVote(prev => ({
+        ...prev,
+        use: voteType === 'use' ? !prev.use : false,
+        dislike: voteType === 'dislike' ? !prev.dislike : false,
+      }))
+    } else {
+      setUserVote(prev => ({
+        ...prev,
+        pay: !prev.pay,
+      }))
+    }
+
     try {
       const updatedIdea = await ideaService.toggleVote(currentIdea.id, voteType)
       setCurrentIdea(updatedIdea)
-      // Update local state based on the vote type
-      if (voteType === 'use' || voteType === 'dislike') {
-        // For use/dislike, toggle the specific vote and ensure the other is false
-        setUserVote(prev => ({
-          ...prev,
-          use: voteType === 'use' ? !prev.use : false,
-          dislike: voteType === 'dislike' ? !prev.dislike : false,
-          pay: prev.pay, // pay remains unchanged
-        }))
-      } else if (voteType === 'pay') {
-        // For pay, just toggle it
-        setUserVote(prev => ({
-          ...prev,
-          pay: !prev.pay,
-        }))
-      }
     } catch (error) {
+      // Rollback on error
+      setCurrentIdea(previousIdea)
+      setUserVote(previousUserVote)
       console.error('Error voting:', error)
+      toast.error(t('actions.error_voting'))
     } finally {
       setIsVoting(false)
     }
@@ -347,7 +365,10 @@ export function IdeaCard({
               {/* Vote Distribution Ring - Right Side */}
               {isInteractive && (
                 <div className="flex-shrink-0">
-                  <VoteDistributionRing votes={currentIdea.votesByType} size={40} />
+                  <VoteDistributionRing
+                    votes={currentIdea.votesByType}
+                    size={40}
+                  />
                 </div>
               )}
             </div>
@@ -358,10 +379,11 @@ export function IdeaCard({
                 <button
                   onClick={handleUpVote}
                   disabled={isVoting}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${upvoted
-                    ? 'bg-green-500 text-white shadow-md'
-                    : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
-                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${
+                    upvoted
+                      ? 'bg-green-500 text-white shadow-md'
+                      : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+                  } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {isVoting ? (
                     <LoadingSpinner size={18} color="currentColor" />
@@ -381,10 +403,11 @@ export function IdeaCard({
                 <button
                   onClick={handleDownVote}
                   disabled={isVoting}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${downvoted
-                    ? 'bg-red-500 text-white shadow-md'
-                    : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
-                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${
+                    downvoted
+                      ? 'bg-red-500 text-white shadow-md'
+                      : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+                  } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {isVoting ? (
                     <LoadingSpinner size={18} color="currentColor" />
@@ -404,10 +427,11 @@ export function IdeaCard({
                 <button
                   onClick={e => handleVote(e, 'pay')}
                   disabled={isVoting}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${votedPay
-                    ? 'bg-blue-500 text-white shadow-md'
-                    : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
-                    } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-250 font-medium whitespace-nowrap flex-1 justify-center ${
+                    votedPay
+                      ? 'bg-blue-500 text-white shadow-md'
+                      : 'bg-gray-200 text-text-secondary hover:bg-gray-300'
+                  } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                   title="I'd pay for it"
                 >
                   {isVoting ? (
@@ -432,15 +456,16 @@ export function IdeaCard({
             <div className="flex items-center justify-between gap-2 mb-2">
               {/* Comments indicator */}
               <motion.div
-                className={`flex items-center gap-1.5 ${currentIdea.status_flag === 'active_discussion'
-                  ? 'text-accent'
-                  : 'text-text-secondary'
-                  }`}
+                className={`flex items-center gap-1.5 ${
+                  currentIdea.status_flag === 'active_discussion'
+                    ? 'text-accent'
+                    : 'text-text-secondary'
+                }`}
                 animate={
                   currentIdea.status_flag === 'active_discussion'
                     ? {
-                      opacity: [0.7, 1, 0.7],
-                    }
+                        opacity: [0.7, 1, 0.7],
+                      }
                     : {}
                 }
                 transition={{
@@ -459,7 +484,10 @@ export function IdeaCard({
                       : 'w-4 h-4'
                   }
                 />
-                <span className="text-sm font-medium">{currentIdea.commentCount} {t('common.comments') || 'comments'}</span>
+                <span className="text-sm font-medium">
+                  {currentIdea.commentCount}{' '}
+                  {t('common.comments') || 'comments'}
+                </span>
               </motion.div>
 
               {/* Tags Section */}
