@@ -1,8 +1,9 @@
 {
   "hero": {
-    "title": "Validate your business idea in",
-    "title_highlight": "48 hours",
-    "description": "Get data-driven insights and validation scores for your business idea. Make informed decisions before investing time and resources."
+    "title": "Don't Build in the Dark.",
+    "title_highlight": "Validate First.",
+    "description": "Stop wasting time and money on ideas that won't work. Get data-driven market validation, expert feedback, and a feasibility score in just 48 hours.",
+    "trusted_by": "Trusted by 1,000+ founders"
   },
   "navigation": {
     "home": "Home",
@@ -18,9 +19,9 @@
   "actions": {
     "sign_in": "Sign In",
     "sign_out": "Sign Out",
-    "submit_idea": "Submit Idea",
-    "submit_your_idea": "Submit Your Idea",
-    "submit_your_idea_now": "Submit Your Idea Now",
+    "submit_idea": "Start Validation",
+    "submit_your_idea": "Start Validating Your Idea",
+    "submit_your_idea_now": "Start My Free Validation",
     "submitting": "Submitting...",
     "load_more": "Load More",
     "checkout": "Checkout",
@@ -192,12 +193,12 @@
         "description": "Fill out a simple form with your business idea details."
       },
       "analysis": {
-        "title": "AI Analysis",
-        "description": "Our system analyzes your idea using market data and validation frameworks."
+        "title": "Community Vote",
+        "description": "Real users vote on your idea (Use, Pass, or Pay) and leave feedback."
       },
       "results": {
-        "title": "Get Results",
-        "description": "Receive a comprehensive validation report within 48 hours."
+        "title": "Get Insights",
+        "description": "Unlock a comprehensive analytics dashboard with feasibility and impact scores."
       }
     }
   },
@@ -533,8 +534,8 @@
     "clear_all": "Clear All",
     "advisory_note": "This evaluation is advisory only. AI personas provide perspectives to help you improve your idea."
   },
-  "ai": {
-    "daily_limit_exceeded": "AI model has reached daily usage peak. Please try again later.",
-    "service_unavailable": "AI service is currently unavailable. Please try again later."
+  "analytics_preview": {
+    "title": "Data That Drives Decisions",
+    "subtitle": "Don't guess. Know exactly how the market reacts to your idea with detailed analytics."
   }
 }
