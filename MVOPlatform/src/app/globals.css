@@ -417,4 +417,16 @@ a {
       min-height: 800px !important;
     }
   }
+
+  /* Mobile sidebar height fix - account for browser UI */
+  @media (max-width: 767px) {
+    .mobile-sidebar-fix {
+      height: calc(
+        100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+      ) !important;
+      max-height: calc(
+        100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+      ) !important;
+    }
+  }
 }

@@ -5,7 +5,11 @@
 
 import { Idea } from '@/core/types/idea'
 import { ContentBlock } from '@/core/types/content'
-import { supabase } from '@/core/lib/supabase'
+import {
+  supabase,
+  toggleVoteRPC,
+  getUserVotesForIdeasRPC,
+} from '@/core/lib/supabase'
 import { IIdeaService } from '@/core/abstractions/IIdeaService'
 
 /**
@@ -573,89 +577,14 @@ class SupabaseIdeaService implements IIdeaService {
     } = await supabase.auth.getUser()
     if (!user) throw new Error('User not authenticated')
 
-    console.log('ideaService: toggleVote called', {
-      ideaId,
-      voteType,
-      userId: user.id,
-    })
+    // Use optimized RPC function for single query operation
+    const result = await toggleVoteRPC(ideaId, voteType)
 
-    // Handle different vote types:
-    // - 'use' and 'dislike' are mutually exclusive (only one can exist)
-    // - 'pay' is independent (can coexist with use/dislike)
-    if (voteType === 'use' || voteType === 'dislike') {
-      // Check if user has this specific vote type
-      const { data: existingVote } = await supabase
-        .from('idea_votes')
-        .select('vote_type')
-        .eq('idea_id', ideaId)
-        .eq('voter_id', user.id)
-        .eq('vote_type', voteType)
-        .maybeSingle()
+    // Map the result back to Idea format
+    const updatedIdea = this.mapRpcResultToIdea(result)
+    if (!updatedIdea) throw new Error('Idea not found')
 
-      // For use/dislike votes, remove any existing use/dislike vote first
-      await supabase
-        .from('idea_votes')
-        .delete()
-        .eq('idea_id', ideaId)
-        .eq('voter_id', user.id)
-        .in('vote_type', ['use', 'dislike'])
-
-      // If clicking the same vote type, don't insert (removes the vote)
-      // If clicking different vote type or no vote existed, insert the new vote
-      if (!existingVote) {
-        console.log('ideaService: Inserting vote', {
-          idea_id: ideaId,
-          voter_id: user.id,
-          vote_type: voteType,
-        })
-        await supabase.from('idea_votes').insert({
-          idea_id: ideaId,
-          voter_id: user.id,
-          vote_type: voteType,
-        })
-      } else {
-        console.log('ideaService: Removing existing vote (toggle off)')
-      }
-    } else if (voteType === 'pay') {
-      // Check specifically for pay vote
-      const { data: existingPayVote } = await supabase
-        .from('idea_votes')
-        .select('vote_type')
-        .eq('idea_id', ideaId)
-        .eq('voter_id', user.id)
-        .eq('vote_type', 'pay')
-        .maybeSingle()
-
-      // For pay votes, toggle independently
-      if (existingPayVote) {
-        // Remove pay vote
-        console.log('ideaService: Removing pay vote')
-        await supabase
-          .from('idea_votes')
-          .delete()
-          .eq('idea_id', ideaId)
-          .eq('voter_id', user.id)
-          .eq('vote_type', 'pay')
-      } else {
-        // Add pay vote (can coexist with use/dislike)
-        console.log('ideaService: Inserting pay vote', {
-          idea_id: ideaId,
-          voter_id: user.id,
-          vote_type: 'pay',
-        })
-        await supabase.from('idea_votes').insert({
-          idea_id: ideaId,
-          voter_id: user.id,
-          vote_type: 'pay',
-        })
-      }
-    }
-
-    // Return updated idea
-    return this.getIdeaById(ideaId).then(idea => {
-      if (!idea) throw new Error('Idea not found')
-      return idea
-    })
+    return updatedIdea
   }
 
   async getUserVote(ideaId: string): Promise<'dislike' | 'use' | 'pay' | null> {
@@ -704,38 +633,9 @@ class SupabaseIdeaService implements IIdeaService {
   async getUserVotesForIdeas(
     ideaIds: string[]
   ): Promise<Record<string, { use: boolean; dislike: boolean; pay: boolean }>> {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return {}
-
-    const { data, error } = await supabase
-      .from('idea_votes')
-      .select('idea_id, vote_type')
-      .in('idea_id', ideaIds)
-      .eq('voter_id', user.id)
-
-    if (error) throw error
-
-    const votes = data || []
-    const result: Record<
-      string,
-      { use: boolean; dislike: boolean; pay: boolean }
-    > = {}
-
-    // Initialize all ideas with false votes
-    ideaIds.forEach(ideaId => {
-      result[ideaId] = { use: false, dislike: false, pay: false }
-    })
-
-    // Fill in the actual votes
-    votes.forEach(vote => {
-      if (result[vote.idea_id]) {
-        result[vote.idea_id][vote.vote_type as 'use' | 'dislike' | 'pay'] = true
-      }
-    })
-
-    return result
+    // Use optimized RPC function for batch fetch
+    const votes = await getUserVotesForIdeasRPC(ideaIds)
+    return votes || {}
   }
 
   async getUserIdeas(limit?: number, offset = 0): Promise<Idea[]> {
@@ -1165,6 +1065,40 @@ class SupabaseIdeaService implements IIdeaService {
       status_flag: dbIdea.status_flag,
       anonymous: dbIdea.anonymous || false,
       creatorEmail, // Add creator email for ownership verification
+    }
+  }
+
+  /**
+   * Map RPC result to Idea format
+   * Used for optimized vote operations
+   */
+  private mapRpcResultToIdea(rpcResult: any): Idea | null {
+    if (!rpcResult) return null
+
+    const voteCounts = {
+      dislike: rpcResult.dislike_votes || 0,
+      use: rpcResult.use_votes || 0,
+      pay: rpcResult.pay_votes || 0,
+    }
+    const totalVotes = voteCounts.dislike + voteCounts.use + voteCounts.pay
+
+    return {
+      id: rpcResult.id,
+      title: rpcResult.title,
+      description: rpcResult.content?.description || '',
+      author: 'Anonymous', // RPC doesn't include user data
+      score: rpcResult.score || 0,
+      votes: totalVotes,
+      votesByType: voteCounts,
+      commentCount: rpcResult.comment_count || 0,
+      tags: [], // RPC doesn't include tags
+      createdAt: rpcResult.created_at,
+      image: rpcResult.content?.hero_image,
+      video: rpcResult.content?.hero_video,
+      content: rpcResult.content?.blocks || rpcResult.content,
+      status_flag: rpcResult.status_flag,
+      anonymous: rpcResult.anonymous || false,
+      creatorEmail: null,
     }
   }
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Menu } from 'lucide-react'
 import { usePathname } from 'next/navigation'
+import { useMediaQuery } from '@/core/lib/hooks'
 
 interface MobileHeaderProps {
   onMenuClick: () => void
@@ -12,17 +13,8 @@ interface MobileHeaderProps {
 export function MobileHeader({ onMenuClick }: MobileHeaderProps) {
   const pathname = usePathname()
   const currentLocale = pathname.startsWith('/es') ? 'es' : 'en'
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  // Use useMediaQuery for stable mobile detection
+  const isMobile = useMediaQuery('(max-width: 767px)')
 
   // Only show on mobile
   if (!isMobile) return null

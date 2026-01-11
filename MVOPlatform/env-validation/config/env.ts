@@ -17,6 +17,7 @@ const rawServerEnv = {
   supabaseStorageSecretAccessKey:
     process.env.SUPABASE_STORAGE_SECRET_ACCESS_KEY!,
   supabaseStorageBucketName: process.env.SUPABASE_STORAGE_BUCKET_NAME!,
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
 } as const
 
 // Client-side environment variables (must be prefixed with NEXT_PUBLIC_)
