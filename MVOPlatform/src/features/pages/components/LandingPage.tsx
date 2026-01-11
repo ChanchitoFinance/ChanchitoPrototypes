@@ -1,12 +1,13 @@
 'use client'
 
+import { AnalyticsPreview } from '@/features/landing/components/AnalyticsPreview'
 import { CTA } from '@/features/landing/components/CTA'
 import { FAQ } from '@/features/landing/components/FAQ'
 import { Hero } from '@/features/landing/components/Hero'
 import { Pricing } from '@/features/landing/components/Pricing'
 import { Process } from '@/features/landing/components/Process'
-import { ScorecardMockup } from '@/features/landing/components/ScorecardMockup'
 import { Testimonials } from '@/features/landing/components/Testimonials'
+import { TrustBar } from '@/features/landing/components/TrustBar'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAppDispatch, useAppSelector } from '@/core/lib/hooks'
@@ -57,10 +58,11 @@ export function LandingPage() {
       </header>
       <div className="pt-16">
         <Hero />
+        <TrustBar />
         <Process />
-        <ScorecardMockup />
-        <Pricing />
+        <AnalyticsPreview />
         <Testimonials />
+        <Pricing />
         <FAQ />
         <CTA />
       </div>
