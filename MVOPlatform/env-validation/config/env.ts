@@ -8,7 +8,6 @@
  */
 
 // Server-side environment variables
-/* eslint-disable no-restricted-syntax */
 const rawServerEnv = {
   stripeSecretKey: process.env.STRIPE_SECRET_KEY!,
   supabaseStorageEndpoint: process.env.SUPABASE_STORAGE_ENDPOINT!,
@@ -17,7 +16,6 @@ const rawServerEnv = {
   supabaseStorageSecretAccessKey:
     process.env.SUPABASE_STORAGE_SECRET_ACCESS_KEY!,
   supabaseStorageBucketName: process.env.SUPABASE_STORAGE_BUCKET_NAME!,
-  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
 } as const
 
 // Client-side environment variables (must be prefixed with NEXT_PUBLIC_)
@@ -29,7 +27,6 @@ const rawClientEnv = {
   geminiApiKey: process.env.GEMINI_API_KEY!,
   geminiModel: process.env.NEXT_PUBLIC_GEMINI_MODEL!,
 } as const
-/* eslint-enable no-restricted-syntax */
 
 // Validate environment variables using schema (server-side only)
 // Import validation function only on server-side to avoid bundling issues

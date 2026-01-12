@@ -38,8 +38,14 @@ export function Sidebar({
   const dispatch = useAppDispatch()
   const t = useTranslations()
   const [internalIsMobileOpen, setInternalIsMobileOpen] = useState(false)
+  const [sidebarHeight, setSidebarHeight] = useState('100vh')
+  const pathname = usePathname()
   // Use useMediaQuery for stable mobile detection that doesn't flicker during navigation
   const isMobile = useMediaQuery('(max-width: 767px)')
+
+  // Check if we're on a landing page
+  const currentLocale = pathname.startsWith('/es') ? 'es' : 'en'
+  const isLandingPage = pathname === '/' || pathname === `/${currentLocale}`
 
   // Use external state if provided, otherwise internal
   const isMobileOpen =
@@ -49,13 +55,9 @@ export function Sidebar({
   const setIsMobileOpen = externalSetIsMobileOpen || setInternalIsMobileOpen
   const [isNavigating, setIsNavigating] = useState(false)
   const { user, profile, isAuthenticated } = useAppSelector(state => state.auth)
-  const pathname = usePathname()
   const router = useRouter()
   const { getUnreadCount } = useNotifications()
   const hasUnreadNotifications = getUnreadCount() > 0
-
-  // Extract current locale from pathname
-  const currentLocale = pathname.startsWith('/es') ? 'es' : 'en'
 
   // Check if we're on a detail page that needs fixed sidebar
   const isDetailPage = pathname?.startsWith('/ideas/') && pathname !== '/ideas'
@@ -81,6 +83,29 @@ export function Sidebar({
       }
     }
   }, [isMobile, externalSetIsMobileOpen])
+
+  // Handle dynamic viewport height changes for mobile
+  useEffect(() => {
+    if (!isMobile) return
+
+    const updateSidebarHeight = () => {
+      // Get the actual visible viewport height - use it directly without buffer
+      const viewportHeight = window.innerHeight
+      setSidebarHeight(`${viewportHeight}px`)
+    }
+
+    // Initial update
+    updateSidebarHeight()
+
+    // Update on resize and scroll events
+    window.addEventListener('resize', updateSidebarHeight)
+    window.addEventListener('scroll', updateSidebarHeight, { passive: true })
+
+    return () => {
+      window.removeEventListener('resize', updateSidebarHeight)
+      window.removeEventListener('scroll', updateSidebarHeight)
+    }
+  }, [isMobile])
 
   const handleBack = () => {
     // Get the previous path from sessionStorage (set when navigating to idea)
@@ -184,6 +209,11 @@ export function Sidebar({
     setIsMobileOpen(false)
   }
 
+  // Don't render sidebar on landing pages
+  if (isLandingPage) {
+    return null
+  }
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -201,15 +231,19 @@ export function Sidebar({
       </AnimatePresence>
 
       <aside
-        className={`fixed left-0 top-0 h-full max-h-screen z-[9998] flex-shrink-0 ${
+        className={`fixed left-0 top-0 z-[9998] flex-shrink-0 ${
           isMobile
             ? isMobileOpen
-              ? 'w-64 transition-all duration-300 mobile-sidebar-fix'
+              ? 'w-64 transition-all duration-300'
               : 'w-0'
             : 'w-64'
         } shadow-lg md:shadow-none`}
+        style={{
+          height: isMobile ? sidebarHeight : '100vh',
+          maxHeight: isMobile ? sidebarHeight : '100vh',
+        }}
       >
-        <div className="h-full flex flex-col bg-background">
+        <div className="h-full flex flex-col bg-background overflow-hidden">
           {/* Logo/Brand - Acts as back button on detail pages */}
           <div className="p-4 flex-shrink-0">
             <div className="flex items-center justify-between">
@@ -228,7 +262,7 @@ export function Sidebar({
                   {t('brand.name')}
                 </Link>
               )}
-              {isMobile && (
+              {isMobile && isMobileOpen && (
                 <button
                   onClick={() => setIsMobileOpen(false)}
                   className="p-1 rounded-md interactive-hover flex-shrink-0 ml-2"
@@ -247,48 +281,48 @@ export function Sidebar({
                 const Icon = item.icon
                 const isActive = item.active || false
 
-                if (isHomePage && item.id === 'home') {
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        if (isDetailPage && item.id === 'home') {
-                          // On detail pages, home icon acts as back button
-                          handleBack()
-                        } else {
-                          handleItemClick(item)
-                        }
-                      }}
-                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
-                        isActive
-                          ? 'bg-accent/10 text-accent'
-                          : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
-                      }`}
-                    >
-                      <Icon className="w-7 h-7 flex-shrink-0" />
-                      <span className="text-sm font-medium">{item.label}</span>
-                    </button>
-                  )
+                // Handle home item with special logic
+                if (item.id === 'home') {
+                  if (isDetailPage) {
+                    // On detail pages, home icon acts as back button
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={handleBack}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
+                          isActive
+                            ? 'bg-accent/10 text-accent'
+                            : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
+                        }`}
+                      >
+                        <Icon className="w-7 h-7 flex-shrink-0" />
+                        <span className="text-sm font-medium">
+                          {item.label}
+                        </span>
+                      </button>
+                    )
+                  } else if (isHomePage && onTabChange) {
+                    // On home page with tab change handler
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => onTabChange('home')}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
+                          isActive
+                            ? 'bg-accent/10 text-accent'
+                            : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
+                        }`}
+                      >
+                        <Icon className="w-7 h-7 flex-shrink-0" />
+                        <span className="text-sm font-medium">
+                          {item.label}
+                        </span>
+                      </button>
+                    )
+                  }
                 }
 
-                // Handle home icon on detail pages (when not on home page)
-                if (isDetailPage && item.id === 'home') {
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={handleBack}
-                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
-                        isActive
-                          ? 'bg-accent/10 text-accent'
-                          : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
-                      }`}
-                    >
-                      <Icon className="w-7 h-7 flex-shrink-0" />
-                      <span className="text-sm font-medium">{item.label}</span>
-                    </button>
-                  )
-                }
-
+                // Regular navigation items
                 return (
                   <Link
                     key={item.id}
@@ -330,7 +364,7 @@ export function Sidebar({
             })}
 
             {/* Auth Section */}
-            <div className="pt-3 mt-3">
+            <div className="pt-0">
               {isAuthenticated ? (
                 <div className="px-3 py-2.5">
                   <UserMenu

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { clientEnv, serverEnv } from '../../../env-validation/config/env'
+import { clientEnv } from '../../../env-validation/config/env'
 
 /**
  * Supabase client configuration optimized for performance
@@ -25,22 +25,6 @@ export const supabase = createClient(
     },
   }
 )
-
-/**
- * Server-only admin client with service role key for elevated operations
- * Use only in server components/api routes - bypasses RLS
- */
-export const getAdminClient = () => {
-  if (!serverEnv.supabaseServiceRoleKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY not configured')
-  }
-  return createClient(clientEnv.supabaseUrl, serverEnv.supabaseServiceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  })
-}
 
 /**
  * Subscribe to idea updates (votes, comments)

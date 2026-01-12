@@ -144,7 +144,7 @@ export function VoteDistributionRing({
           style={{
             fontSize: size * 0.35,
             fontWeight: 'bold',
-            fill: '#E5E7EB',
+            fill: 'var(--text-primary)',
           }}
         >
           {totalVotes}
