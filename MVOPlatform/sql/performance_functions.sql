@@ -312,8 +312,81 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-COMMENT ON FUNCTION get_ideas_feed IS 
+COMMENT ON FUNCTION get_ideas_feed IS
 'Get paginated ideas feed with database-level sorting. Eliminates client-side processing.';
+
+-- ============================================================================
+-- FUNCTION: Toggle comment vote atomically
+-- Replaces 4-5 sequential queries with a single database call
+-- Uses auth.uid() to get the current user
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION toggle_comment_vote(
+  p_comment_id UUID,
+  p_reaction_type TEXT
+) RETURNS JSON AS $$
+DECLARE
+  v_existing_vote TEXT;
+  v_user_id UUID;
+  v_result JSON;
+BEGIN
+  -- Get the current user from auth
+  v_user_id := auth.uid();
+
+  -- Check if user has this specific reaction type
+  SELECT reaction_type INTO v_existing_vote
+  FROM comment_votes
+  WHERE comment_id = p_comment_id
+    AND user_id = v_user_id
+    AND reaction_type = p_reaction_type::comment_reaction_type
+  LIMIT 1;
+
+  -- Handle upvote/downvote votes (mutually exclusive)
+  IF p_reaction_type = 'upvote' OR p_reaction_type = 'downvote' THEN
+    -- Delete any existing upvote/downvote votes first
+    DELETE FROM comment_votes
+    WHERE comment_id = p_comment_id
+      AND user_id = v_user_id
+      AND reaction_type IN ('upvote'::comment_reaction_type, 'downvote'::comment_reaction_type);
+
+    -- If clicking same reaction type, don't insert (toggle off)
+    -- If clicking different type or no vote existed, insert new vote
+    IF v_existing_vote IS NULL THEN
+      INSERT INTO comment_votes (comment_id, user_id, reaction_type)
+      VALUES (p_comment_id, v_user_id, p_reaction_type::comment_reaction_type);
+    END IF;
+
+  END IF;
+
+  -- Return updated comment with all computed fields
+  SELECT json_build_object(
+    'id', c.id,
+    'idea_id', c.idea_id,
+    'user_id', c.user_id,
+    'parent_comment_id', c.parent_comment_id,
+    'content', c.content,
+    'created_at', c.created_at,
+    'deleted_at', c.deleted_at,
+    'upvotes', (
+      SELECT COUNT(*) FROM comment_votes WHERE comment_id = c.id AND reaction_type = 'upvote'::comment_reaction_type
+    ),
+    'downvotes', (
+      SELECT COUNT(*) FROM comment_votes WHERE comment_id = c.id AND reaction_type = 'downvote'::comment_reaction_type
+    ),
+    'author_username', p.username,
+    'author_full_name', p.full_name,
+    'author_image', p.profile_image_url
+  ) INTO v_result
+  FROM comments c
+  JOIN public_user_profiles p ON c.user_id = p.id
+  WHERE c.id = p_comment_id;
+
+  RETURN v_result;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+COMMENT ON FUNCTION toggle_comment_vote IS
+'Atomically toggle comment vote. Handles upvote/downvote mutual exclusivity. Uses auth.uid() for current user.';
 
 -- ============================================================================
 -- Force PostgREST schema cache refresh

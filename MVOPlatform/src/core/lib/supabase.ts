@@ -127,3 +127,20 @@ export const getUserVotesForIdeasRPC = async (ideaIds: string[]) => {
   if (error) throw error
   return data || {}
 }
+
+/**
+ * Call RPC function for optimized comment vote toggle
+ * Note: Function uses auth.uid() internally for user ID
+ */
+export const toggleCommentVoteRPC = async (
+  commentId: string,
+  reactionType: 'upvote' | 'downvote'
+) => {
+  const { data, error } = await supabase.rpc('toggle_comment_vote', {
+    p_comment_id: commentId,
+    p_reaction_type: reactionType,
+  })
+
+  if (error) throw error
+  return data
+}
