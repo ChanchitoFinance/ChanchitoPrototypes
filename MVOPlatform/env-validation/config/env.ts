@@ -8,7 +8,6 @@
  */
 
 // Server-side environment variables
-/* eslint-disable no-restricted-syntax */
 const rawServerEnv = {
   stripeSecretKey: process.env.STRIPE_SECRET_KEY!,
   supabaseStorageEndpoint: process.env.SUPABASE_STORAGE_ENDPOINT!,
@@ -28,7 +27,6 @@ const rawClientEnv = {
   geminiApiKey: process.env.GEMINI_API_KEY!,
   geminiModel: process.env.NEXT_PUBLIC_GEMINI_MODEL!,
 } as const
-/* eslint-enable no-restricted-syntax */
 
 // Validate environment variables using schema (server-side only)
 // Import validation function only on server-side to avoid bundling issues

@@ -37,6 +37,7 @@ interface CommentTreeProps {
   onReplyTextChange: (commentId: string, text: string) => void
   onReplySubmit: (parentId: string, e: React.FormEvent) => void
   submitting: boolean
+  isVoting?: string | null // ID of comment currently being voted on
   isDark?: boolean // For TikTok-style dark theme
   compactMode?: boolean // For tighter indentation in TikTok-style panels
 }
@@ -56,6 +57,7 @@ export function CommentTree({
   onReplyTextChange,
   onReplySubmit,
   submitting,
+  isVoting = null,
   isDark = false,
   compactMode = false,
 }: CommentTreeProps) {
@@ -312,14 +314,15 @@ export function CommentTree({
               />
 
               {/* Actions */}
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
                 <button
                   onClick={() => onUpvote(comment.id)}
+                  disabled={isVoting === comment.id}
                   className={`flex items-center gap-1 transition-colors ${actionSize} ${
                     comment.upvoted
                       ? 'text-accent'
                       : `${isDark ? 'text-white/60 hover:text-accent' : 'text-text-secondary hover:text-accent'}`
-                  }`}
+                  } ${isVoting === comment.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                   title="Upvote"
                 >
                   <ArrowUp
@@ -330,11 +333,12 @@ export function CommentTree({
 
                 <button
                   onClick={() => onDownvote(comment.id)}
+                  disabled={isVoting === comment.id}
                   className={`flex items-center gap-1 transition-colors ${actionSize} ${
                     comment.downvoted
                       ? 'text-red-500'
                       : `${isDark ? 'text-white/60 hover:text-red-500' : 'text-text-secondary hover:text-red-500'}`
-                  }`}
+                  } ${isVoting === comment.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                   title="Downvote"
                 >
                   <ArrowDown
@@ -453,6 +457,7 @@ export function CommentTree({
                     onReplyTextChange={onReplyTextChange}
                     onReplySubmit={onReplySubmit}
                     submitting={submitting}
+                    isVoting={isVoting}
                     isDark={isDark}
                     compactMode={compactMode}
                   />

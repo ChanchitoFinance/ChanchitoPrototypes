@@ -1,5 +1,5 @@
 import { Comment } from '@/core/types/comment'
-import { supabase } from '@/core/lib/supabase'
+import { supabase, toggleCommentVoteRPC } from '@/core/lib/supabase'
 import { ICommentService } from '@/core/abstractions/ICommentService'
 
 class SupabaseCommentService implements ICommentService {
@@ -93,82 +93,68 @@ class SupabaseCommentService implements ICommentService {
     commentId: string,
     ideaId: string
   ): Promise<Comment> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('Not authenticated')
+    // Use optimized RPC function for single query operation
+    const result = await toggleCommentVoteRPC(commentId, 'upvote')
 
-    // Check if vote exists
-    const { data: existingVote } = await supabase
-      .from('comment_votes')
-      .select('reaction_type')
-      .eq('comment_id', commentId)
-      .eq('user_id', user.user.id)
-      .single()
+    // Map the result back to Comment format
+    const updatedComment = this.mapRpcResultToComment(result)
+    if (!updatedComment) throw new Error('Comment not found')
 
-    if (existingVote?.reaction_type === 'upvote') {
-      // Remove upvote
-      await supabase
+    // Get current user's vote status for this comment
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (user) {
+      const { data: userVote } = await supabase
         .from('comment_votes')
-        .delete()
+        .select('reaction_type')
         .eq('comment_id', commentId)
-        .eq('user_id', user.user.id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      // Set the vote status
+      updatedComment.upvoted = userVote?.reaction_type === 'upvote' || false
+      updatedComment.downvoted = userVote?.reaction_type === 'downvote' || false
     } else {
-      // Remove any existing vote and add upvote
-      await supabase
-        .from('comment_votes')
-        .delete()
-        .eq('comment_id', commentId)
-        .eq('user_id', user.user.id)
-
-      await supabase.from('comment_votes').insert({
-        comment_id: commentId,
-        user_id: user.user.id,
-        reaction_type: 'upvote',
-      })
+      updatedComment.upvoted = false
+      updatedComment.downvoted = false
     }
 
-    // Return updated comment
-    return this.getCommentById(commentId)
+    return updatedComment
   }
 
   async toggleDownvoteComment(
     commentId: string,
     ideaId: string
   ): Promise<Comment> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('Not authenticated')
+    // Use optimized RPC function for single query operation
+    const result = await toggleCommentVoteRPC(commentId, 'downvote')
 
-    // Check if vote exists
-    const { data: existingVote } = await supabase
-      .from('comment_votes')
-      .select('reaction_type')
-      .eq('comment_id', commentId)
-      .eq('user_id', user.user.id)
-      .single()
+    // Map the result back to Comment format
+    const updatedComment = this.mapRpcResultToComment(result)
+    if (!updatedComment) throw new Error('Comment not found')
 
-    if (existingVote?.reaction_type === 'downvote') {
-      // Remove downvote
-      await supabase
+    // Get current user's vote status for this comment
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (user) {
+      const { data: userVote } = await supabase
         .from('comment_votes')
-        .delete()
+        .select('reaction_type')
         .eq('comment_id', commentId)
-        .eq('user_id', user.user.id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      // Set the vote status
+      updatedComment.upvoted = userVote?.reaction_type === 'upvote' || false
+      updatedComment.downvoted = userVote?.reaction_type === 'downvote' || false
     } else {
-      // Remove any existing vote and add downvote
-      await supabase
-        .from('comment_votes')
-        .delete()
-        .eq('comment_id', commentId)
-        .eq('user_id', user.user.id)
-
-      await supabase.from('comment_votes').insert({
-        comment_id: commentId,
-        user_id: user.user.id,
-        reaction_type: 'downvote',
-      })
+      updatedComment.upvoted = false
+      updatedComment.downvoted = false
     }
 
-    // Return updated comment
-    return this.getCommentById(commentId)
+    return updatedComment
   }
 
   async getCommentCount(ideaId: string): Promise<number> {
@@ -302,6 +288,37 @@ class SupabaseCommentService implements ICommentService {
       downvotes,
       usefulnessScore,
       parentId: dbComment.parent_comment_id,
+      replies: [],
+    }
+  }
+
+  /**
+   * Map RPC result to Comment format
+   * Used for optimized vote operations
+   */
+  private mapRpcResultToComment(rpcResult: any): Comment | null {
+    if (!rpcResult) return null
+
+    const upvotes = rpcResult.upvotes || 0
+    const downvotes = rpcResult.downvotes || 0
+    const totalVotes = upvotes + downvotes
+    const usefulnessScore =
+      totalVotes > 0
+        ? Math.min(5, ((upvotes - downvotes) / (totalVotes + 1)) * 5 + 2.5)
+        : 0
+
+    return {
+      id: rpcResult.id,
+      ideaId: rpcResult.idea_id,
+      author:
+        rpcResult.author_username || rpcResult.author_full_name || 'Anonymous',
+      authorImage: rpcResult.author_image,
+      content: rpcResult.content,
+      createdAt: rpcResult.created_at,
+      upvotes,
+      downvotes,
+      usefulnessScore,
+      parentId: rpcResult.parent_comment_id,
       replies: [],
     }
   }

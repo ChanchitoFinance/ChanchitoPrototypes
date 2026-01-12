@@ -30,6 +30,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
   const [newComment, setNewComment] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [votingCommentId, setVotingCommentId] = useState<string | null>(null)
   const [highlightedCommentId, setHighlightedCommentId] = useState<
     string | null
   >(null)
@@ -47,49 +48,56 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
     loadComments()
   }, [ideaId])
 
+  // Apply user votes when comments are loaded or user becomes available
+  useEffect(() => {
+    if (comments.length > 0) {
+      applyUserVotesToComments(comments).then(commentsWithVotes => {
+        setComments(commentsWithVotes)
+      })
+    }
+  }, [comments.length, user])
+
+  const applyUserVotesToComments = async (commentsToUpdate: Comment[]) => {
+    if (!user || commentsToUpdate.length === 0) return commentsToUpdate
+
+    const allCommentIds: string[] = []
+    const collectCommentIds = (comments: Comment[]) => {
+      comments.forEach(comment => {
+        allCommentIds.push(comment.id)
+        if (comment.replies) {
+          collectCommentIds(comment.replies)
+        }
+      })
+    }
+    collectCommentIds(commentsToUpdate)
+
+    try {
+      const userVotes = await commentService.getUserCommentVotes(allCommentIds)
+
+      // Apply user vote information to comments
+      const applyUserVotes = (comments: Comment[]): Comment[] => {
+        return comments.map(comment => ({
+          ...comment,
+          upvoted: userVotes[comment.id]?.upvoted || false,
+          downvoted: userVotes[comment.id]?.downvoted || false,
+          replies: comment.replies
+            ? applyUserVotes(comment.replies)
+            : undefined,
+        }))
+      }
+
+      return applyUserVotes(commentsToUpdate)
+    } catch (error) {
+      console.error('Error fetching user comment votes:', error)
+      return commentsToUpdate
+    }
+  }
+
   const loadComments = async () => {
     setLoading(true)
     try {
       const loadedComments = await commentService.getComments(ideaId)
-
-      // Fetch user votes for all comments and replies
-      if (user) {
-        const allCommentIds: string[] = []
-        const collectCommentIds = (comments: Comment[]) => {
-          comments.forEach(comment => {
-            allCommentIds.push(comment.id)
-            if (comment.replies) {
-              collectCommentIds(comment.replies)
-            }
-          })
-        }
-        collectCommentIds(loadedComments)
-
-        try {
-          const userVotes =
-            await commentService.getUserCommentVotes(allCommentIds)
-
-          // Apply user vote information to comments
-          const applyUserVotes = (comments: Comment[]): Comment[] => {
-            return comments.map(comment => ({
-              ...comment,
-              upvoted: userVotes[comment.id]?.upvoted || false,
-              downvoted: userVotes[comment.id]?.downvoted || false,
-              replies: comment.replies
-                ? applyUserVotes(comment.replies)
-                : undefined,
-            }))
-          }
-
-          const commentsWithVotes = applyUserVotes(loadedComments)
-          setComments(commentsWithVotes)
-        } catch (error) {
-          console.error('Error fetching user comment votes:', error)
-          setComments(loadedComments)
-        }
-      } else {
-        setComments(loadedComments)
-      }
+      setComments(loadedComments)
     } catch (error) {
       console.error('Error loading comments:', error)
     } finally {
@@ -97,11 +105,29 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
     }
   }
 
+  // Apply user votes when comments are loaded or user becomes available
+  useEffect(() => {
+    if (comments.length > 0) {
+      applyUserVotesToComments(comments).then(commentsWithVotes => {
+        setComments(commentsWithVotes)
+      })
+    }
+  }, [comments.length, user])
+
   const handleUpvoteComment = async (commentId: string) => {
     if (!user) {
       toast.warning(t('auth.sign_in_to_vote'))
       return
     }
+    if (votingCommentId) return // Prevent multiple simultaneous votes
+
+    setVotingCommentId(commentId)
+
+    // Optimistically update the UI
+    setComments(prev =>
+      updateCommentVoteOptimistically(prev, commentId, 'upvote')
+    )
+
     try {
       const updatedComment = await commentService.toggleUpvoteComment(
         commentId,
@@ -110,6 +136,12 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
       updateCommentInState(commentId, updatedComment)
     } catch (error) {
       console.error('Error upvoting comment:', error)
+      // Revert optimistic update on error
+      setComments(prev =>
+        updateCommentVoteOptimistically(prev, commentId, 'upvote')
+      )
+    } finally {
+      setVotingCommentId(null)
     }
   }
 
@@ -118,6 +150,15 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
       toast.warning(t('auth.sign_in_to_vote'))
       return
     }
+    if (votingCommentId) return // Prevent multiple simultaneous votes
+
+    setVotingCommentId(commentId)
+
+    // Optimistically update the UI
+    setComments(prev =>
+      updateCommentVoteOptimistically(prev, commentId, 'downvote')
+    )
+
     try {
       const updatedComment = await commentService.toggleDownvoteComment(
         commentId,
@@ -126,7 +167,66 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
       updateCommentInState(commentId, updatedComment)
     } catch (error) {
       console.error('Error downvoting comment:', error)
+      // Revert optimistic update on error
+      setComments(prev =>
+        updateCommentVoteOptimistically(prev, commentId, 'downvote')
+      )
+    } finally {
+      setVotingCommentId(null)
     }
+  }
+
+  const updateCommentVoteOptimistically = (
+    comments: Comment[],
+    commentId: string,
+    voteType: 'upvote' | 'downvote'
+  ): Comment[] => {
+    const updateCommentRecursive = (comments: Comment[]): Comment[] => {
+      return comments.map(comment => {
+        if (comment.id === commentId) {
+          const wasUpvoted = comment.upvoted || false
+          const wasDownvoted = comment.downvoted || false
+
+          let newUpvoted = wasUpvoted
+          let newDownvoted = wasDownvoted
+
+          if (voteType === 'upvote') {
+            if (wasUpvoted) {
+              // Remove upvote
+              newUpvoted = false
+            } else {
+              // Add upvote, remove downvote if present
+              newUpvoted = true
+              newDownvoted = false
+            }
+          } else if (voteType === 'downvote') {
+            if (wasDownvoted) {
+              // Remove downvote
+              newDownvoted = false
+            } else {
+              // Add downvote, remove upvote if present
+              newDownvoted = true
+              newUpvoted = false
+            }
+          }
+
+          return {
+            ...comment,
+            upvoted: newUpvoted,
+            downvoted: newDownvoted,
+          }
+        }
+        if (comment.replies) {
+          return {
+            ...comment,
+            replies: updateCommentRecursive(comment.replies),
+          }
+        }
+        return comment
+      })
+    }
+
+    return updateCommentRecursive(comments)
   }
 
   const updateCommentInState = (commentId: string, updatedComment: Comment) => {
@@ -567,6 +667,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
             }}
             onReplySubmit={handleReplySubmit}
             submitting={submitting}
+            isVoting={votingCommentId}
             isDark={false}
           />
         </div>

@@ -213,6 +213,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
             !text-gray-400
             !border-gray-400
             px-3 py-2 md:px-4 md:py-2
+            backdrop-blur
           "
         >
           <ArrowLeft className="w-4 h-4" />

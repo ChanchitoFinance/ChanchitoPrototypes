@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { Toaster } from 'sonner'
+import { ToasterWrapper } from '@/shared/components/ui/ToasterWrapper'
 
 export const metadata: Metadata = {
   title: 'MVO - Validate Your Business Idea',
@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <Toaster closeButton richColors theme="dark" />
+        <ToasterWrapper />
         {children}
       </body>
     </html>
