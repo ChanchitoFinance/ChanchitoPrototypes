@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
   useLocale,
@@ -10,9 +10,8 @@ import {
 } from '@/shared/components/providers/I18nProvider'
 import { Idea } from '@/core/types/idea'
 import { ideaService } from '@/core/lib/services/ideaService'
-import { Dialog } from '@/shared/components/ui/Dialog'
+import { supabase } from '@/core/lib/supabase'
 import { Toast } from '@/shared/components/ui/Toast'
-import { formatDate } from '@/core/lib/utils/date'
 import { IdeaCard } from '@/features/ideas/components/IdeaCard'
 import { IdeaFilterPanel } from '@/features/ideas/components/IdeaFilterPanel'
 import {
@@ -24,7 +23,7 @@ import { IdeaFilterService } from '@/features/ideas/services/ideaFilterService'
 
 const ITEMS_PER_PAGE = 20
 
-export function AdminDashboard() {
+export function BrowseDashboard() {
   const t = useTranslations()
   const { locale } = useLocale()
   const router = useRouter()
@@ -35,8 +34,6 @@ export function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [hasMore, setHasMore] = useState(true)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [ideaToDelete, setIdeaToDelete] = useState<Idea | null>(null)
   const [toast, setToast] = useState<{
     message: string
     isOpen: boolean
@@ -58,8 +55,8 @@ export function AdminDashboard() {
     {
       id: 'score',
       label: 'Score',
-      field: 'score' as const,
-      operators: ['>', '<', '=', '>=', '<='] as const,
+      field: 'score',
+      operators: ['>', '<', '=', '>=', '<='],
       minValue: 0,
       maxValue: 100,
       step: 1,
@@ -67,40 +64,40 @@ export function AdminDashboard() {
     {
       id: 'votes',
       label: 'Total Votes',
-      field: 'votes' as const,
-      operators: ['>', '<', '=', '>=', '<='] as const,
+      field: 'votes',
+      operators: ['>', '<', '=', '>=', '<='],
       minValue: 0,
       step: 1,
     },
     {
       id: 'use-votes',
       label: 'Use Votes',
-      field: 'votesByType.use' as const,
-      operators: ['>', '<', '=', '>=', '<='] as const,
+      field: 'votesByType.use',
+      operators: ['>', '<', '=', '>=', '<='],
       minValue: 0,
       step: 1,
     },
     {
       id: 'dislike-votes',
       label: 'Dislike Votes',
-      field: 'votesByType.dislike' as const,
-      operators: ['>', '<', '=', '>=', '<='] as const,
+      field: 'votesByType.dislike',
+      operators: ['>', '<', '=', '>=', '<='],
       minValue: 0,
       step: 1,
     },
     {
       id: 'pay-votes',
       label: 'Pay Votes',
-      field: 'votesByType.pay' as const,
-      operators: ['>', '<', '=', '>=', '<='] as const,
+      field: 'votesByType.pay',
+      operators: ['>', '<', '=', '>=', '<='],
       minValue: 0,
       step: 1,
     },
     {
       id: 'comments',
       label: 'Comments',
-      field: 'commentCount' as const,
-      operators: ['>', '<', '=', '>=', '<='] as const,
+      field: 'commentCount',
+      operators: ['>', '<', '=', '>=', '<='],
       minValue: 0,
       step: 1,
     },
@@ -108,18 +105,18 @@ export function AdminDashboard() {
 
   // Sort configurations
   const sortConfigs = [
-    { id: 'title', label: 'Title', field: 'title' as const },
-    { id: 'score', label: 'Score', field: 'score' as const },
-    { id: 'votes', label: 'Total Votes', field: 'votes' as const },
-    { id: 'use-votes', label: 'Use Votes', field: 'votesByType.use' as const },
+    { id: 'title', label: 'Title', field: 'title' },
+    { id: 'score', label: 'Score', field: 'score' },
+    { id: 'votes', label: 'Total Votes', field: 'votes' },
+    { id: 'use-votes', label: 'Use Votes', field: 'votesByType.use' },
     {
       id: 'dislike-votes',
       label: 'Dislike Votes',
-      field: 'votesByType.dislike' as const,
+      field: 'votesByType.dislike',
     },
-    { id: 'pay-votes', label: 'Pay Votes', field: 'votesByType.pay' as const },
-    { id: 'comments', label: 'Comments', field: 'commentCount' as const },
-    { id: 'createdAt', label: 'Date Created', field: 'createdAt' as const },
+    { id: 'pay-votes', label: 'Pay Votes', field: 'votesByType.pay' },
+    { id: 'comments', label: 'Comments', field: 'commentCount' },
+    { id: 'createdAt', label: 'Date Created', field: 'createdAt' },
   ]
 
   // Debounce search query
@@ -195,7 +192,7 @@ export function AdminDashboard() {
       setHasMore(result.ideas.length === ITEMS_PER_PAGE)
     } catch (error) {
       console.error('Error loading ideas:', error)
-      setToast({ message: t('admin.dashboard.loading'), isOpen: true })
+      setToast({ message: t('status.loading'), isOpen: true })
     } finally {
       setLoading(false)
       setIsSearching(false)
@@ -233,33 +230,11 @@ export function AdminDashboard() {
     }
   }
 
-  const handleDeleteIdea = async () => {
-    if (!ideaToDelete) return
-
-    try {
-      await ideaService.deleteIdea(ideaToDelete.id)
-      setIdeas(prev => prev.filter(idea => idea.id !== ideaToDelete.id))
-      setTotalIdeas(prev => prev - 1)
-      setToast({ message: t('admin.dashboard.delete_success'), isOpen: true })
-    } catch (error) {
-      console.error('Error deleting idea:', error)
-      setToast({ message: t('admin.dashboard.delete_error'), isOpen: true })
-    } finally {
-      setDeleteDialogOpen(false)
-      setIdeaToDelete(null)
-    }
-  }
-
-  const openDeleteDialog = (idea: Idea) => {
-    setIdeaToDelete(idea)
-    setDeleteDialogOpen(true)
-  }
-
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-heading-1 mb-2">{t('admin.dashboard.title')}</h1>
-        <p className="text-body">{t('admin.dashboard.subtitle')}</p>
+        <h1 className="text-heading-1 mb-2">{t('browse.dashboard.title')}</h1>
+        <p className="text-body">{t('browse.dashboard.subtitle')}</p>
       </div>
 
       {/* Search Bar */}
@@ -267,7 +242,7 @@ export function AdminDashboard() {
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary w-5 h-5" />
         <input
           type="text"
-          placeholder={t('admin.dashboard.search_placeholder')}
+          placeholder={t('browse.dashboard.search_placeholder')}
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent bg-white text-black"
@@ -287,7 +262,7 @@ export function AdminDashboard() {
       {/* Ideas Grid */}
       <div className="space-y-6">
         <h2 className="text-xl font-semibold text-text-primary">
-          {t('admin.dashboard.all_ideas')} ({totalIdeas})
+          {t('browse.dashboard.all_ideas')} ({totalIdeas})
         </h2>
 
         {loading && ideas.length === 0 ? (
@@ -310,7 +285,7 @@ export function AdminDashboard() {
               <Search className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-text-primary mb-2">
-              {t('admin.dashboard.no_ideas')}
+              {t('browse.dashboard.no_ideas')}
             </h3>
           </div>
         ) : (
@@ -320,8 +295,7 @@ export function AdminDashboard() {
                 <IdeaCard
                   key={idea.id}
                   idea={idea}
-                  variant="admin"
-                  onDelete={() => openDeleteDialog(idea)}
+                  variant="interactive"
                   locale={locale}
                   router={router}
                 />
@@ -347,19 +321,6 @@ export function AdminDashboard() {
           </>
         )}
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        title={t('admin.dashboard.delete_idea')}
-        message={`${t('admin.dashboard.delete_confirm')}${ideaToDelete ? `\n\n${ideaToDelete.title}` : ''}`}
-        type="confirm"
-        onConfirm={handleDeleteIdea}
-        confirmText={t('actions.delete')}
-        cancelText={t('actions.cancel')}
-        confirmVariant="primary"
-      />
 
       {/* Toast Notifications */}
       {toast && (

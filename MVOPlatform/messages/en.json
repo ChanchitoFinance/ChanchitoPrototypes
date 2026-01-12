@@ -6,6 +6,7 @@
   },
   "navigation": {
     "home": "Home",
+    "browse": "Browse",
     "for_you": "For You",
     "activity": "Activity",
     "upload": "Upload",
@@ -92,6 +93,16 @@
     "for_you_title": "For You",
     "for_you_subtitle": "Ideas curated just for you",
     "new_ideas": "New Ideas"
+  },
+  "browse": {
+    "dashboard": {
+      "title": "Browse Ideas",
+      "subtitle": "Discover and vote on validated business ideas",
+      "all_ideas": "All Ideas",
+      "search_placeholder": "Search ideas by title, description, or tags...",
+      "loading": "Loading ideas...",
+      "no_ideas": "No ideas found"
+    }
   },
   "activity": {
     "title": "Activity",

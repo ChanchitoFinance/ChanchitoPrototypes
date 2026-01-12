@@ -6,8 +6,10 @@
   },
   "navigation": {
     "home": "Inicio",
+    "browse": "Explorar",
     "for_you": "Para Ti",
     "explore": "Explorar",
+    "spaces": "Espacios",
     "activity": "Actividad",
     "upload": "Subir",
     "profile": "Perfil",
@@ -93,6 +95,16 @@
     "for_you_title": "Para Ti",
     "for_you_subtitle": "Ideas curadas especialmente para ti",
     "new_ideas": "Nuevas Ideas"
+  },
+  "browse": {
+    "dashboard": {
+      "title": "Explorar Ideas",
+      "subtitle": "Descubre y vota por ideas de negocio validadas",
+      "all_ideas": "Todas las Ideas",
+      "search_placeholder": "Buscar ideas por título, descripción o etiquetas...",
+      "loading": "Cargando ideas...",
+      "no_ideas": "No se encontraron ideas"
+    }
   },
   "activity": {
     "title": "Actividad",
