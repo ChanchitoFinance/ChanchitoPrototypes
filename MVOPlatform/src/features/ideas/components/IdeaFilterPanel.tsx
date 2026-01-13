@@ -90,7 +90,7 @@ export function IdeaFilterPanel({
         </h3>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-text-secondary dark:text-gray-300 hover:text-text-primary transition-colors"
+          className="text-text-secondary dark:text-gray-300 transition-colors"
         >
           {isExpanded ? (
             <>
@@ -117,7 +117,7 @@ export function IdeaFilterPanel({
               <div className="flex gap-2">
                 <button
                   onClick={addFilter}
-                  className="px-3 py-1 bg-accent text-white rounded-md hover:bg-accent-dark transition-colors flex items-center gap-1"
+                  className="px-3 py-1 bg-accent text-black rounded-md hover:bg-accent-dark transition-colors flex items-center gap-1"
                 >
                   <Plus className="w-4 h-4" />
                   {t('browse.dashboard.add_filter')}
@@ -257,7 +257,7 @@ export function IdeaFilterPanel({
                   onClick={() => handleSortChange(config.field)}
                   className={`px-3 py-2 rounded-md text-sm transition-colors border flex items-center justify-between ${
                     sortOption?.field === config.field
-                      ? 'bg-accent text-white border-accent'
+                      ? 'bg-accent text-black border-accent'
                       : 'bg-white text-black border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-black'
                   }`}
                 >
@@ -272,7 +272,7 @@ export function IdeaFilterPanel({
             </div>
 
             {sortOption && (
-              <div className="mt-2 text-sm text-text-secondary dark:text-gray-300">
+              <div className="mt-4 text-sm text-text-secondary dark:text-gray-300">
                 {t('browse.dashboard.sorting_by')}:{' '}
                 <strong>
                   {sortConfigs.find(c => c.field === sortOption.field)?.label}
