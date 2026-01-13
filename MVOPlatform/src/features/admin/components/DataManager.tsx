@@ -1,11 +1,9 @@
 import { adminService } from '@/core/lib/services/adminService'
-import { teamService } from '@/core/lib/services/teamService'
 import { userService } from '@/core/lib/services/userService'
 import { useState, useEffect } from 'react'
 
 export default function DataManager() {
   const [users, setUsers] = useState([])
-  const [teams, setTeams] = useState([])
   const [tags, setTags] = useState([])
   const [badges, setBadges] = useState([])
   const [loading, setLoading] = useState(true)
@@ -16,15 +14,13 @@ export default function DataManager() {
 
   const loadData = async () => {
     try {
-      const [usersData, teamsData, tagsData, badgesData] = await Promise.all([
+      const [usersData, tagsData, badgesData] = await Promise.all([
         userService.getUsers(10),
-        teamService.getTeams(),
         adminService.getTags(),
         adminService.getBadges(),
       ])
 
       setUsers(usersData)
-      setTeams(teamsData)
       setTags(tagsData)
       setBadges(badgesData)
     } catch (error) {
@@ -53,18 +49,6 @@ export default function DataManager() {
                 <div className="text-sm">
                   Reputation: {user.reputation_score}
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Teams ({teams.length})</h2>
-          <div className="space-y-2">
-            {teams.map(team => (
-              <div key={team.id} className="p-3 border rounded">
-                <div className="font-medium">{team.name}</div>
-                <div className="text-sm text-gray-600">{team.description}</div>
               </div>
             ))}
           </div>

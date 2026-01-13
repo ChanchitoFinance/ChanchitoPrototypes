@@ -168,7 +168,7 @@ CREATE TABLE content_refs (
 -- Ideas
 CREATE TABLE ideas (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  space_id UUID NOT NULL REFERENCES enterprise_spaces(id) ON DELETE CASCADE,
+  space_id UUID REFERENCES enterprise_spaces(id) ON DELETE SET NULL,
   creator_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
   status_flag idea_status_flag NOT NULL DEFAULT 'new',
@@ -351,8 +351,6 @@ CREATE TABLE follow_topics (
 CREATE INDEX idx_media_assets_type ON media_assets(type);
 CREATE INDEX idx_media_assets_created_at ON media_assets(created_at);
 CREATE INDEX idx_teams_created_at ON teams(created_at);
-CREATE INDEX idx_ideas_space_created_at ON ideas(space_id, created_at);
-CREATE INDEX idx_ideas_space_status ON ideas(space_id, status_flag);
 CREATE INDEX idx_ideas_creator_created_at ON ideas(creator_id, created_at);
 CREATE INDEX idx_idea_variants_idea_created_at ON idea_variants(idea_id, created_at);
 CREATE INDEX idx_idea_variants_type ON idea_variants(variant_type);
@@ -365,9 +363,7 @@ CREATE INDEX idx_comments_user_created_at ON comments(user_id, created_at);
 CREATE INDEX idx_comment_votes_comment ON comment_votes(comment_id);
 CREATE INDEX idx_comment_votes_user_created_at ON comment_votes(user_id, created_at);
 CREATE INDEX idx_posts_team_created_at ON posts(team_id, created_at);
-CREATE INDEX idx_posts_space_created_at ON posts(space_id, created_at);
 CREATE INDEX idx_posts_status_published ON posts(status, published_at);
-CREATE INDEX idx_newsletters_space_created_at ON newsletters(space_id, created_at);
 CREATE INDEX idx_newsletter_blocks_newsletter_sort ON newsletter_blocks(newsletter_id, sort_order);
 CREATE INDEX idx_newsletter_featured_ideas_newsletter_sort ON newsletter_featured_ideas(newsletter_id, sort_order);
 CREATE INDEX idx_newsletter_featured_ideas_idea ON newsletter_featured_ideas(idea_id);

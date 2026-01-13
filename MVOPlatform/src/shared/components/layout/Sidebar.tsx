@@ -17,7 +17,6 @@ import {
   Plus,
   X,
   LogIn,
-  FolderKanban,
   Shield,
 } from 'lucide-react'
 import { UserMenu } from '@/shared/components/ui/UserMenu'
@@ -163,15 +162,6 @@ export function Sidebar({
       icon: Heart,
       href: `/${currentLocale}/for-you`,
       active: pathname === `/${currentLocale}/for-you`,
-    },
-    {
-      id: 'spaces',
-      label: t('navigation.spaces'),
-      icon: FolderKanban,
-      href: `/${currentLocale}/spaces`,
-      active:
-        pathname === `/${currentLocale}/spaces` ||
-        pathname?.startsWith(`/${currentLocale}/spaces/`),
     },
     {
       id: 'activity',

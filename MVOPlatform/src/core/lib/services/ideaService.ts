@@ -307,55 +307,6 @@ class SupabaseIdeaService implements IIdeaService {
     return sortedIdeas.slice(startIndex, endIndex)
   }
 
-  async getIdeasBySpace(
-    spaceId: string,
-    limit?: number,
-    offset = 0
-  ): Promise<Idea[]> {
-    let query = supabase
-      .from('ideas')
-      .select(
-        `
-        id,
-        title,
-        status_flag,
-        content,
-        created_at,
-        anonymous,
-        users!ideas_creator_id_fkey (
-          username,
-          full_name
-        ),
-        idea_votes (
-          vote_type
-        ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
-        comments!left (
-          id
-        )
-      `
-      )
-      .eq('space_id', spaceId)
-      .order('created_at', { ascending: false })
-
-    if (limit) {
-      query = query.range(offset, offset + limit - 1)
-    }
-
-    const { data, error } = await query
-
-    if (error) {
-      console.error('Error fetching ideas by space:', error)
-      throw error
-    }
-
-    return data?.map(this.mapDbIdeaToIdea) || []
-  }
-
   async getAllIdeasForAdmin(
     search?: string,
     limit = 20,
@@ -1102,7 +1053,7 @@ class SupabaseIdeaService implements IIdeaService {
     }
   }
 
-  async createIdea(ideaData: Omit<Idea, 'id'>, spaceId: string): Promise<Idea> {
+  async createIdea(ideaData: Omit<Idea, 'id'>): Promise<Idea> {
     const {
       data: { user },
     } = await supabase.auth.getUser()
@@ -1122,7 +1073,6 @@ class SupabaseIdeaService implements IIdeaService {
     const { data, error } = await supabase
       .from('ideas')
       .insert({
-        space_id: spaceId,
         creator_id: user.id,
         title: ideaData.title,
         content: {
@@ -1269,79 +1219,6 @@ class SupabaseIdeaService implements IIdeaService {
 
     if (error) throw error
     return true
-  }
-
-  async getSpaces(): Promise<
-    Array<{ id: string; name: string; team_id: string }>
-  > {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      // If not authenticated, return only public spaces
-      const { data, error } = await supabase
-        .from('enterprise_spaces')
-        .select('id, name, team_id')
-        .eq('visibility', 'public')
-        .order('name')
-
-      if (error) {
-        console.error('Error fetching spaces:', error)
-        throw error
-      }
-
-      return data || []
-    }
-
-    // Get public spaces
-    const { data: publicSpaces, error: publicError } = await supabase
-      .from('enterprise_spaces')
-      .select('id, name, team_id')
-      .eq('visibility', 'public')
-
-    if (publicError) {
-      console.error('Error fetching public spaces:', publicError)
-      throw publicError
-    }
-
-    // Get spaces user is member of
-    const { data: memberships, error: membershipError } = await supabase
-      .from('space_memberships')
-      .select(
-        `
-        enterprise_spaces!space_memberships_space_id_fkey (
-          id,
-          name,
-          team_id
-        )
-      `
-      )
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-
-    if (membershipError) {
-      console.error('Error fetching user spaces:', membershipError)
-      throw membershipError
-    }
-
-    const userSpaces =
-      memberships
-        ?.map((m: any) => m.enterprise_spaces)
-        .filter(Boolean)
-        .map((space: any) => ({
-          id: space.id,
-          name: space.name,
-          team_id: space.team_id,
-        })) || []
-
-    // Combine and deduplicate
-    const allSpaces = [...(publicSpaces || []), ...userSpaces]
-    const uniqueSpaces = Array.from(
-      new Map(allSpaces.map(space => [space.id, space])).values()
-    )
-
-    return uniqueSpaces.sort((a, b) => a.name.localeCompare(b.name))
   }
 }
 
