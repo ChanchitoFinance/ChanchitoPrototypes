@@ -12,7 +12,6 @@ import {
   ChevronDown,
   ChevronUp,
   Upload,
-  Link,
   Image as ImageIcon,
   Video,
   Crop,
@@ -23,21 +22,16 @@ import {
   Loader2,
   UserX,
   Check,
-  Globe,
-  Lock,
-  Search,
 } from 'lucide-react'
 import Image from 'next/image'
 import {
   useLocale,
   useTranslations,
 } from '@/shared/components/providers/I18nProvider'
-import { SpaceWithTeam } from '@/core/types/space'
 import { AIRiskFeedback } from '../../../ai/components/AIRiskFeedback'
 import { useAppSelector } from '@/core/lib/hooks'
 import { supabase } from '@/core/lib/supabase'
 import { ideaService } from '@/core/lib/services/ideaService'
-import { teamService } from '@/core/lib/services/teamService'
 import { Idea } from '@/core/types/idea'
 import { ContentRenderer } from '../ContentRenderer'
 import { Button } from '@/shared/components/ui/Button'
@@ -48,7 +42,6 @@ import { aiCommentService } from '@/core/lib/services/aiCommentService'
 
 type IdeaFormData = {
   title: string
-  space_id: string
   tags?: string
 }
 
@@ -56,7 +49,6 @@ type IdeaFormData = {
 const FORM_STORAGE_KEY = 'idea_form_draft'
 
 interface IdeaFormProps {
-  defaultSpaceId?: string
   ideaId?: string // For editing existing ideas
   onSuccess?: () => void
   onCancel?: () => void
@@ -64,7 +56,6 @@ interface IdeaFormProps {
 }
 
 export function IdeaForm({
-  defaultSpaceId,
   ideaId,
   onSuccess,
   onCancel,
@@ -75,10 +66,6 @@ export function IdeaForm({
   const { locale } = useLocale()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitProgress, setSubmitProgress] = useState('')
-  const [spaces, setSpaces] = useState<SpaceWithTeam[]>([])
-  const [spaceSearchQuery, setSpaceSearchQuery] = useState('')
-  const [isSpaceDropdownOpen, setIsSpaceDropdownOpen] = useState(false)
-  const spaceDropdownRef = useRef<HTMLDivElement>(null)
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
@@ -110,8 +97,17 @@ export function IdeaForm({
 
   const ideaSchema = z.object({
     title: z.string().min(10, t('validation.title_min_length')),
-    space_id: z.string().min(1, t('validation.space_required')),
-    tags: z.string().optional(),
+    tags: z
+      .string()
+      .optional()
+      .refine(
+        (val) => {
+          if (!val) return true
+          const tags = val.split(',').filter(Boolean)
+          return tags.length <= 3
+        },
+        { message: t('validation.max_tags_3') }
+      ),
   })
 
   const {
@@ -124,7 +120,6 @@ export function IdeaForm({
     resolver: zodResolver(ideaSchema),
   })
 
-  const selectedSpaceId = watch('space_id')
   const titleValue = watch('title')
 
   // Load idea data when editing
@@ -133,10 +128,10 @@ export function IdeaForm({
 
     const loadIdea = async () => {
       try {
-        // Fetch idea with space_id from database
+        // Fetch idea from database
         const { data: dbData, error: dbError } = await supabase
           .from('ideas')
-          .select('id, title, content, anonymous, space_id, status_flag')
+          .select('id, title, content, anonymous, status_flag')
           .eq('id', ideaId)
           .single()
 
@@ -150,13 +145,6 @@ export function IdeaForm({
 
         // Set title
         setValue('title', idea.title)
-
-        // Set space_id from database
-        if (dbData.space_id) {
-          setValue('space_id', dbData.space_id)
-        } else if (defaultSpaceId) {
-          setValue('space_id', defaultSpaceId)
-        }
 
         // Set tags
         if (idea.tags && idea.tags.length > 0) {
@@ -204,7 +192,7 @@ export function IdeaForm({
     }
 
     loadIdea()
-  }, [ideaId, setValue, defaultSpaceId])
+  }, [ideaId, setValue])
 
   // Load saved form data from localStorage on mount (only if not editing)
   useEffect(() => {
@@ -212,10 +200,9 @@ export function IdeaForm({
 
     try {
       const savedData = localStorage.getItem(FORM_STORAGE_KEY)
-      let parsed: any = null
 
       if (savedData) {
-        parsed = JSON.parse(savedData)
+        const parsed = JSON.parse(savedData)
 
         // Restore form values
         if (parsed.title) {
@@ -284,49 +271,10 @@ export function IdeaForm({
           setIsAnonymous(parsed.isAnonymous)
         }
       }
-
-      // Set default space if provided (prioritize defaultSpaceId over saved data)
-      if (defaultSpaceId) {
-        setValue('space_id', defaultSpaceId)
-      } else if (parsed?.space_id) {
-        // Only use saved space_id if no defaultSpaceId is provided
-        setValue('space_id', parsed.space_id)
-      }
     } catch (error) {
       console.error('Error loading saved form data:', error)
     }
-  }, [setValue, defaultSpaceId, ideaId])
-
-  // Fetch available spaces from Supabase
-  useEffect(() => {
-    const loadSpaces = async () => {
-      try {
-        const spacesData = await teamService.getVisibleSpaces(user?.id)
-        setSpaces(spacesData)
-      } catch (error) {
-        console.error('Error loading spaces:', error)
-      }
-    }
-
-    loadSpaces()
-  }, [user?.id])
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        spaceDropdownRef.current &&
-        !spaceDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsSpaceDropdownOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
+  }, [setValue, ideaId])
 
   // Save form data to localStorage whenever it changes
   useEffect(() => {
@@ -372,7 +320,6 @@ export function IdeaForm({
     // Try to save with video, but if it fails due to size, save without video
     const formDataWithVideo = {
       title: titleValue || '',
-      space_id: selectedSpaceId || '',
       tags: selectedTags,
       contentBlocks: serializedBlocks,
       heroImage: heroImage,
@@ -384,7 +331,6 @@ export function IdeaForm({
     // Fallback: save without video if video is too large
     const formDataWithoutVideo = {
       title: titleValue || '',
-      space_id: selectedSpaceId || '',
       tags: selectedTags,
       contentBlocks: serializedBlocks,
       heroImage: heroImage,
@@ -396,7 +342,6 @@ export function IdeaForm({
     // Only save if there's actual content
     const hasContent =
       titleValue ||
-      selectedSpaceId ||
       selectedTags.length > 0 ||
       contentBlocks.length > 0 ||
       heroImage ||
@@ -441,7 +386,6 @@ export function IdeaForm({
     }
   }, [
     titleValue,
-    selectedSpaceId,
     selectedTags,
     contentBlocks,
     heroImage,
@@ -452,10 +396,15 @@ export function IdeaForm({
   const addTag = () => {
     const tag = tagInput.trim()
     if (tag && !selectedTags.includes(tag)) {
+      if (selectedTags.length >= 3) {
+        setUrlValidationError(t('form.tags_limit_reached'))
+        return
+      }
       const newTags = [...selectedTags, tag]
       setSelectedTags(newTags)
       setValue('tags', newTags.join(','))
       setTagInput('')
+      setUrlValidationError(null)
     }
   }
 
@@ -695,7 +644,7 @@ export function IdeaForm({
         })
       } else {
         // Create new idea
-        resultIdea = await ideaService.createIdea(newIdea, data.space_id)
+        resultIdea = await ideaService.createIdea(newIdea)
       }
 
       setSubmitProgress('Finalizing...')
@@ -716,7 +665,6 @@ export function IdeaForm({
       // Reset all form fields after successful creation (only if not editing)
       if (!ideaId) {
         setValue('title', '')
-        setValue('space_id', defaultSpaceId || '')
         setValue('tags', '')
         setSelectedTags([])
         setContentBlocks([])
@@ -755,8 +703,6 @@ export function IdeaForm({
 
   // Preview Mode - Show final result
   if (isPreviewMode) {
-    const selectedSpace = spaces.find(s => s.id === selectedSpaceId)
-
     return (
       <div className="min-h-screen bg-background">
         {/* Preview Mode Header */}
@@ -848,12 +794,6 @@ export function IdeaForm({
                 >
                   {titleValue}
                 </h1>
-              )}
-              {/* Space */}
-              {selectedSpace && (
-                <div className="text-white/80 text-sm md:text-base">
-                  {selectedSpace.name}
-                </div>
               )}
             </div>
           </div>
@@ -1191,119 +1131,6 @@ export function IdeaForm({
             handleSubmit(onSubmit)(e)
           }}
         >
-          {/* Space Selection */}
-          <div className="mb-8" ref={spaceDropdownRef}>
-            <label
-              htmlFor="space_id"
-              className="text-sm font-medium text-text-secondary mb-2 block"
-            >
-              {t('form.space_label')} <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              {/* Hidden input for form validation */}
-              <input type="hidden" {...register('space_id')} id="space_id" />
-
-              {/* Custom Dropdown Button */}
-              <button
-                type="button"
-                onClick={() => setIsSpaceDropdownOpen(!isSpaceDropdownOpen)}
-                className="w-full px-4 py-2 bg-background border border-border-color rounded-lg text-text-primary text-left flex items-center justify-between hover:border-accent/30 transition-colors"
-              >
-                <span className="truncate">
-                  {selectedSpaceId
-                    ? spaces.find(s => s.id === selectedSpaceId)?.name ||
-                      t('form.select_space')
-                    : t('form.select_space')}
-                </span>
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform ${
-                    isSpaceDropdownOpen ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-
-              {/* Dropdown Menu */}
-              {isSpaceDropdownOpen && (
-                <div className="absolute z-50 w-full mt-2 bg-background border border-border-color rounded-lg shadow-lg max-h-96 overflow-hidden flex flex-col">
-                  {/* Search Bar */}
-                  <div className="p-3 border-b border-border-color">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
-                      <input
-                        type="text"
-                        placeholder={
-                          t('form.search_spaces') || 'Search spaces...'
-                        }
-                        value={spaceSearchQuery}
-                        onChange={e => setSpaceSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-background border border-border-color rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
-                        onClick={e => e.stopPropagation()}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Spaces List */}
-                  <div className="overflow-y-auto max-h-64 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                    {spaces
-                      .filter(space =>
-                        space.name
-                          .toLowerCase()
-                          .includes(spaceSearchQuery.toLowerCase())
-                      )
-                      .map(space => {
-                        const VisibilityIcon =
-                          space.visibility === 'public' ? Globe : Lock
-                        const isSelected = selectedSpaceId === space.id
-
-                        return (
-                          <button
-                            key={space.id}
-                            type="button"
-                            onClick={() => {
-                              setValue('space_id', space.id)
-                              setIsSpaceDropdownOpen(false)
-                              setSpaceSearchQuery('')
-                            }}
-                            className={`w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-accent/10 transition-colors ${
-                              isSelected ? 'bg-accent/20' : ''
-                            }`}
-                          >
-                            <VisibilityIcon
-                              className={`w-4 h-4 flex-shrink-0 ${
-                                space.visibility === 'public'
-                                  ? 'text-green-500'
-                                  : 'text-gray-500'
-                              }`}
-                            />
-                            <span className="flex-1 truncate text-text-primary">
-                              {space.name}
-                            </span>
-                            {isSelected && (
-                              <Check className="w-4 h-4 text-accent flex-shrink-0" />
-                            )}
-                          </button>
-                        )
-                      })}
-                    {spaces.filter(space =>
-                      space.name
-                        .toLowerCase()
-                        .includes(spaceSearchQuery.toLowerCase())
-                    ).length === 0 && (
-                      <div className="px-4 py-8 text-center text-text-secondary">
-                        {t('form.no_spaces_found') || 'No spaces found'}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-            {errors.space_id && (
-              <p className="mt-1 text-sm text-red-500">
-                {errors.space_id.message}
-              </p>
-            )}
-          </div>
-
           {/* Tags Section */}
           <div className="mb-8 pb-8 border-b border-border-color">
             <button
@@ -1333,18 +1160,29 @@ export function IdeaForm({
                         addTag()
                       }
                     }}
-                    placeholder={t('form.type_tag_placeholder')}
-                    className="flex-1 px-3 py-2 bg-background border border-border-color rounded-lg text-text-primary text-sm"
+                    placeholder={
+                      selectedTags.length >= 3
+                        ? t('form.tags_limit_reached')
+                        : t('form.type_tag_placeholder')
+                    }
+                    disabled={selectedTags.length >= 3}
+                    className="flex-1 px-3 py-2 bg-background border border-border-color rounded-lg text-text-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <Button
                     type="button"
                     onClick={addTag}
                     variant="outline"
                     size="sm"
+                    disabled={selectedTags.length >= 3}
                   >
                     {t('actions.add')}
                   </Button>
                 </div>
+                {selectedTags.length >= 3 && (
+                  <p className="text-xs text-text-secondary mb-2">
+                    {t('form.tags_limit_reached')}
+                  </p>
+                )}
                 {selectedTags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {selectedTags.map(tag => (
@@ -1496,7 +1334,6 @@ export function IdeaForm({
                 }
                 // Reset form values
                 setValue('title', '')
-                setValue('space_id', '')
                 setValue('tags', '')
                 // Reset state
                 setContentBlocks([])

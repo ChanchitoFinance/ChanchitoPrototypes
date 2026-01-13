@@ -17,12 +17,6 @@ export interface IIdeaService {
 
   getExploreIdeas(limit?: number, offset?: number): Promise<Idea[]>
 
-  getIdeasBySpace(
-    spaceId: string,
-    limit?: number,
-    offset?: number
-  ): Promise<Idea[]>
-
   getAllIdeasForAdmin(
     search?: string,
     limit?: number,
@@ -38,13 +32,11 @@ export interface IIdeaService {
     tags?: string[]
   }): Promise<Idea[]>
 
-  createIdea(idea: Omit<Idea, 'id'>, spaceId: string): Promise<Idea>
+  createIdea(idea: Omit<Idea, 'id'>): Promise<Idea>
 
   updateIdea(ideaId: string, updates: Partial<Idea>): Promise<Idea>
 
   deleteIdea(ideaId: string): Promise<boolean>
-
-  getSpaces(): Promise<Array<{ id: string; name: string; team_id: string }>>
 
   toggleVote(ideaId: string, voteType: 'dislike' | 'use' | 'pay'): Promise<Idea>
 
