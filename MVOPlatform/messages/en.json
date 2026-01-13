@@ -78,6 +78,21 @@
     "total_comments": "Total Comments",
     "vote": "vote"
   },
+  "filter": {
+    "title": "Title",
+    "score": "Score",
+    "total_votes": "Total Votes",
+    "use_votes": "Use Votes",
+    "dislike_votes": "Dislike Votes",
+    "pay_votes": "Pay Votes",
+    "comments": "Comments",
+    "date_created": "Date Created",
+    "greater_than": "Greater than",
+    "less_than": "Less than",
+    "equal_to": "Equal to",
+    "greater_than_or_equal": "Greater than or equal to",
+    "less_than_or_equal": "Less than or equal to"
+  },
   "auth": {
     "sign_in_required": "Sign In Required",
     "sign_in_with_google": "Sign In with Google",
@@ -101,7 +116,22 @@
       "all_ideas": "All Ideas",
       "search_placeholder": "Search ideas by title, description, or tags...",
       "loading": "Loading ideas...",
-      "no_ideas": "No ideas found"
+      "no_ideas": "No ideas found",
+      "advanced_filters_sorting": "Advanced Filters & Sorting",
+      "filter_conditions": "Filter Conditions",
+      "add_filter": "Add Filter",
+      "clear_all": "Clear All",
+      "no_filters_applied": "No filters applied. Click \"Add Filter\" to create filtering conditions.",
+      "field": "Field",
+      "condition": "Condition",
+      "value": "Value",
+      "sorting": "Sorting",
+      "clear_sort": "Clear Sort",
+      "sorting_by": "Sorting by",
+      "ascending": "Ascending",
+      "descending": "Descending",
+      "collapse": "Collapse",
+      "expand": "Expand"
     }
   },
   "activity": {
@@ -442,8 +472,11 @@
       "delete_idea": "Delete Idea",
       "delete_confirm": "Are you sure you want to delete this idea? This action cannot be undone.",
       "delete_success": "Idea deleted successfully",
+      "idea_deleted": "Idea deleted successfully",
       "delete_error": "Error deleting idea. Please try again.",
-      "load_more": "Load More Ideas"
+      "load_more": "Load More Ideas",
+      "admin_info_title": "Admin Privileges Active",
+      "admin_info_message": "You have admin privileges on this page. You can delete ideas and manage content."
     }
   },
   "settings": {

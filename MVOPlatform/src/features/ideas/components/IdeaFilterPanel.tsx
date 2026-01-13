@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Filter, X, Plus, Minus, ChevronDown, ChevronUp } from 'lucide-react'
+import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import {
   FilterConfig,
   FilterCondition,
@@ -10,6 +11,7 @@ import {
   FilterOperator,
   SortDirection,
   SortField,
+  FILTER_OPERATORS,
 } from '../types/filter.types'
 
 export function IdeaFilterPanel({
@@ -27,6 +29,7 @@ export function IdeaFilterPanel({
   initialFilters?: FilterCondition[]
   initialSort?: SortOption
 }) {
+  const t = useTranslations()
   const [filters, setFilters] = useState<FilterCondition[]>(initialFilters)
   const [sortOption, setSortOption] = useState<SortOption | undefined>(
     initialSort
@@ -79,25 +82,25 @@ export function IdeaFilterPanel({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-text-primary dark:text-white flex items-center gap-2">
           <Filter className="w-5 h-5" />
-          Advanced Filters & Sorting
+          {t('browse.dashboard.advanced_filters_sorting')}
         </h3>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-text-secondary hover:text-text-primary transition-colors"
+          className="text-text-secondary dark:text-gray-300 hover:text-text-primary transition-colors"
         >
           {isExpanded ? (
             <>
               <ChevronUp className="w-5 h-5 inline-block mr-1" />
-              Collapse
+              {t('browse.dashboard.collapse')}
             </>
           ) : (
             <>
               <ChevronDown className="w-5 h-5 inline-block mr-1" />
-              Expand
+              {t('browse.dashboard.expand')}
             </>
           )}
         </button>
@@ -108,8 +111,8 @@ export function IdeaFilterPanel({
           {/* Filter Conditions */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium text-text-primary">
-                Filter Conditions
+              <h4 className="font-medium text-text-primary dark:text-white">
+                {t('browse.dashboard.filter_conditions')}
               </h4>
               <div className="flex gap-2">
                 <button
@@ -117,7 +120,7 @@ export function IdeaFilterPanel({
                   className="px-3 py-1 bg-accent text-white rounded-md hover:bg-accent-dark transition-colors flex items-center gap-1"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Filter
+                  {t('browse.dashboard.add_filter')}
                 </button>
                 {filters.length > 0 && (
                   <button
@@ -125,46 +128,49 @@ export function IdeaFilterPanel({
                     className="px-3 py-1 bg-gray-100 text-text-secondary rounded-md hover:bg-gray-200 transition-colors flex items-center gap-1"
                   >
                     <X className="w-4 h-4" />
-                    Clear All
+                    {t('browse.dashboard.clear_all')}
                   </button>
                 )}
               </div>
             </div>
 
             {filters.length === 0 ? (
-              <p className="text-text-secondary text-sm italic">
-                No filters applied. Click "Add Filter" to create filtering
-                conditions.
+              <p className="text-text-secondary dark:text-gray-300 text-sm italic">
+                {t('browse.dashboard.no_filters_applied')}
               </p>
             ) : (
               <div className="space-y-3">
                 {filters.map((filter, index) => (
                   <div
                     key={index}
-                    className="flex items-end gap-3 p-3 border border-gray-100 rounded-md bg-gray-50"
+                    className="flex items-end gap-3 p-3 border border-gray-100 rounded-md bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
                   >
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-text-secondary mb-1">
-                        Field
+                      <label className="block text-sm font-medium text-text-secondary dark:text-white mb-1">
+                        {t('browse.dashboard.field')}
                       </label>
                       <select
                         value={filter.field}
                         onChange={e =>
                           updateFilter(index, { field: e.target.value as any })
                         }
-                        className="w-full p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent"
+                        className="w-full p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent text-black"
                       >
                         {filterConfigs.map(config => (
-                          <option key={config.id} value={config.field}>
+                          <option
+                            key={config.id}
+                            value={config.field}
+                            className="text-black"
+                          >
                             {config.label}
                           </option>
                         ))}
                       </select>
                     </div>
 
-                    <div className="w-20">
-                      <label className="block text-sm font-medium text-text-secondary mb-1">
-                        Operator
+                    <div className="w-40">
+                      <label className="block text-sm font-medium text-text-secondary dark:text-white mb-1">
+                        {t('browse.dashboard.condition')}
                       </label>
                       <select
                         value={filter.operator}
@@ -173,27 +179,23 @@ export function IdeaFilterPanel({
                             operator: e.target.value as FilterOperator,
                           })
                         }
-                        className="w-full p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent"
+                        className="w-full p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent text-black"
                       >
-                        {filterConfigs
-                          .find(c => c.field === filter.field)
-                          ?.operators.map(op => (
-                            <option key={op} value={op}>
-                              {op}
-                            </option>
-                          )) || [
-                          ['>', '<', '=', '>=', '<='].map(op => (
-                            <option key={op} value={op}>
-                              {op}
-                            </option>
-                          )),
-                        ]}
+                        {FILTER_OPERATORS.map(op => (
+                          <option
+                            key={op.value}
+                            value={op.value}
+                            className="text-black"
+                          >
+                            {t(op.label)}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
                     <div className="w-24">
-                      <label className="block text-sm font-medium text-text-secondary mb-1">
-                        Value
+                      <label className="block text-sm font-medium text-text-secondary dark:text-white mb-1">
+                        {t('browse.dashboard.value')}
                       </label>
                       <input
                         type="number"
@@ -215,7 +217,7 @@ export function IdeaFilterPanel({
                           filterConfigs.find(c => c.field === filter.field)
                             ?.step || 1
                         }
-                        className="w-full p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent"
+                        className="w-full p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent text-black"
                       />
                     </div>
 
@@ -235,14 +237,16 @@ export function IdeaFilterPanel({
           {/* Sorting Options */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium text-text-primary">Sorting</h4>
+              <h4 className="font-medium text-text-primary dark:text-white">
+                {t('browse.dashboard.sorting')}
+              </h4>
               <button
                 onClick={clearSort}
                 className="px-3 py-1 bg-gray-100 text-text-secondary rounded-md hover:bg-gray-200 transition-colors flex items-center gap-1"
                 disabled={!sortOption}
               >
                 <X className="w-4 h-4" />
-                Clear Sort
+                {t('browse.dashboard.clear_sort')}
               </button>
             </div>
 
@@ -254,7 +258,7 @@ export function IdeaFilterPanel({
                   className={`px-3 py-2 rounded-md text-sm transition-colors border flex items-center justify-between ${
                     sortOption?.field === config.field
                       ? 'bg-accent text-white border-accent'
-                      : 'bg-white text-text-primary border-gray-200 hover:bg-gray-50'
+                      : 'bg-white text-black border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-black'
                   }`}
                 >
                   <span>{config.label}</span>
@@ -268,12 +272,16 @@ export function IdeaFilterPanel({
             </div>
 
             {sortOption && (
-              <div className="mt-2 text-sm text-text-secondary">
-                Sorting by:{' '}
+              <div className="mt-2 text-sm text-text-secondary dark:text-gray-300">
+                {t('browse.dashboard.sorting_by')}:{' '}
                 <strong>
                   {sortConfigs.find(c => c.field === sortOption.field)?.label}
                 </strong>
-                ({sortOption.direction === 'asc' ? 'Ascending' : 'Descending'})
+                (
+                {sortOption.direction === 'asc'
+                  ? t('browse.dashboard.ascending')
+                  : t('browse.dashboard.descending')}
+                )
               </div>
             )}
           </div>

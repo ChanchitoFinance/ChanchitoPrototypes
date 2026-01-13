@@ -12,12 +12,12 @@ import { useAppSelector } from '@/core/lib/hooks'
 export function BrowsePanel() {
   const t = useTranslations()
   const { locale } = useLocale()
-  const { profile, isAuthenticated, loading } = useAppSelector(
+  const { profile, isAuthenticated, loading, initialized } = useAppSelector(
     state => state.auth
   )
   const router = useRouter()
 
-  if (loading) {
+  if (loading && !initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-text-secondary">{t('status.loading')}</div>
@@ -32,7 +32,7 @@ export function BrowsePanel() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <BrowseDashboard />
+        <BrowseDashboard isAdmin={profile?.role === 'admin'} />
       </motion.div>
     </main>
   )

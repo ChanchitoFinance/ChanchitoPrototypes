@@ -63,12 +63,12 @@ export function UserMenu({
             <Image
               src={user.image}
               alt={user.name || 'User'}
-              width={32}
-              height={32}
+              width={36}
+              height={36}
               className="rounded-full"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-text-primary font-medium">
+            <div className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-text-primary font-medium">
               {user.name?.[0] || user.email?.[0] || 'U'}
             </div>
           )}
@@ -86,7 +86,7 @@ export function UserMenu({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-full left-4.5 transform -translate-x-1/2 mb-2 w-60 bg-gray-100 rounded-md shadow-lg border border-border-color py-2 z-[250]"
+            className="absolute bottom-full left-0 transform mb-2 w-60 bg-gray-100 rounded-md shadow-lg border border-border-color py-2 z-[9999]"
           >
             <div className="px-4 py-2 border-b border-border-color">
               <p className="text-label">{user.name}</p>

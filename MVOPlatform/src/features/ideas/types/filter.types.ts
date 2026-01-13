@@ -2,6 +2,19 @@ import { Idea } from '@/core/types/idea'
 
 export type FilterOperator = '>' | '<' | '=' | '>=' | '<='
 
+export type FilterOperatorDisplay = {
+  value: FilterOperator
+  label: string
+}
+
+export const FILTER_OPERATORS: FilterOperatorDisplay[] = [
+  { value: '>', label: 'filter.greater_than' },
+  { value: '<', label: 'filter.less_than' },
+  { value: '=', label: 'filter.equal_to' },
+  { value: '>=', label: 'filter.greater_than_or_equal' },
+  { value: '<=', label: 'filter.less_than_or_equal' },
+]
+
 export type FilterCondition = {
   field:
     | keyof Idea

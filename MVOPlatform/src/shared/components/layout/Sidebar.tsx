@@ -185,17 +185,17 @@ export function Sidebar({
       href: `/${currentLocale}/upload`,
       active: pathname === `/${currentLocale}/upload`,
     },
-    ...(profile?.role === 'admin'
-      ? [
-          {
-            id: 'admin',
-            label: t('navigation.admin'),
-            icon: Shield,
-            href: `/${currentLocale}/admin`,
-            active: pathname === `/${currentLocale}/admin`,
-          },
-        ]
-      : []),
+    // ...(profile?.role === 'admin'
+    //   ? [
+    //       {
+    //         id: 'admin',
+    //         label: t('navigation.admin'),
+    //         icon: Shield,
+    //         href: `/${currentLocale}/admin`,
+    //         active: pathname === `/${currentLocale}/admin`,
+    //       },
+    //     ]
+    //   : []),
   ]
 
   const bottomItems = []
@@ -226,7 +226,7 @@ export function Sidebar({
         maxHeight: isMobile ? sidebarHeight : '100vh',
       }}
     >
-      <div className="h-full flex flex-col bg-background overflow-hidden">
+      <div className="h-full flex flex-col bg-background overflow-visible">
         {/* Logo/Brand - Acts as back button on detail pages */}
         <div className="p-4 flex-shrink-0">
           <div className="flex items-center justify-between">

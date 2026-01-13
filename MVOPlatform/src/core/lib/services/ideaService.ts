@@ -455,6 +455,150 @@ class SupabaseIdeaService implements IIdeaService {
     }
   }
 
+  async getIdeasWithAdvancedFilters(filters: {
+    searchQuery?: string
+    filterConditions?: {
+      field: string
+      operator: string
+      value: number
+    }[]
+    sortField?: string
+    sortDirection?: string
+    limit?: number
+    offset?: number
+  }): Promise<{ ideas: Idea[]; total: number }> {
+    const {
+      searchQuery,
+      filterConditions = [],
+      sortField = 'createdAt',
+      sortDirection = 'desc',
+      limit = 20,
+      offset = 0,
+    } = filters
+
+    const { data, error } = await supabase.rpc('rpc_get_filtered_ideas', {
+      search_query: searchQuery || null,
+      filter_conditions: filterConditions.length > 0 ? filterConditions : null,
+      sort_field: sortField,
+      sort_direction: sortDirection,
+      limit_int: limit,
+      offset_int: offset,
+    })
+
+    if (error) {
+      console.error('Error fetching filtered ideas:', error)
+      throw error
+    }
+
+    if (!data || data.length === 0) {
+      return { ideas: [], total: 0 }
+    }
+
+    const result = data[0]
+    const totalCount = result.total_count || 0
+
+    let ideasData = result.ideas
+    if (typeof ideasData === 'string') {
+      ideasData = JSON.parse(ideasData)
+    }
+
+    if (!Array.isArray(ideasData)) {
+      console.error('ideasData is not an array:', ideasData)
+      ideasData = []
+    }
+
+    const ideas: Idea[] = ideasData.map((ideaJson: any) => {
+      return {
+        id: ideaJson.id,
+        title: ideaJson.title,
+        description: ideaJson.content?.description || '',
+        author:
+          ideaJson.creator?.username ||
+          ideaJson.creator?.full_name ||
+          'Anonymous',
+        score: ideaJson.score || 0,
+        votes: ideaJson.votes || 0,
+        votesByType: {
+          use: ideaJson.votesByType?.use || 0,
+          dislike: ideaJson.votesByType?.dislike || 0,
+          pay: ideaJson.votesByType?.pay || 0,
+        },
+        commentCount: ideaJson.commentCount || 0,
+        tags: ideaJson.tags || [],
+        createdAt: ideaJson.createdAt,
+        image: ideaJson.content?.hero_image || '',
+        video: ideaJson.content?.hero_video || '',
+        content: ideaJson.content?.blocks || [],
+        status_flag: ideaJson.status_flag,
+        anonymous: ideaJson.anonymous || false,
+        creatorEmail: ideaJson.creator?.email || null,
+      }
+    })
+
+    return {
+      ideas,
+      total: totalCount,
+    }
+  }
+
+  private getFieldValueForFiltering(idea: Idea, field: string): number {
+    // Handle nested fields like 'votesByType.use'
+    if (field.startsWith('votesByType.')) {
+      const voteType = field.split('.')[1] as keyof typeof idea.votesByType
+      return idea.votesByType[voteType] || 0
+    }
+
+    // Handle regular fields
+    switch (field) {
+      case 'score':
+        return idea.score
+      case 'votes':
+        return idea.votes
+      case 'commentCount':
+        return idea.commentCount
+      default:
+        return 0
+    }
+  }
+
+  private compareValues(
+    value: number,
+    operator: string,
+    target: number
+  ): boolean {
+    switch (operator) {
+      case '>':
+        return value > target
+      case '<':
+        return value < target
+      case '=':
+        return value === target
+      case '>=':
+        return value >= target
+      case '<=':
+        return value <= target
+      default:
+        return true
+    }
+  }
+
+  private applyClientSideSorting(
+    ideas: Idea[],
+    sortField: string,
+    sortDirection: string
+  ): Idea[] {
+    return [...ideas].sort((a, b) => {
+      const fieldA = this.getFieldValueForFiltering(a, sortField)
+      const fieldB = this.getFieldValueForFiltering(b, sortField)
+
+      if (sortDirection === 'asc') {
+        return fieldA - fieldB
+      } else {
+        return fieldB - fieldA
+      }
+    })
+  }
+
   async getAllTags(): Promise<string[]> {
     const { data, error } = await supabase.from('tags').select('name')
     if (error) throw error

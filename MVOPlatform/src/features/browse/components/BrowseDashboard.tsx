@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Search } from 'lucide-react'
+import { Search, Shield } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
   useLocale,
@@ -23,7 +23,7 @@ import { IdeaFilterService } from '@/features/ideas/services/ideaFilterService'
 
 const ITEMS_PER_PAGE = 20
 
-export function BrowseDashboard() {
+export function BrowseDashboard({ isAdmin = false }) {
   const t = useTranslations()
   const { locale } = useLocale()
   const router = useRouter()
@@ -46,6 +46,7 @@ export function BrowseDashboard() {
     field: 'createdAt',
     direction: 'desc',
   })
+  const [currentOffset, setCurrentOffset] = useState(0)
 
   const observerRef = useRef<HTMLDivElement>(null)
   const isInitialLoadRef = useRef(true)
@@ -54,50 +55,50 @@ export function BrowseDashboard() {
   const filterConfigs = [
     {
       id: 'score',
-      label: 'Score',
-      field: 'score',
-      operators: ['>', '<', '=', '>=', '<='],
+      label: t('filter.score'),
+      field: 'score' as const,
+      operators: ['>', '<', '=', '>=', '<='] as const,
       minValue: 0,
       maxValue: 100,
       step: 1,
     },
     {
       id: 'votes',
-      label: 'Total Votes',
-      field: 'votes',
-      operators: ['>', '<', '=', '>=', '<='],
+      label: t('filter.total_votes'),
+      field: 'votes' as const,
+      operators: ['>', '<', '=', '>=', '<='] as const,
       minValue: 0,
       step: 1,
     },
     {
       id: 'use-votes',
-      label: 'Use Votes',
-      field: 'votesByType.use',
-      operators: ['>', '<', '=', '>=', '<='],
+      label: t('filter.use_votes'),
+      field: 'votesByType.use' as const,
+      operators: ['>', '<', '=', '>=', '<='] as const,
       minValue: 0,
       step: 1,
     },
     {
       id: 'dislike-votes',
-      label: 'Dislike Votes',
-      field: 'votesByType.dislike',
-      operators: ['>', '<', '=', '>=', '<='],
+      label: t('filter.dislike_votes'),
+      field: 'votesByType.dislike' as const,
+      operators: ['>', '<', '=', '>=', '<='] as const,
       minValue: 0,
       step: 1,
     },
     {
       id: 'pay-votes',
-      label: 'Pay Votes',
-      field: 'votesByType.pay',
-      operators: ['>', '<', '=', '>=', '<='],
+      label: t('filter.pay_votes'),
+      field: 'votesByType.pay' as const,
+      operators: ['>', '<', '=', '>=', '<='] as const,
       minValue: 0,
       step: 1,
     },
     {
       id: 'comments',
-      label: 'Comments',
-      field: 'commentCount',
-      operators: ['>', '<', '=', '>=', '<='],
+      label: t('filter.comments'),
+      field: 'commentCount' as const,
+      operators: ['>', '<', '=', '>=', '<='] as const,
       minValue: 0,
       step: 1,
     },
@@ -105,18 +106,34 @@ export function BrowseDashboard() {
 
   // Sort configurations
   const sortConfigs = [
-    { id: 'title', label: 'Title', field: 'title' },
-    { id: 'score', label: 'Score', field: 'score' },
-    { id: 'votes', label: 'Total Votes', field: 'votes' },
-    { id: 'use-votes', label: 'Use Votes', field: 'votesByType.use' },
+    { id: 'title', label: t('filter.title'), field: 'title' as const },
+    { id: 'score', label: t('filter.score'), field: 'score' as const },
+    { id: 'votes', label: t('filter.total_votes'), field: 'votes' as const },
+    {
+      id: 'use-votes',
+      label: t('filter.use_votes'),
+      field: 'votesByType.use' as const,
+    },
     {
       id: 'dislike-votes',
-      label: 'Dislike Votes',
-      field: 'votesByType.dislike',
+      label: t('filter.dislike_votes'),
+      field: 'votesByType.dislike' as const,
     },
-    { id: 'pay-votes', label: 'Pay Votes', field: 'votesByType.pay' },
-    { id: 'comments', label: 'Comments', field: 'commentCount' },
-    { id: 'createdAt', label: 'Date Created', field: 'createdAt' },
+    {
+      id: 'pay-votes',
+      label: t('filter.pay_votes'),
+      field: 'votesByType.pay' as const,
+    },
+    {
+      id: 'comments',
+      label: t('filter.comments'),
+      field: 'commentCount' as const,
+    },
+    {
+      id: 'createdAt',
+      label: t('filter.date_created'),
+      field: 'createdAt' as const,
+    },
   ]
 
   // Debounce search query
@@ -136,6 +153,11 @@ export function BrowseDashboard() {
     }
     loadIdeas(true)
     isInitialLoadRef.current = false
+  }, [debouncedSearchQuery, filterConditions, sortOption])
+
+  // Reset offset when filters change
+  useEffect(() => {
+    setCurrentOffset(0)
   }, [debouncedSearchQuery, filterConditions, sortOption])
 
   // Infinite scroll observer
@@ -159,27 +181,23 @@ export function BrowseDashboard() {
   const loadIdeas = async (reset = false) => {
     try {
       setLoading(true)
-      const offset = reset ? 0 : ideas.length
+      const offset = reset ? 0 : currentOffset
 
-      // Use the new filtering service for comprehensive filtering
-      const filters: IdeaFilters = {
+      // Use database-level filtering and sorting
+      const result = await ideaService.getIdeasWithAdvancedFilters({
         searchQuery: debouncedSearchQuery || undefined,
         filterConditions:
           filterConditions.length > 0 ? filterConditions : undefined,
-        sortOption: sortOption,
+        sortField: sortOption.field,
+        sortDirection: sortOption.direction,
         limit: ITEMS_PER_PAGE,
         offset: offset,
-      }
-
-      // Use the filter service to get filtered and sorted ideas
-      const result = await IdeaFilterService.getFilteredIdeasFromService(
-        ideaService,
-        filters
-      )
+      })
 
       if (reset) {
         setIdeas(result.ideas)
         setTotalIdeas(result.total)
+        setCurrentOffset(ITEMS_PER_PAGE)
         // Show search feedback whenever ideas are loaded (search or initial load)
         setToast({
           message: `Found ${result.ideas.length} ideas`,
@@ -187,6 +205,7 @@ export function BrowseDashboard() {
         })
       } else {
         setIdeas(prev => [...prev, ...result.ideas])
+        setCurrentOffset(prev => prev + result.ideas.length)
       }
 
       setHasMore(result.ideas.length === ITEMS_PER_PAGE)
@@ -205,22 +224,19 @@ export function BrowseDashboard() {
     try {
       setLoadingMore(true)
 
-      // Use the same filtering approach for consistency
-      const filters: IdeaFilters = {
+      // Use database-level filtering and sorting for consistency
+      const result = await ideaService.getIdeasWithAdvancedFilters({
         searchQuery: debouncedSearchQuery || undefined,
         filterConditions:
           filterConditions.length > 0 ? filterConditions : undefined,
-        sortOption: sortOption,
+        sortField: sortOption.field,
+        sortDirection: sortOption.direction,
         limit: ITEMS_PER_PAGE,
-        offset: ideas.length,
-      }
-
-      const result = await IdeaFilterService.getFilteredIdeasFromService(
-        ideaService,
-        filters
-      )
+        offset: currentOffset,
+      })
 
       setIdeas(prev => [...prev, ...result.ideas])
+      setCurrentOffset(prev => prev + result.ideas.length)
       setHasMore(result.ideas.length === ITEMS_PER_PAGE)
     } catch (error) {
       console.error('Error loading more ideas:', error)
@@ -236,6 +252,20 @@ export function BrowseDashboard() {
         <h1 className="text-heading-1 mb-2">{t('browse.dashboard.title')}</h1>
         <p className="text-body">{t('browse.dashboard.subtitle')}</p>
       </div>
+
+      {isAdmin && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center">
+          <Shield className="w-8 h-8 mr-8 text-blue-800" />
+          <div>
+            <h3 className="text-lg font-semibold text-blue-800 mb-2">
+              {t('admin.dashboard.admin_info_title')}
+            </h3>
+            <p className="text-blue-700 text-sm">
+              {t('admin.dashboard.admin_info_message')}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className="relative">
@@ -295,9 +325,29 @@ export function BrowseDashboard() {
                 <IdeaCard
                   key={idea.id}
                   idea={idea}
-                  variant="interactive"
+                  variant={isAdmin ? 'admin' : 'interactive'}
                   locale={locale}
                   router={router}
+                  onDelete={
+                    isAdmin
+                      ? async () => {
+                          try {
+                            await ideaService.deleteIdea(idea.id)
+                            setIdeas(ideas.filter(i => i.id !== idea.id))
+                            setToast({
+                              message: t('admin.dashboard.idea_deleted'),
+                              isOpen: true,
+                            })
+                          } catch (error) {
+                            console.error('Error deleting idea:', error)
+                            setToast({
+                              message: t('actions.error_deleting_idea'),
+                              isOpen: true,
+                            })
+                          }
+                        }
+                      : undefined
+                  }
                 />
               ))}
             </div>
