@@ -49,7 +49,6 @@ BEGIN
             i.created_at,
             i.anonymous,
             i.creator_id,
-            i.space_id,
             (SELECT COUNT(*) FROM idea_votes WHERE idea_id = i.id AND vote_type = 'use') AS use_votes,
             (SELECT COUNT(*) FROM idea_votes WHERE idea_id = i.id AND vote_type = 'dislike') AS dislike_votes,
             (SELECT COUNT(*) FROM idea_votes WHERE idea_id = i.id AND vote_type = 'pay') AS pay_votes,

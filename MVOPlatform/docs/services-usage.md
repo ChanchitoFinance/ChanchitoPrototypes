@@ -78,44 +78,9 @@ const user = await userService.getUserById('user-id')
 const users = await userService.getUsers(50, 0)
 ```
 
-### TeamService (`lib/services/teamService.ts`)
-
-Manages teams and enterprise spaces.
-
-```typescript
-import { teamService } from '@/lib/services'
-
-// Create a team
-const team = await teamService.createTeam({
-  name: 'My Team',
-  description: 'Team description',
-})
-
-// Get all teams
-const teams = await teamService.getTeams()
-
-// Create a space
-const space = await teamService.createSpace({
-  team_id: 'team-id',
-  name: 'My Space',
-  visibility: 'public',
-})
-
-// Get spaces for a team
-const spaces = await teamService.getSpaces('team-id')
-
-// Manage team members
-await teamService.addTeamMember('team-id', 'user-id', 'member')
-const members = await teamService.getTeamMembers('team-id')
-
-// Manage space members
-await teamService.addSpaceMember('space-id', 'user-id', 'member')
-const spaceMembers = await teamService.getSpaceMembers('space-id')
-```
-
 ### AdminService (`lib/services/adminService.ts`)
 
-Manages tags, badges, and media assets.
+Manages tags and media assets.
 
 ```typescript
 import { adminService } from '@/lib/services'
@@ -124,19 +89,6 @@ import { adminService } from '@/lib/services'
 const tag = await adminService.createTag('New Tag')
 const tags = await adminService.getTags()
 await adminService.deleteTag('tag-id')
-
-// Manage badges
-const badge = await adminService.createBadge({
-  code: 'achievement',
-  name: 'Achievement',
-  description: 'Awarded for achievements',
-})
-const badges = await adminService.getBadges()
-await adminService.updateBadge('badge-id', { name: 'Updated Name' })
-
-// Award badges to users
-await adminService.awardBadge('user-id', 'badge-id')
-const userBadges = await adminService.getUserBadges('user-id')
 
 // Manage media assets
 const media = await adminService.uploadMedia(
@@ -151,17 +103,14 @@ await adminService.deleteMediaAsset('media-id')
 
 The database includes the following tables:
 
-- `users` - User profiles with reputation and streaks
-- `teams` - Team management
-- `enterprise_spaces` - Workspaces within teams
-- `team_memberships` & `space_memberships` - Membership management
+- `users` - User profiles
 - `ideas` - Main content with rich JSON content
 - `idea_votes` - Voting system (dislike, use, pay)
 - `comments` - Nested comment system
 - `comment_votes` - Comment reactions (upvote, downvote, helpful)
 - `tags` & `idea_tags` - Tagging system
-- `badges` & `user_badges` - Achievement system
 - `media_assets` - File and media management
+- `notifications` - User notifications
 
 ## Setup Instructions
 

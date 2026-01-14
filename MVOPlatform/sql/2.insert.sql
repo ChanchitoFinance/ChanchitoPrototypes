@@ -54,84 +54,12 @@ INSERT INTO auth.users (id, email, email_confirmed_at, created_at, updated_at, r
 ('550e8400-e29b-41d4-a716-446655440248', 'pet.tech@example.com', NOW(), NOW(), NOW(), '{"full_name": "PetTech", "username": "pet_tech"}'),
 ('550e8400-e29b-41d4-a716-446655440249', 'med.ai@example.com', NOW(), NOW(), NOW(), '{"full_name": "MedAI", "username": "med_ai"}');
 
--- Now update the public.users table with additional data (the trigger already created basic entries)
-UPDATE users SET reputation_score = 150, streak_count = 10 WHERE id = '550e8400-e29b-41d4-a716-446655440200';
-UPDATE users SET reputation_score = 120, streak_count = 8 WHERE id = '550e8400-e29b-41d4-a716-446655440201';
-UPDATE users SET reputation_score = 180, streak_count = 15 WHERE id = '550e8400-e29b-41d4-a716-446655440202';
-UPDATE users SET reputation_score = 90, streak_count = 5 WHERE id = '550e8400-e29b-41d4-a716-446655440203';
-UPDATE users SET reputation_score = 200, streak_count = 20 WHERE id = '550e8400-e29b-41d4-a716-446655440204';
-UPDATE users SET reputation_score = 75, streak_count = 3 WHERE id = '550e8400-e29b-41d4-a716-446655440205';
-UPDATE users SET reputation_score = 110, streak_count = 7 WHERE id = '550e8400-e29b-41d4-a716-446655440206';
-UPDATE users SET reputation_score = 95, streak_count = 6 WHERE id = '550e8400-e29b-41d4-a716-446655440207';
-UPDATE users SET reputation_score = 85, streak_count = 4 WHERE id = '550e8400-e29b-41d4-a716-446655440208';
-UPDATE users SET reputation_score = 220, streak_count = 25 WHERE id = '550e8400-e29b-41d4-a716-446655440209';
-UPDATE users SET reputation_score = 130, streak_count = 9 WHERE id = '550e8400-e29b-41d4-a716-446655440210';
-UPDATE users SET reputation_score = 70, streak_count = 2 WHERE id = '550e8400-e29b-41d4-a716-446655440211';
-UPDATE users SET reputation_score = 105, streak_count = 6 WHERE id = '550e8400-e29b-41d4-a716-446655440212';
-UPDATE users SET reputation_score = 88, streak_count = 5 WHERE id = '550e8400-e29b-41d4-a716-446655440213';
-UPDATE users SET reputation_score = 115, streak_count = 8 WHERE id = '550e8400-e29b-41d4-a716-446655440214';
-UPDATE users SET reputation_score = 125, streak_count = 10 WHERE id = '550e8400-e29b-41d4-a716-446655440215';
-UPDATE users SET reputation_score = 92, streak_count = 5 WHERE id = '550e8400-e29b-41d4-a716-446655440216';
-UPDATE users SET reputation_score = 78, streak_count = 3 WHERE id = '550e8400-e29b-41d4-a716-446655440217';
-UPDATE users SET reputation_score = 82, streak_count = 4 WHERE id = '550e8400-e29b-41d4-a716-446655440218';
-UPDATE users SET reputation_score = 98, streak_count = 6 WHERE id = '550e8400-e29b-41d4-a716-446655440219';
-UPDATE users SET reputation_score = 87, streak_count = 5 WHERE id = '550e8400-e29b-41d4-a716-446655440220';
-UPDATE users SET reputation_score = 250, streak_count = 30 WHERE id = '550e8400-e29b-41d4-a716-446655440221';
-UPDATE users SET reputation_score = 135, streak_count = 11 WHERE id = '550e8400-e29b-41d4-a716-446655440222';
-UPDATE users SET reputation_score = 145, streak_count = 12 WHERE id = '550e8400-e29b-41d4-a716-446655440223';
-UPDATE users SET reputation_score = 160, streak_count = 14 WHERE id = '550e8400-e29b-41d4-a716-446655440224';
-UPDATE users SET reputation_score = 118, streak_count = 8 WHERE id = '550e8400-e29b-41d4-a716-446655440225';
-UPDATE users SET reputation_score = 76, streak_count = 3 WHERE id = '550e8400-e29b-41d4-a716-446655440226';
-UPDATE users SET reputation_score = 89, streak_count = 5 WHERE id = '550e8400-e29b-41d4-a716-446655440227';
-UPDATE users SET reputation_score = 132, streak_count = 10 WHERE id = '550e8400-e29b-41d4-a716-446655440228';
-UPDATE users SET reputation_score = 94, streak_count = 6 WHERE id = '550e8400-e29b-41d4-a716-446655440229';
-UPDATE users SET reputation_score = 175, streak_count = 18 WHERE id = '550e8400-e29b-41d4-a716-446655440230';
-UPDATE users SET reputation_score = 155, streak_count = 13 WHERE id = '550e8400-e29b-41d4-a716-446655440231';
-UPDATE users SET reputation_score = 103, streak_count = 7 WHERE id = '550e8400-e29b-41d4-a716-446655440232';
-UPDATE users SET reputation_score = 168, streak_count = 16 WHERE id = '550e8400-e29b-41d4-a716-446655440233';
-UPDATE users SET reputation_score = 140, streak_count = 11 WHERE id = '550e8400-e29b-41d4-a716-446655440234';
-UPDATE users SET reputation_score = 185, streak_count = 20 WHERE id = '550e8400-e29b-41d4-a716-446655440235';
-UPDATE users SET reputation_score = 91, streak_count = 5 WHERE id = '550e8400-e29b-41d4-a716-446655440236';
-UPDATE users SET reputation_score = 210, streak_count = 22 WHERE id = '550e8400-e29b-41d4-a716-446655440237';
-UPDATE users SET reputation_score = 128, streak_count = 9 WHERE id = '550e8400-e29b-41d4-a716-446655440238';
-UPDATE users SET reputation_score = 195, streak_count = 21 WHERE id = '550e8400-e29b-41d4-a716-446655440239';
-UPDATE users SET reputation_score = 113, streak_count = 7 WHERE id = '550e8400-e29b-41d4-a716-446655440240';
-UPDATE users SET reputation_score = 147, streak_count = 12 WHERE id = '550e8400-e29b-41d4-a716-446655440241';
-UPDATE users SET reputation_score = 162, streak_count = 15 WHERE id = '550e8400-e29b-41d4-a716-446655440242';
-UPDATE users SET reputation_score = 178, streak_count = 17 WHERE id = '550e8400-e29b-41d4-a716-446655440243';
-UPDATE users SET reputation_score = 225, streak_count = 28 WHERE id = '550e8400-e29b-41d4-a716-446655440244';
-UPDATE users SET reputation_score = 119, streak_count = 8 WHERE id = '550e8400-e29b-41d4-a716-446655440245';
-UPDATE users SET reputation_score = 106, streak_count = 6 WHERE id = '550e8400-e29b-41d4-a716-446655440246';
-UPDATE users SET reputation_score = 134, streak_count = 10 WHERE id = '550e8400-e29b-41d4-a716-446655440247';
-UPDATE users SET reputation_score = 99, streak_count = 6 WHERE id = '550e8400-e29b-41d4-a716-446655440248';
-UPDATE users SET reputation_score = 240, streak_count = 35 WHERE id = '550e8400-e29b-41d4-a716-446655440249';
 
--- Create teams
-INSERT INTO teams (id, name, description) VALUES
-('550e8400-e29b-41d4-a716-446655440000', 'Tech Innovators', 'A team focused on technological innovation'),
-('550e8400-e29b-41d4-a716-446655440002', 'Sustainable Solutions', 'Working on eco-friendly solutions'),
-('550e8400-e29b-41d4-a716-446655440003', 'AI Research Lab', 'Cutting-edge artificial intelligence research'),
-('550e8400-e29b-41d4-a716-446655440004', 'Green Tech Ventures', 'Sustainable technology investments'),
-('550e8400-e29b-41d4-a716-446655440005', 'Digital Health Alliance', 'Healthcare technology innovation'),
-('550e8400-e29b-41d4-a716-446655440006', 'FinTech Pioneers', 'Financial technology solutions'),
-('550e8400-e29b-41d4-a716-446655440007', 'EduTech Innovators', 'Educational technology development'),
-('550e8400-e29b-41d4-a716-446655440008', 'Smart Cities Initiative', 'Urban technology solutions');
-
--- Create spaces
-INSERT INTO enterprise_spaces (id, team_id, name, visibility) VALUES
-('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440000', 'Default Space', 'public'),
-('550e8400-e29b-41d4-a716-446655440009', '550e8400-e29b-41d4-a716-446655440002', 'Eco-Innovation Hub', 'public'),
-('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440003', 'AI Development Space', 'invite_only'),
-('550e8400-e29b-41d4-a716-446655440011', '550e8400-e29b-41d4-a716-446655440004', 'Green Ventures', 'private'),
-('550e8400-e29b-41d4-a716-446655440012', '550e8400-e29b-41d4-a716-446655440005', 'Health Tech Lab', 'public'),
-('550e8400-e29b-41d4-a716-446655440013', '550e8400-e29b-41d4-a716-446655440006', 'FinTech Sandbox', 'invite_only'),
-('550e8400-e29b-41d4-a716-446655440014', '550e8400-e29b-41d4-a716-446655440007', 'Learning Innovation', 'public'),
-('550e8400-e29b-41d4-a716-446655440015', '550e8400-e29b-41d4-a716-446655440008', 'Urban Solutions', 'public');
 
 -- Insert ideas with content
-INSERT INTO ideas (id, space_id, creator_id, title, status_flag, anonymous, content, created_at) VALUES
-('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440200', 'AI-Powered Meal Planning App', 'trending', FALSE,
-$json$[{
+INSERT INTO ideas (id, creator_id, title, status_flag, anonymous, content, created_at) VALUES
+('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440200', 'AI-Powered Meal Planning App', 'trending', FALSE,
+$tag$[
   {"type": "heading", "level": 2, "text": "Revolutionary Approach to Meal Planning"},
   {"type": "text", "size": "large", "content": "Our AI-powered meal planning app transforms how people approach nutrition and meal preparation. By leveraging advanced machine learning algorithms, we analyze individual dietary needs, preferences, and constraints to create truly personalized meal plans."},
   {"type": "spacer", "height": 32},
@@ -151,10 +79,10 @@ $json$[{
   {"type": "spacer", "height": 32},
   {"type": "heading", "level": 3, "text": "Technical Implementation"},
   {"type": "html", "content": "<div class=\"bg-gray-100 p-6 rounded-lg\"><h4 class=\"text-xl font-semibold mb-4\">Technology Stack</h4><ul class=\"space-y-2\"><li><strong>Backend:</strong> Node.js with Express, PostgreSQL database</li><li><strong>AI/ML:</strong> TensorFlow for recommendation engine, OpenAI API for recipe generation</li><li><strong>Frontend:</strong> React Native for mobile, React for web</li><li><strong>Integrations:</strong> Stripe for payments, Google Maps API for store locations</li></ul></div>"}
-]$json$,
+]$tag$,
 '2024-01-15T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440011', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440201', 'Sustainable Fashion Marketplace', 'new', FALSE,
-$json$[{
+('550e8400-e29b-41d4-a716-446655440011', '550e8400-e29b-41d4-a716-446655440201', 'Sustainable Fashion Marketplace', 'new', FALSE,
+$json$[
   {"type": "heading", "level": 2, "text": "Revolutionizing Fashion Through Sustainability"},
   {"type": "text", "size": "large", "content": "Our marketplace bridges the gap between conscious consumers and ethical fashion brands. We curate a selection of verified sustainable brands, making it easier than ever to shop with purpose and style."},
   {"type": "image", "src": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "alt": "Sustainable fashion brands", "caption": "Discover brands that align with your values"},
@@ -169,8 +97,8 @@ $json$[{
   {"type": "button", "text": "Learn About Sustainability", "variant": "secondary", "href": "/sustainability"}
 ]$json$,
 '2024-01-14T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440012', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440202', 'Personal Finance AI Assistant', 'active_discussion', FALSE,
-$json$[{
+('550e8400-e29b-41d4-a716-446655440012', '550e8400-e29b-41d4-a716-446655440202', 'Personal Finance AI Assistant', 'active_discussion', FALSE,
+$json$[
   {"type": "heading", "level": 2, "text": "Your Personal Financial Advisor, Always Available"},
   {"type": "text", "size": "large", "content": "Take control of your financial future with our AI-powered assistant. Get personalized insights, automated budgeting, and smart savings recommendations tailored to your unique financial situation."},
   {"type": "video", "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", "title": "How It Works", "description": "See how our AI analyzes your spending patterns and provides actionable financial advice."},
@@ -181,8 +109,8 @@ $json$[{
   {"type": "button", "text": "Start Free Trial", "variant": "primary", "href": "/signup"}
 ]$json$,
 '2024-01-12T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440013', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440203', 'AR Interior Design Tool', 'validated', FALSE,
-$json$[{
+('550e8400-e29b-41d4-a716-446655440013', '550e8400-e29b-41d4-a716-446655440203', 'AR Interior Design Tool', 'validated', FALSE,
+$json$[
   {"type": "heading", "level": 2, "text": "See It Before You Buy It"},
   {"type": "text", "size": "large", "content": "Transform your home design process with our cutting-edge AR technology. Place virtual furniture in your actual space using your smartphone camera, ensuring perfect fit and style before making a purchase."},
   {"type": "carousel", "slides": [
@@ -196,58 +124,58 @@ $json$[{
   {"type": "button", "text": "Download App", "variant": "primary", "href": "/download"}
 ]$json$,
 '2024-01-02T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440014', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440204', 'AI Content Creation Suite', 'validated', FALSE,
+('550e8400-e29b-41d4-a716-446655440014', '550e8400-e29b-41d4-a716-446655440204', 'AI Content Creation Suite', 'validated', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Create Content 10x Faster with AI"}, {"type": "text", "size": "large", "content": "Our comprehensive AI suite empowers content creators, marketers, and businesses to produce high-quality content at scale. From blog posts to social media captions, our AI understands your brand voice and creates content that resonates."}, {"type": "video", "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4", "title": "Content Creation Demo", "description": "Watch how our AI generates engaging content in seconds."}, {"type": "heading", "level": 3, "text": "All-in-One Content Platform"}, {"type": "text", "content": "Our suite includes:\n\n• Blog post generator with SEO optimization\n• Social media content creator for all platforms\n• Email marketing copy generator\n• Product descriptions and ad copy\n• Content rewriting and optimization\n• Multi-language support"}, {"type": "html", "content": "<div class=\"bg-gradient-to-r from-accent/10 to-accent/5 p-6 rounded-lg border border-accent/20\"><h4 class=\"text-xl font-semibold mb-3\">Enterprise Features</h4><ul class=\"space-y-2\"><li>✓ Team collaboration tools</li><li>✓ Brand voice customization</li><li>✓ Content analytics and insights</li><li>✓ API access for integrations</li><li>✓ Priority support</li></ul></div>"}, {"type": "spacer", "height": 24}, {"type": "button", "text": "Try Free", "variant": "primary", "href": "/signup"}, {"type": "button", "text": "View Pricing", "variant": "outline", "href": "/pricing"}]$json$,
 '2023-12-31T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440015', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440205', 'Virtual Reality Fitness Studio', 'new', FALSE,
+('550e8400-e29b-41d4-a716-446655440015', '550e8400-e29b-41d4-a716-446655440205', 'Virtual Reality Fitness Studio', 'new', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Work Out Anywhere, Anytime"}, {"type": "text", "size": "large", "content": "Experience fitness like never before. Our VR fitness studio transports you to breathtaking locations while you work out, making exercise engaging, fun, and effective."}, {"type": "carousel", "slides": [{"video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4", "title": "Mountain Climbing Workout", "description": "Climb virtual mountains while doing cardio and strength training."}, {"image": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "title": "Beach Yoga Sessions", "description": "Practice yoga on virtual beaches around the world."}, {"image": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "title": "Boxing in Virtual Arenas", "description": "Train like a champion in immersive boxing environments."}]}, {"type": "heading", "level": 3, "text": "Workout Programs"}, {"type": "text", "content": "Choose from hundreds of VR workout programs:\n\n• Cardio adventures in exotic locations\n• Strength training with virtual trainers\n• Yoga and meditation in serene environments\n• Competitive sports and challenges\n• Personalized workout plans"}, {"type": "image", "src": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "alt": "VR fitness equipment", "caption": "All you need is a VR headset to get started"}, {"type": "button", "text": "Start Your Journey", "variant": "primary", "href": "/start"}]$json$,
 '2024-01-16T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440016', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440206', 'Smart City Traffic Optimization', 'validated', FALSE,
+('550e8400-e29b-41d4-a716-446655440016', '550e8400-e29b-41d4-a716-446655440206', 'Smart City Traffic Optimization', 'validated', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Smarter Cities, Smoother Traffic"}, {"type": "text", "size": "large", "content": "Transform urban mobility with our AI-powered traffic optimization system. Using advanced IoT sensors and machine learning, we reduce congestion, improve air quality, and make cities more livable."}, {"type": "video", "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", "title": "System Overview", "description": "See how our AI analyzes traffic patterns and optimizes signal timing in real-time."}, {"type": "heading", "level": 3, "text": "How It Works"}, {"type": "html", "content": "<div class=\"space-y-4\"><div class=\"flex items-start gap-4\"><div class=\"flex-shrink-0 w-8 h-8 bg-accent rounded-full flex items-center justify-center text-text-primary font-bold\">1</div><div><h4 class=\"font-semibold mb-1\">IoT Sensor Network</h4><p class=\"text-sm text-text-secondary\">Deploy sensors throughout the city to monitor traffic flow, vehicle counts, and congestion patterns.</p></div></div><div class=\"flex items-start gap-4\"><div class=\"flex-shrink-0 w-8 h-8 bg-accent rounded-full flex items-center justify-center text-text-primary font-bold\">2</div><div><h4 class=\"font-semibold mb-1\">AI Analysis</h4><p class=\"text-sm text-text-secondary\">Machine learning algorithms process data in real-time to predict traffic patterns and optimize signal timing.</p></div></div><div class=\"flex items-start gap-4\"><div class=\"flex-shrink-0 w-8 h-8 bg-accent rounded-full flex items-center justify-center text-text-primary font-bold\">3</div><div><h4 class=\"font-semibold mb-1\">Dynamic Optimization</h4><p class=\"text-sm text-text-secondary\">Traffic signals adjust automatically to reduce wait times and improve flow.</p></div></div></div>"}, {"type": "spacer", "height": 24}, {"type": "text", "content": "Cities using our system have seen:\n\n• 30% reduction in average commute time\n• 25% decrease in traffic-related emissions\n• 40% improvement in emergency vehicle response times\n• Significant cost savings on infrastructure"}, {"type": "button", "text": "Request Demo", "variant": "primary", "href": "/demo"}]$json$,
 '2024-01-17T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440017', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440207', 'Blockchain-Based Voting System', 'trending', FALSE,
+('550e8400-e29b-41d4-a716-446655440017', '550e8400-e29b-41d4-a716-446655440207', 'Blockchain-Based Voting System', 'trending', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Democracy Reimagined with Blockchain"}, {"type": "text", "size": "large", "content": "Our blockchain-based voting system ensures transparency, security, and verifiability in elections. Every vote is encrypted, immutable, and publicly auditable while maintaining voter privacy."}, {"type": "carousel", "slides": [{"image": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "title": "Secure Voting", "description": "Military-grade encryption ensures votes cannot be tampered with or altered."}, {"video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4", "title": "Transparency", "description": "Public blockchain allows anyone to verify election results without compromising voter privacy."}, {"image": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "title": "Accessibility", "description": "Vote from anywhere using your smartphone or computer."}]}, {"type": "heading", "level": 3, "text": "Key Security Features"}, {"type": "text", "content": "• End-to-end encryption protects voter identity\n• Immutable blockchain ledger prevents vote tampering\n• Multi-factor authentication ensures only eligible voters can participate\n• Real-time result verification\n• Audit trail for complete transparency"}, {"type": "html", "content": "<div class=\"bg-gray-100 p-6 rounded-lg\"><h4 class=\"text-lg font-semibold mb-3\">Trusted By</h4><p class=\"text-sm text-text-secondary mb-4\">Our system has been used in:</p><ul class=\"space-y-2 text-sm\"><li>• University student elections</li><li>• Corporate board voting</li><li>• Community association polls</li><li>• Non-profit organization decisions</li></ul></div>"}, {"type": "button", "text": "Learn More", "variant": "primary", "href": "/learn-more"}]$json$,
 '2024-01-18T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440018', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440208', '3D Printing Marketplace', 'validated', FALSE,
+('550e8400-e29b-41d4-a716-446655440018', '550e8400-e29b-41d4-a716-446655440208', '3D Printing Marketplace', 'validated', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Bring Your Designs to Life"}, {"type": "text", "size": "large", "content": "Connect with professional 3D printing services worldwide. Upload your designs, get instant quotes, and receive high-quality prints delivered to your door."}, {"type": "image", "src": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "alt": "3D printing process", "caption": "Professional 3D printing services at your fingertips"}, {"type": "heading", "level": 3, "text": "What You Can Create"}, {"type": "text", "content": "Our marketplace supports a wide range of 3D printing applications:\n\n• Product prototypes and testing\n• Custom jewelry and accessories\n• Architectural models\n• Medical devices and prosthetics\n• Art and sculptures\n• Replacement parts and components"}, {"type": "video", "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", "title": "See It In Action", "description": "Watch how designers use their platform to bring their ideas to reality."}, {"type": "button", "text": "Upload Design", "variant": "primary", "href": "/upload"}, {"type": "button", "text": "Browse Services", "variant": "secondary", "href": "/services"}]$json$,
 '2024-01-19T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440019', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440209', 'Neural Interface Gaming', 'trending', FALSE,
+('550e8400-e29b-41d4-a716-446655440019', '550e8400-e29b-41d4-a716-446655440209', 'Neural Interface Gaming', 'trending', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Control Games with Your Mind"}, {"type": "text", "size": "large", "content": "Experience the future of gaming with our neural interface technology. Control characters, cast spells, and interact with virtual worlds using only your thoughts. This is not science fiction—it''s happening now."}, {"type": "carousel", "slides": [{"video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4", "title": "Mind Control Demo", "description": "See how players control games using brain-computer interfaces."}, {"image": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "title": "Immersive Experiences", "description": "Feel like you''re truly inside the game with neural feedback."}, {"image": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "title": "Accessibility", "description": "Gaming becomes accessible to everyone, regardless of physical limitations."}]}, {"type": "heading", "level": 3, "text": "How Neural Gaming Works"}, {"type": "text", "content": "Our headset reads brain signals through EEG sensors:\n\n1. Think about an action (move left, jump, attack)\n2. Neural patterns are detected and interpreted\n3. Commands are sent to the game in real-time\n4. Visual and haptic feedback enhances immersion"}, {"type": "html", "content": "<div class=\"bg-gradient-to-br from-purple-500/10 to-blue-500/10 p-6 rounded-lg border border-purple-500/20\"><h4 class=\"text-xl font-semibold mb-3\">Supported Games</h4><div class=\"grid grid-cols-2 gap-3 text-sm\"><div>✓ Puzzle Games</div><div>✓ Strategy Games</div><div>✓ Adventure Games</div><div>✓ Racing Games</div><div>✓ VR Experiences</div><div>✓ Educational Apps</div></div></div>"}, {"type": "button", "text": "Pre-Order Now", "variant": "primary", "href": "/preorder"}]$json$,
 '2024-01-20T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440020', '550e8400-e29b-41d4-a716-446655440009', '550e8400-e29b-41d4-a716-446655440201', 'Carbon Capture Technology', 'active_discussion', FALSE,
+('550e8400-e29b-41d4-a716-446655440020', '550e8400-e29b-41d4-a716-446655440201', 'Carbon Capture Technology', 'active_discussion', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Direct Air Capture at Scale"}, {"type": "text", "size": "large", "content": "Our breakthrough carbon capture technology removes CO2 directly from the atmosphere at unprecedented efficiency. Using advanced molecular sieves and renewable energy, we can capture carbon at a fraction of current costs."}, {"type": "image", "src": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "alt": "Carbon capture facility", "caption": "Our modular capture units can be deployed anywhere"}, {"type": "heading", "level": 3, "text": "How It Works"}, {"type": "text", "content": "Our system uses:\n\n• Advanced molecular sieves that selectively capture CO2\n• Renewable energy for the capture process\n• Underground storage in basalt formations\n• Real-time monitoring and optimization"}, {"type": "button", "text": "View Technical Details", "variant": "primary", "href": "/technology"}]$json$,
 '2024-01-21T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440021', '550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440203', 'Autonomous AI Ethics Framework', 'new', FALSE,
+('550e8400-e29b-41d4-a716-446655440021', '550e8400-e29b-41d4-a716-446655440203', 'Autonomous AI Ethics Framework', 'new', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Ethical AI Decision Making"}, {"type": "text", "size": "large", "content": "As AI systems become more autonomous, we need robust ethical frameworks to ensure they make decisions aligned with human values. Our framework provides a comprehensive approach to ethical AI development and deployment."}, {"type": "heading", "level": 3, "text": "Key Components"}, {"type": "text", "content": "• Value alignment algorithms\n• Ethical decision trees\n• Bias detection and mitigation\n• Transparency and explainability\n• Human oversight mechanisms"}, {"type": "button", "text": "Read White Paper", "variant": "primary", "href": "/whitepaper"}]$json$,
 '2024-01-22T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440022', '550e8400-e29b-41d4-a716-446655440012', '550e8400-e29b-41d4-a716-446655440205', 'Telemedicine Platform', 'validated', FALSE,
+('550e8400-e29b-41d4-a716-446655440022', '550e8400-e29b-41d4-a716-446655440205', 'Telemedicine Platform', 'validated', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Healthcare Access Anywhere"}, {"type": "text", "size": "large", "content": "Our telemedicine platform connects patients with healthcare providers worldwide, breaking down geographical barriers and improving access to quality medical care."}, {"type": "video", "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", "title": "Platform Demo", "description": "See how our platform works for both patients and providers"}, {"type": "heading", "level": 3, "text": "Features"}, {"type": "text", "content": "• Real-time video consultations\n• AI-powered triage and diagnosis assistance\n• Secure medical record sharing\n• Multi-language support\n• Integration with wearable devices"}, {"type": "button", "text": "Try Demo", "variant": "primary", "href": "/demo"}]$json$,
 '2024-01-23T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440023', '550e8400-e29b-41d4-a716-446655440013', '550e8400-e29b-41d4-a716-446655440206', 'Cryptocurrency Risk Assessment', 'trending', FALSE,
+('550e8400-e29b-41d4-a716-446655440023', '550e8400-e29b-41d4-a716-446655440206', 'Cryptocurrency Risk Assessment', 'trending', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Smart Crypto Investment Decisions"}, {"type": "text", "size": "large", "content": "Our AI-powered platform analyzes cryptocurrency markets, blockchain metrics, and macroeconomic factors to provide comprehensive risk assessments and investment recommendations."}, {"type": "heading", "level": 3, "text": "Risk Analysis"}, {"type": "text", "content": "• On-chain metrics analysis\n• Market sentiment tracking\n• Regulatory risk assessment\n• Technical analysis\n• Portfolio optimization"}, {"type": "button", "text": "Start Analysis", "variant": "primary", "href": "/analyze"}]$json$,
 '2024-01-24T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440024', '550e8400-e29b-41d4-a716-446655440014', '550e8400-e29b-41d4-a716-446655440207', 'VR Learning Environments', 'active_discussion', FALSE,
+('550e8400-e29b-41d4-a716-446655440024', '550e8400-e29b-41d4-a716-446655440207', 'VR Learning Environments', 'active_discussion', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Immersive Education Revolution"}, {"type": "text", "size": "large", "content": "Transform learning with virtual reality environments that make complex subjects accessible and engaging. From exploring ancient civilizations to understanding molecular structures, VR brings education to life."}, {"type": "carousel", "slides": [{"image": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "title": "Historical Exploration", "description": "Walk through ancient Rome or Victorian London"}, {"video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4", "title": "Science Labs", "description": "Conduct virtual experiments in safe environments"}, {"image": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "title": "Language Learning", "description": "Practice conversations in virtual cities"}]}, {"type": "button", "text": "Explore Curriculum", "variant": "primary", "href": "/curriculum"}]$json$,
 '2024-01-25T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440025', '550e8400-e29b-41d4-a716-446655440015', '550e8400-e29b-41d4-a716-446655440208', 'Smart Traffic Light System', 'validated', FALSE,
+('550e8400-e29b-41d4-a716-446655440025', '550e8400-e29b-41d4-a716-446655440208', 'Smart Traffic Light System', 'validated', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "AI-Optimized Traffic Flow"}, {"type": "text", "size": "large", "content": "Our intelligent traffic light system uses computer vision, IoT sensors, and machine learning to optimize traffic flow in real-time, reducing congestion and emissions."}, {"type": "heading", "level": 3, "text": "Benefits"}, {"type": "text", "content": "• 40% reduction in travel time\n• 25% decrease in emissions\n• Emergency vehicle priority\n• Pedestrian safety improvements\n• Adaptive to changing conditions"}, {"type": "button", "text": "See Case Studies", "variant": "primary", "href": "/case-studies"}]$json$,
 '2024-01-26T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440026', '550e8400-e29b-41d4-a716-446655440009', '550e8400-e29b-41d4-a716-446655440209', 'Recycling AI Sorter', 'new', FALSE,
+('550e8400-e29b-41d4-a716-446655440026', '550e8400-e29b-41d4-a716-446655440209', 'Recycling AI Sorter', 'new', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Perfect Recycling Every Time"}, {"type": "text", "size": "large", "content": "Our AI-powered recycling sorter uses advanced computer vision to identify and sort recyclable materials with 99% accuracy, making recycling efficient and profitable."}, {"type": "image", "src": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "alt": "AI recycling sorter", "caption": "Automated sorting at scale"}, {"type": "heading", "level": 3, "text": "Technology"}, {"type": "text", "content": "• Multi-spectral imaging\n• Deep learning classification\n• Robotic sorting arms\n• Real-time quality control\n• Integration with existing facilities"}, {"type": "button", "text": "Schedule Demo", "variant": "primary", "href": "/demo"}]$json$,
 '2024-01-27T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440027', '550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440210', 'Quantum Computing Applications', 'trending', FALSE,
+('550e8400-e29b-41d4-a716-446655440027', '550e8400-e29b-41d4-a716-446655440210', 'Quantum Computing Applications', 'trending', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Quantum Advantage Today"}, {"type": "text", "size": "large", "content": "While full quantum supremacy is still developing, our hybrid quantum-classical algorithms provide practical advantages for optimization, simulation, and machine learning problems."}, {"type": "heading", "level": 3, "text": "Applications"}, {"type": "text", "content": "• Drug discovery optimization\n• Financial portfolio optimization\n• Supply chain optimization\n• Climate modeling\n• Cryptography research"}, {"type": "button", "text": "Access Quantum Cloud", "variant": "primary", "href": "/quantum-cloud"}]$json$,
 '2024-01-28T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440028', '550e8400-e29b-41d4-a716-446655440012', '550e8400-e29b-41d4-a716-446655440211', 'Mental Health AI Companion', 'active_discussion', FALSE,
+('550e8400-e29b-41d4-a716-446655440028', '550e8400-e29b-41d4-a716-446655440211', 'Mental Health AI Companion', 'active_discussion', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "24/7 Mental Health Support"}, {"type": "text", "size": "large", "content": "Our AI companion provides personalized mental health support, combining evidence-based techniques with continuous learning from user interactions and clinical research."}, {"type": "heading", "level": 3, "text": "Features"}, {"type": "text", "content": "• Cognitive behavioral therapy techniques\n• Mood tracking and analysis\n• Crisis detection and response\n• Personalized coping strategies\n• Integration with human therapists"}, {"type": "button", "text": "Learn More", "variant": "primary", "href": "/mental-health"}]$json$,
 '2024-01-29T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440029', '550e8400-e29b-41d4-a716-446655440013', '550e8400-e29b-41d4-a716-446655440212', 'Blockchain Supply Chain', 'validated', FALSE,
+('550e8400-e29b-41d4-a716-446655440029', '550e8400-e29b-41d4-a716-446655440212', 'Blockchain Supply Chain', 'validated', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Transparent Supply Chains"}, {"type": "text", "size": "large", "content": "Our blockchain platform provides end-to-end visibility and traceability for supply chains, ensuring authenticity, reducing fraud, and improving efficiency."}, {"type": "heading", "level": 3, "text": "Benefits"}, {"type": "text", "content": "• Product authenticity verification\n• Real-time tracking\n• Automated compliance\n• Reduced counterfeiting\n• Improved efficiency"}, {"type": "button", "text": "View Demo", "variant": "primary", "href": "/supply-chain-demo"}]$json$,
 '2024-01-30T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440030', '550e8400-e29b-41d4-a716-446655440014', '550e8400-e29b-41d4-a716-446655440213', 'Gamified Education Platform', 'new', FALSE,
+('550e8400-e29b-41d4-a716-446655440030', '550e8400-e29b-41d4-a716-446655440213', 'Gamified Education Platform', 'new', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Learning Through Play"}, {"type": "text", "size": "large", "content": "Our gamified learning platform makes education engaging and effective by incorporating game mechanics, rewards, and social learning into traditional curricula."}, {"type": "carousel", "slides": [{"image": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "title": "Math Adventures", "description": "Solve math problems while exploring fantasy worlds"}, {"video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4", "title": "Science Quests", "description": "Complete science missions and experiments"}, {"image": "https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg", "title": "Language Challenges", "description": "Learn languages through interactive stories"}]}, {"type": "button", "text": "Try Free Lessons", "variant": "primary", "href": "/try-free"}]$json$,
 '2024-01-31T00:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440031', '550e8400-e29b-41d4-a716-446655440015', '550e8400-e29b-41d4-a716-446655440214', 'IoT Water Quality Monitor', 'trending', FALSE,
+('550e8400-e29b-41d4-a716-446655440031', '550e8400-e29b-41d4-a716-446655440214', 'IoT Water Quality Monitor', 'trending', FALSE,
 $json$[{"type": "heading", "level": 2, "text": "Clean Water Intelligence"}, {"type": "text", "size": "large", "content": "Our IoT sensors continuously monitor water quality in real-time, providing early warning systems for contamination and helping maintain safe water supplies worldwide."}, {"type": "heading", "level": 3, "text": "Monitoring Parameters"}, {"type": "text", "content": "• pH levels\n• Turbidity\n• Chemical contaminants\n• Biological indicators\n• Temperature and flow rate"}, {"type": "button", "text": "Install Sensors", "variant": "primary", "href": "/install"}]$json$,
 '2024-02-01T00:00:00Z');
 
@@ -365,93 +293,12 @@ INSERT INTO idea_tags (idea_id, tag_id) VALUES
 ('550e8400-e29b-41d4-a716-446655440019', '550e8400-e29b-41d4-a716-446655440300'),
 ('550e8400-e29b-41d4-a716-446655440019', '550e8400-e29b-41d4-a716-446655440306');
 
--- Insert badges
-INSERT INTO badges (id, code, name, description) VALUES
-('550e8400-e29b-41d4-a716-446655440310', 'first_idea', 'First Idea', 'Awarded for submitting your first idea'),
-('550e8400-e29b-41d4-a716-446655440311', 'top_contributor', 'Top Contributor', 'Awarded for high engagement and quality contributions'),
-('550e8400-e29b-41d4-a716-446655440312', 'innovator', 'Innovator', 'Awarded for groundbreaking ideas'),
-('550e8400-e29b-41d4-a716-446655440313', 'community_builder', 'Community Builder', 'Awarded for helping build the community');
 
--- Insert user badges
-INSERT INTO user_badges (user_id, badge_id) VALUES
-('550e8400-e29b-41d4-a716-446655440200', '550e8400-e29b-41d4-a716-446655440310'),
-('550e8400-e29b-41d4-a716-446655440200', '550e8400-e29b-41d4-a716-446655440311'),
-('550e8400-e29b-41d4-a716-446655440201', '550e8400-e29b-41d4-a716-446655440310'),
-('550e8400-e29b-41d4-a716-446655440202', '550e8400-e29b-41d4-a716-446655440310'),
-('550e8400-e29b-41d4-a716-446655440202', '550e8400-e29b-41d4-a716-446655440312'),
-('550e8400-e29b-41d4-a716-446655440203', '550e8400-e29b-41d4-a716-446655440310'),
-('550e8400-e29b-41d4-a716-446655440204', '550e8400-e29b-41d4-a716-446655440310'),
-('550e8400-e29b-41d4-a716-446655440204', '550e8400-e29b-41d4-a716-446655440311'),
-('550e8400-e29b-41d4-a716-446655440205', '550e8400-e29b-41d4-a716-446655440310'),
-('550e8400-e29b-41d4-a716-446655440206', '550e8400-e29b-41d4-a716-446655440310'),
-('550e8400-e29b-41d4-a716-446655440207', '550e8400-e29b-41d4-a716-446655440310'),
-('550e8400-e29b-41d4-a716-446655440208', '550e8400-e29b-41d4-a716-446655440310'),
-('550e8400-e29b-41d4-a716-446655440209', '550e8400-e29b-41d4-a716-446655440310'),
-('550e8400-e29b-41d4-a716-446655440209', '550e8400-e29b-41d4-a716-446655440312');
 
--- Insert team memberships
-INSERT INTO team_memberships (team_id, user_id, role) VALUES
-('550e8400-e29b-41d4-a716-446655440000', '550e8400-e29b-41d4-a716-446655440200', 'admin'),
-('550e8400-e29b-41d4-a716-446655440000', '550e8400-e29b-41d4-a716-446655440202', 'moderator'),
-('550e8400-e29b-41d4-a716-446655440000', '550e8400-e29b-41d4-a716-446655440204', 'member'),
-('550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440201', 'admin'),
-('550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440203', 'moderator'),
-('550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440205', 'member');
 
--- Insert enterprise spaces
-INSERT INTO enterprise_spaces (id, team_id, name, visibility) VALUES
-('550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440000', 'Innovation Hub', 'public'),
-('550e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440002', 'Green Projects', 'invite_only');
 
--- Insert space memberships
-INSERT INTO space_memberships (space_id, user_id, role) VALUES
-('550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440200', 'admin'),
-('550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440202', 'moderator'),
-('550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440204', 'member'),
-('550e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440201', 'admin'),
-('550e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440203', 'moderator'),
-('550e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440205', 'member');
 
--- Insert topics
-INSERT INTO topics (id, name, description) VALUES
-('550e8400-e29b-41d4-a716-446655440330', 'Technology', 'Innovations in software, hardware, and digital solutions'),
-('550e8400-e29b-41d4-a716-446655440331', 'Healthcare', 'Medical innovations and health technology'),
-('550e8400-e29b-41d4-a716-446655440332', 'Education', 'Learning platforms and educational tools'),
-('550e8400-e29b-41d4-a716-446655440333', 'Sustainability', 'Environmental solutions and green technology'),
-('550e8400-e29b-41d4-a716-446655440334', 'Finance', 'Financial services and fintech solutions');
 
--- Insert user topics
-INSERT INTO user_topics (user_id, topic_id, interest_level) VALUES
-('550e8400-e29b-41d4-a716-446655440200', '550e8400-e29b-41d4-a716-446655440330', 5),
-('550e8400-e29b-41d4-a716-446655440200', '550e8400-e29b-41d4-a716-446655440331', 3),
-('550e8400-e29b-41d4-a716-446655440201', '550e8400-e29b-41d4-a716-446655440332', 4),
-('550e8400-e29b-41d4-a716-446655440201', '550e8400-e29b-41d4-a716-446655440333', 5),
-('550e8400-e29b-41d4-a716-446655440202', '550e8400-e29b-41d4-a716-446655440330', 4),
-('550e8400-e29b-41d4-a716-446655440202', '550e8400-e29b-41d4-a716-446655440334', 3);
-
--- Insert user preferences
-INSERT INTO user_preferences (user_id, preferences) VALUES
-('550e8400-e29b-41d4-a716-446655440200', '{"theme": "dark", "notifications": {"email": true, "push": false}, "language": "en"}'),
-('550e8400-e29b-41d4-a716-446655440201', '{"theme": "light", "notifications": {"email": true, "push": true}, "language": "es"}'),
-('550e8400-e29b-41d4-a716-446655440202', '{"theme": "dark", "notifications": {"email": false, "push": true}, "language": "en"}');
-
--- Insert content refs
-INSERT INTO content_refs (id, provider, collection, external_id, version) VALUES
-('550e8400-e29b-41d4-a716-446655440340', 'supabase', 'ideas', 'idea-1-content', 1),
-('550e8400-e29b-41d4-a716-446655440341', 'supabase', 'posts', 'post-1-content', 1),
-('550e8400-e29b-41d4-a716-446655440342', 'supabase', 'variants', 'variant-1-content', 1);
-
--- Insert idea variants
-INSERT INTO idea_variants (id, idea_id, variant_type, title, content_ref_id) VALUES
-('550e8400-e29b-41d4-a716-446655440350', '550e8400-e29b-41d4-a716-446655440010', 'pricing_test', 'Premium Subscription Model', '550e8400-e29b-41d4-a716-446655440342'),
-('550e8400-e29b-41d4-a716-446655440351', '550e8400-e29b-41d4-a716-446655440011', 'feature_test', 'Eco-Tracking Dashboard', '550e8400-e29b-41d4-a716-446655440342');
-
--- Insert idea topics
-INSERT INTO idea_topics (idea_id, topic_id) VALUES
-('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440330'),
-('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440331'),
-('550e8400-e29b-41d4-a716-446655440011', '550e8400-e29b-41d4-a716-446655440333'),
-('550e8400-e29b-41d4-a716-446655440012', '550e8400-e29b-41d4-a716-446655440334');
 
 -- Insert media assets (must be first due to foreign key constraints)
 INSERT INTO media_assets (id, type, url) VALUES
@@ -470,70 +317,12 @@ INSERT INTO idea_media (idea_id, media_id, sort_order) VALUES
 ('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440322', 1),
 ('550e8400-e29b-41d4-a716-446655440011', '550e8400-e29b-41d4-a716-446655440321', 0);
 
--- Insert variant media
-INSERT INTO variant_media (variant_id, media_id, sort_order) VALUES
-('550e8400-e29b-41d4-a716-446655440350', '550e8400-e29b-41d4-a716-446655440320', 0),
-('550e8400-e29b-41d4-a716-446655440351', '550e8400-e29b-41d4-a716-446655440321', 0);
 
--- Insert posts
-INSERT INTO posts (id, team_id, space_id, author_user_id, post_type, status, title, content_ref_id, published_at) VALUES
-('550e8400-e29b-41d4-a716-446655440360', '550e8400-e29b-41d4-a716-446655440000', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440200', 'team_post', 'published', 'Welcome to Our Innovation Hub', '550e8400-e29b-41d4-a716-446655440341', '2024-01-10T10:00:00Z'),
-('550e8400-e29b-41d4-a716-446655440361', NULL, '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440201', 'blog_post', 'published', 'The Future of AI in Healthcare', '550e8400-e29b-41d4-a716-446655440341', '2024-01-12T14:00:00Z');
-
--- Insert post media
-INSERT INTO post_media (post_id, media_id, sort_order) VALUES
-('550e8400-e29b-41d4-a716-446655440360', '550e8400-e29b-41d4-a716-446655440320', 0),
-('550e8400-e29b-41d4-a716-446655440361', '550e8400-e29b-41d4-a716-446655440321', 0);
-
--- Insert newsletters
-INSERT INTO newsletters (id, space_id, title) VALUES
-('550e8400-e29b-41d4-a716-446655440370', '550e8400-e29b-41d4-a716-446655440001', 'Weekly Innovation Digest'),
-('550e8400-e29b-41d4-a716-446655440371', '550e8400-e29b-41d4-a716-446655440001', 'Monthly Tech Trends');
-
--- Insert newsletter blocks
-INSERT INTO newsletter_blocks (id, newsletter_id, block_type, content, sort_order) VALUES
-('550e8400-e29b-41d4-a716-446655440380', '550e8400-e29b-41d4-a716-446655440370', 'heading', '{"text": "This Week in Innovation"}', 0),
-('550e8400-e29b-41d4-a716-446655440381', '550e8400-e29b-41d4-a716-446655440370', 'text', '{"content": "Discover the latest breakthroughs from our community"}', 1),
-('550e8400-e29b-41d4-a716-446655440382', '550e8400-e29b-41d4-a716-446655440371', 'heading', '{"text": "Monthly Tech Trends"}', 0);
-
--- Insert newsletter featured ideas
-INSERT INTO newsletter_featured_ideas (newsletter_id, idea_id, sort_order) VALUES
-('550e8400-e29b-41d4-a716-446655440370', '550e8400-e29b-41d4-a716-446655440010', 0),
-('550e8400-e29b-41d4-a716-446655440370', '550e8400-e29b-41d4-a716-446655440011', 1),
-('550e8400-e29b-41d4-a716-446655440371', '550e8400-e29b-41d4-a716-446655440012', 0);
-
--- Insert notifications
 INSERT INTO notifications (id, user_id, type, payload, is_read) VALUES
 ('550e8400-e29b-41d4-a716-446655440390', '550e8400-e29b-41d4-a716-446655440200', 'idea_vote', '{"idea_id": "550e8400-e29b-41d4-a716-446655440010", "voter_id": "550e8400-e29b-41d4-a716-446655440201"}', false),
 ('550e8400-e29b-41d4-a716-446655440391', '550e8400-e29b-41d4-a716-446655440200', 'comment', '{"idea_id": "550e8400-e29b-41d4-a716-446655440010", "comment_id": "550e8400-e29b-41d4-a716-446655440100"}', true),
 ('550e8400-e29b-41d4-a716-446655440392', '550e8400-e29b-41d4-a716-446655440201', 'badge_awarded', '{"badge_id": "550e8400-e29b-41d4-a716-446655440310"}', false);
 
--- Insert follow users
-INSERT INTO follow_users (follower_id, followed_user_id) VALUES
-('550e8400-e29b-41d4-a716-446655440200', '550e8400-e29b-41d4-a716-446655440201'),
-('550e8400-e29b-41d4-a716-446655440200', '550e8400-e29b-41d4-a716-446655440202'),
-('550e8400-e29b-41d4-a716-446655440201', '550e8400-e29b-41d4-a716-446655440200'),
-('550e8400-e29b-41d4-a716-446655440202', '550e8400-e29b-41d4-a716-446655440200');
-
--- Insert follow ideas
-INSERT INTO follow_ideas (follower_id, idea_id) VALUES
-('550e8400-e29b-41d4-a716-446655440200', '550e8400-e29b-41d4-a716-446655440010'),
-('550e8400-e29b-41d4-a716-446655440201', '550e8400-e29b-41d4-a716-446655440011'),
-('550e8400-e29b-41d4-a716-446655440202', '550e8400-e29b-41d4-a716-446655440012');
-
--- Insert follow teams
-INSERT INTO follow_teams (follower_id, team_id) VALUES
-('550e8400-e29b-41d4-a716-446655440200', '550e8400-e29b-41d4-a716-446655440000'),
-('550e8400-e29b-41d4-a716-446655440201', '550e8400-e29b-41d4-a716-446655440002'),
-('550e8400-e29b-41d4-a716-446655440202', '550e8400-e29b-41d4-a716-446655440000');
-
--- Insert follow topics
-INSERT INTO follow_topics (follower_id, topic_id) VALUES
-('550e8400-e29b-41d4-a716-446655440200', '550e8400-e29b-41d4-a716-446655440330'),
-('550e8400-e29b-41d4-a716-446655440201', '550e8400-e29b-41d4-a716-446655440333'),
-('550e8400-e29b-41d4-a716-446655440202', '550e8400-e29b-41d4-a716-446655440334');
-
--- Insert comments for idea 1
 INSERT INTO comments (id, idea_id, user_id, content, created_at) VALUES
 ('550e8400-e29b-41d4-a716-446655440100', '550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440200', 'Esta es una idea increíble! Me encanta cómo aborda el problema desde una perspectiva única.', '2024-01-15T10:00:00Z'),
 ('550e8400-e29b-41d4-a716-446655440101', '550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440201', '¿Has considerado el impacto en el mercado internacional? Sería interesante explorar esa dimensión.', '2024-01-15T08:00:00Z'),

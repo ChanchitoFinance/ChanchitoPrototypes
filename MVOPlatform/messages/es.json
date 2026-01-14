@@ -8,8 +8,6 @@
     "home": "Inicio",
     "browse": "Explorar",
     "for_you": "Para Ti",
-    "explore": "Explorar",
-    "spaces": "Espacios",
     "activity": "Actividad",
     "upload": "Subir",
     "profile": "Perfil",
@@ -438,16 +436,6 @@
       "change_video": "Cambiar Video",
       "change_url": "Cambiar URL"
     }
-  },
-  "spaces": {
-    "confirm_delete_idea": "¿Estás seguro de que quieres eliminar esta idea? Esta acción no se puede deshacer.",
-    "error_deleting_idea": "Error al eliminar la idea. Por favor, inténtalo de nuevo.",
-    "delete_idea": "Eliminar Idea",
-    "error": "Error",
-    "tags": "Etiquetas",
-    "topics": "Categorías",
-    "select_tags": "Seleccionar etiquetas",
-    "select_topics": "Seleccionar categorías"
   },
   "premium": {
     "title": "Actualizar a Premium",

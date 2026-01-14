@@ -84,7 +84,6 @@ features/[feature-name]/
 - **pages**: Page-level components (Premium, Landing, etc.)
 - **payment**: Payment processing and checkout
 - **report**: Reporting and analytics
-- **spaces**: Team spaces and collaboration
 
 ## Shared Layer (`src/shared/`)
 

@@ -145,8 +145,7 @@ The application uses a service layer for data management with Supabase:
 - **IdeaService**: Manages ideas, votes, and content
 - **CommentService**: Handles comments and comment voting
 - **UserService**: User profile management
-- **TeamService**: Team and space management
-- **AdminService**: Tags, badges, and media assets
+- **AdminService**: Tags and media assets
 
 See `docs/services-usage.md` for detailed usage examples.
 

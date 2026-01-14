@@ -15,7 +15,6 @@ DROP INDEX IF EXISTS idx_idea_tags_idea_id;
 DROP INDEX IF EXISTS idx_ideas_explore;
 DROP INDEX IF EXISTS idx_idea_votes_user_idea;
 DROP INDEX IF EXISTS idx_comment_votes_comment_id;
-DROP INDEX IF EXISTS idx_space_memberships_user;
 DROP INDEX IF EXISTS idx_ideas_creator_id;
 DROP INDEX IF EXISTS idx_idea_engagement_score;
 DROP INDEX IF EXISTS idx_idea_engagement_created;
@@ -67,11 +66,6 @@ CREATE INDEX idx_comment_votes_comment_id ON comment_votes(comment_id);
 CREATE INDEX idx_idea_tags_idea_id ON idea_tags(idea_id);
 CREATE INDEX idx_idea_tags_tag_id ON idea_tags(tag_id);
 
--- ============================================================================
--- Index for spaces queries
--- ============================================================================
-
-CREATE INDEX idx_space_memberships_user ON space_memberships(user_id, status);
 
 -- ============================================================================
 -- Materialized View for engagement scoring (eliminates client-side sorting)
@@ -80,7 +74,7 @@ CREATE INDEX idx_space_memberships_user ON space_memberships(user_id, status);
 
 DROP MATERIALIZED VIEW IF EXISTS idea_engagement;
 CREATE MATERIALIZED VIEW idea_engagement AS
-SELECT 
+SELECT
   i.id,
   i.title,
   i.status_flag,
@@ -88,7 +82,6 @@ SELECT
   i.created_at,
   i.anonymous,
   i.creator_id,
-  i.space_id,
   -- Computed engagement metrics
   (SELECT COUNT(*) FROM idea_votes WHERE idea_id = i.id) as total_votes,
   (SELECT COUNT(*) FROM idea_votes WHERE idea_id = i.id AND vote_type = 'use') as use_votes,
@@ -114,9 +107,9 @@ COMMENT ON MATERIALIZED VIEW idea_engagement IS
 -- ============================================================================
 -- Verify indexes were created
 -- ============================================================================
-SELECT 
+SELECT
   indexname,
   indexdef
 FROM pg_indexes
-WHERE tablename IN ('ideas', 'idea_votes', 'comments', 'idea_tags', 'space_memberships')
+WHERE tablename IN ('ideas', 'idea_votes', 'comments', 'idea_tags')
 ORDER BY tablename, indexname;

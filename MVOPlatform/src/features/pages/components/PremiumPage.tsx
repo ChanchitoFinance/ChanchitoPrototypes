@@ -31,12 +31,6 @@ export function PremiumPage() {
               <li className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                 <span className="text-text-secondary">
-                  {t('premium.features.private_spaces')}
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                <span className="text-text-secondary">
                   {t('premium.features.invite_members')}
                 </span>
               </li>
