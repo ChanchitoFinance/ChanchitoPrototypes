@@ -515,5 +515,55 @@
   "ai": {
     "daily_limit_exceeded": "AI model has reached daily usage peak. Please try again later.",
     "service_unavailable": "AI service is currently unavailable. Please try again later."
+  },
+  "credits": {
+    "remaining": "Credits remaining",
+    "insufficient_title": "Insufficient Credits",
+    "insufficient_message": "You need credits to use this feature. Upgrade your plan to get more credits.",
+    "upgrade_plan": "Upgrade Plan",
+    "plan_free": "Free Plan",
+    "plan_pro": "Pro Plan",
+    "plan_premium": "Premium Plan",
+    "plan_innovator": "Innovator Plan"
+  },
+  "plans": {
+    "free": {
+      "name": "Free",
+      "description": "Basic features with 3 daily credits",
+      "features": ["Basic AI features", "Community support"]
+    },
+    "pro": {
+      "name": "Pro",
+      "description": "Advanced features with 50 daily credits",
+      "features": [
+        "Advanced AI features",
+        "Priority support",
+        "50 daily credits"
+      ]
+    },
+    "premium": {
+      "name": "Premium",
+      "description": "All features with 250 daily credits",
+      "features": [
+        "All Pro features",
+        "250 daily credits",
+        "Advanced analytics"
+      ]
+    },
+    "innovator": {
+      "name": "Innovator",
+      "description": "Unlimited credits for innovators",
+      "features": [
+        "All Premium features",
+        "Unlimited credits",
+        "Team collaboration"
+      ]
+    }
+  },
+  "payment": {
+    "success": "Payment successful!",
+    "error_creating_order": "Error creating payment order",
+    "error_capturing": "Error processing payment",
+    "paypal_error": "PayPal payment error"
   }
 }

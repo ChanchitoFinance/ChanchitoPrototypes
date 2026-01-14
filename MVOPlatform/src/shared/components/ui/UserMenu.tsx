@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from '../providers/I18nProvider'
 import { Bell } from 'lucide-react'
 import { useLocale } from '../providers/I18nProvider'
+import { CreditsDisplay } from '@/features/credits/components/CreditsDisplay'
 
 interface UserMenuProps {
   user: {
@@ -92,6 +93,7 @@ export function UserMenu({
               <p className="text-label">{user.name}</p>
               <p className="text-xs text-text-secondary">{user.email}</p>
             </div>
+            <CreditsDisplay />
             {showProfileLink && (
               <Link
                 href="/profile"

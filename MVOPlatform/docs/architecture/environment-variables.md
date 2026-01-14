@@ -18,11 +18,11 @@ const clientId = serverEnv.googleClientId
 ```
 
 Available server-side variables:
+
 - `googleClientId` - Google OAuth client ID
 - `googleClientSecret` - Google OAuth client secret
 - `nextAuthUrl` - NextAuth URL
 - `nextAuthSecret` - NextAuth secret
-- `stripeSecretKey` - Stripe secret key
 
 ### Client-Side Variables
 
@@ -36,7 +36,7 @@ const adminEmail = clientEnv.adminEmail
 ```
 
 Available client-side variables:
-- `stripePublishableKey` - Stripe publishable key
+
 - `adminEmail` - Admin email address
 
 ## ESLint Rule
@@ -54,11 +54,13 @@ The `validateEnv()` function checks for required environment variables and throw
 ## Example
 
 ❌ **Don't do this:**
+
 ```typescript
 const apiKey = process.env.API_KEY || ''
 ```
 
 ✅ **Do this instead:**
+
 ```typescript
 import { serverEnv } from '@/config/env'
 const apiKey = serverEnv.apiKey
@@ -71,6 +73,7 @@ const apiKey = serverEnv.apiKey
    - Client-side: Add to `clientEnv` object (must be `NEXT_PUBLIC_*`)
 
 2. Add to `.env.local`:
+
    ```env
    YOUR_NEW_VAR=value
    ```
@@ -78,4 +81,3 @@ const apiKey = serverEnv.apiKey
 3. Update this documentation
 
 4. Use the centralized config throughout the codebase
-

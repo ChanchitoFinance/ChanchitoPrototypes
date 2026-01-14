@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS users (
   role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
   username VARCHAR(255) UNIQUE,
   profile_media_id UUID,
+  plan VARCHAR(20) NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'premium', 'innovator')),
+  daily_credits_used INT NOT NULL DEFAULT 0,
+  last_credits_reset DATE NOT NULL DEFAULT CURRENT_DATE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -31,6 +34,20 @@ CREATE TABLE media_assets (
   type media_type NOT NULL,
   url TEXT NOT NULL,
   metadata JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Payments table
+CREATE TABLE IF NOT EXISTS payments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  payment_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  plan_type VARCHAR(20) NOT NULL CHECK (plan_type IN ('free', 'pro', 'premium', 'innovator')),
+  amount DECIMAL(10,2) NOT NULL,
+  currency VARCHAR(3) NOT NULL DEFAULT 'USD',
+  payment_method VARCHAR(50) NOT NULL DEFAULT 'paypal',
+  transaction_id VARCHAR(255) UNIQUE,
+  status VARCHAR(20) NOT NULL DEFAULT 'completed' CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -146,6 +163,8 @@ CREATE INDEX idx_comment_votes_comment ON comment_votes(comment_id);
 CREATE INDEX idx_comment_votes_user_created_at ON comment_votes(user_id, created_at);
 CREATE INDEX idx_notifications_user_read_created_at ON notifications(user_id, is_read, created_at);
 CREATE INDEX idx_idea_tags_tag ON idea_tags(tag_id);
+CREATE INDEX idx_payments_user_date ON payments(user_id, payment_date);
+CREATE INDEX idx_payments_transaction ON payments(transaction_id);
 
 -- Updated function for new user
 CREATE OR REPLACE FUNCTION handle_new_user()
@@ -165,14 +184,17 @@ BEGIN
   END IF;
 
   -- Insert user with profile_media_id if available
-  INSERT INTO public.users (id, email, full_name, role, username, profile_media_id)
+  INSERT INTO public.users (id, email, full_name, role, username, profile_media_id, plan, daily_credits_used, last_credits_reset)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
     'user',
     COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)),
-    media_id
+    media_id,
+    'free',
+    0,
+    CURRENT_DATE
   );
   RETURN NEW;
 END;
@@ -182,6 +204,28 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+-- Function to reset daily credits and check plan renewals
+CREATE OR REPLACE FUNCTION reset_daily_credits_and_check_plans()
+RETURNS VOID AS $$
+BEGIN
+  -- Reset daily credits for all users where last reset was not today
+  UPDATE users
+  SET daily_credits_used = 0, last_credits_reset = CURRENT_DATE
+  WHERE last_credits_reset < CURRENT_DATE;
+
+  -- Check for plan renewals: if no payment in the last 30 days for paid plans, revert to free
+  UPDATE users
+  SET plan = 'free'
+  WHERE plan IN ('pro', 'premium', 'innovator')
+    AND NOT EXISTS (
+      SELECT 1 FROM payments
+      WHERE payments.user_id = users.id
+        AND payments.status = 'completed'
+        AND payments.payment_date >= CURRENT_DATE - INTERVAL '30 days'
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- RLS Policies
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -194,6 +238,7 @@ ALTER TABLE idea_votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comment_votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 
 -- Basic policies (users can view their own data, admins can view all)
 DROP POLICY IF EXISTS "Users can view their own profile" ON users;
@@ -255,6 +300,15 @@ CREATE POLICY "Authenticated insert idea_tags" ON idea_tags FOR INSERT WITH CHEC
 
 CREATE POLICY "Public read idea_media" ON idea_media FOR SELECT USING (true);
 CREATE POLICY "Authenticated insert idea_media" ON idea_media FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+-- Payments: users can view their own, admins can view all
+CREATE POLICY "Users view own payments" ON payments FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Admins view all payments" ON payments FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'
+  )
+);
+CREATE POLICY "Authenticated insert payments" ON payments FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
 -- Configure realtime publication (safely handle if publication doesn't exist)
 DO $$

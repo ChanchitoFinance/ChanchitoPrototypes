@@ -29,7 +29,8 @@ import {
   useTranslations,
 } from '@/shared/components/providers/I18nProvider'
 import { AIRiskFeedback } from '../../../ai/components/AIRiskFeedback'
-import { useAppSelector } from '@/core/lib/hooks'
+import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
+import { deductCredits } from '@/core/lib/slices/creditsSlice'
 import { supabase } from '@/core/lib/supabase'
 import { ideaService } from '@/core/lib/services/ideaService'
 import { Idea } from '@/core/types/idea'
@@ -94,6 +95,10 @@ export function IdeaForm({
   const videoInputRef = useRef<HTMLInputElement>(null)
   const { profile, user } = useAppSelector(state => state.auth)
   const { isAuthenticated } = useAppSelector(state => state.auth)
+  const { plan, dailyCredits, usedCredits } = useAppSelector(
+    state => state.credits
+  )
+  const dispatch = useAppDispatch()
 
   const ideaSchema = z.object({
     title: z.string().min(10, t('validation.title_min_length')),
@@ -101,7 +106,7 @@ export function IdeaForm({
       .string()
       .optional()
       .refine(
-        (val) => {
+        val => {
           if (!val) return true
           const tags = val.split(',').filter(Boolean)
           return tags.length <= 3
@@ -384,14 +389,7 @@ export function IdeaForm({
         }
       }
     }
-  }, [
-    titleValue,
-    selectedTags,
-    contentBlocks,
-    heroImage,
-    heroVideo,
-    heroCrop,
-  ])
+  }, [titleValue, selectedTags, contentBlocks, heroImage, heroVideo, heroCrop])
 
   const addTag = () => {
     const tag = tagInput.trim()
@@ -1305,6 +1303,31 @@ export function IdeaForm({
                 content={contentBlocks}
                 tags={selectedTags}
                 isAnonymous={isAnonymous}
+                onRequestFeedback={async () => {
+                  if (!user) return
+
+                  // Check credits
+                  const hasEnoughCredits =
+                    plan === 'innovator' || dailyCredits - usedCredits >= 1
+                  if (!hasEnoughCredits) {
+                    toast.error(
+                      'Insufficient credits. Upgrade your plan to continue using AI features.'
+                    )
+                    return
+                  }
+
+                  // Deduct credits
+                  try {
+                    await dispatch(
+                      deductCredits({ userId: user.id, amount: 1 })
+                    ).unwrap()
+                    // Now request the feedback
+                    // This will be handled by the AIRiskFeedback component's internal requestFeedback
+                  } catch (error) {
+                    console.error('Error deducting credits:', error)
+                    toast.error('Failed to process credits')
+                  }
+                }}
               />
             )}
 

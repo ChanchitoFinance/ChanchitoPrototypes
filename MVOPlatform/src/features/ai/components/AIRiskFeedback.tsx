@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Loader2,
@@ -10,6 +11,7 @@ import {
   History,
   RefreshCw,
   FileWarning,
+  Coins,
 } from 'lucide-react'
 import { AIFeedback } from '@/core/types/ai'
 import { aiFeedbackStorage } from '@/core/lib/services/aiFeedbackStorage'
@@ -19,6 +21,7 @@ import {
   useLocale,
 } from '@/shared/components/providers/I18nProvider'
 import { MarkdownRenderer } from '@/shared/components/ui/MarkdownRenderer'
+import { useAppSelector } from '@/core/lib/hooks'
 import Image from 'next/image'
 
 interface AIRiskFeedbackProps {
@@ -27,6 +30,7 @@ interface AIRiskFeedbackProps {
   content: ContentBlock[]
   tags: string[]
   isAnonymous: boolean
+  onRequestFeedback?: () => Promise<void>
 }
 
 export function AIRiskFeedback({
@@ -35,15 +39,26 @@ export function AIRiskFeedback({
   content,
   tags,
   isAnonymous,
+  onRequestFeedback,
 }: AIRiskFeedbackProps) {
   const t = useTranslations()
   const { locale } = useLocale()
+  const router = useRouter()
   const [feedback, setFeedback] = useState<AIFeedback | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
   const [currentVersion, setCurrentVersion] = useState(1)
   const [totalVersions, setTotalVersions] = useState(0)
+  const [showLastCreditConfirm, setShowLastCreditConfirm] = useState(false)
+
+  const { plan, dailyCredits, usedCredits } = useAppSelector(
+    state => state.credits
+  )
+  const remainingCredits =
+    plan === 'innovator' ? Infinity : dailyCredits - usedCredits
+  const hasCredits = remainingCredits > 0
+  const isLastCredit = remainingCredits === 1
 
   const shouldShow = title.length >= 10 && content.length > 0
 
@@ -166,9 +181,25 @@ export function AIRiskFeedback({
     <div className="mb-6">
       <div className="relative">
         <button
-          onClick={() => {
+          onClick={async () => {
+            if (!hasCredits) {
+              router.push(`/${locale}/premium`)
+              return
+            }
+
             if (!feedback) {
-              requestFeedback()
+              if (isLastCredit) {
+                setShowLastCreditConfirm(true)
+                return
+              }
+
+              if (onRequestFeedback) {
+                await onRequestFeedback()
+                // After credits are deducted, request feedback
+                requestFeedback()
+              } else {
+                requestFeedback()
+              }
             } else {
               setIsExpanded(!isExpanded)
             }
@@ -185,11 +216,18 @@ export function AIRiskFeedback({
             ) : (
               <>
                 <span className="text-2xl">⚠️</span>
-                <span>
-                  {feedback
-                    ? t('ai_risk_feedback.view_analysis')
-                    : t('ai_risk_feedback.receive_feedback')}
-                </span>
+                <div className="flex flex-col items-center">
+                  <span>
+                    {feedback
+                      ? t('ai_risk_feedback.view_analysis')
+                      : t('ai_risk_feedback.receive_feedback')}
+                  </span>
+                  {!feedback && (
+                    <span className="text-xs flex items-center gap-1">
+                      <Coins className="w-3 h-3" />1 credit
+                    </span>
+                  )}
+                </div>
                 {feedback && (
                   <motion.div
                     animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -213,6 +251,57 @@ export function AIRiskFeedback({
           </div> */}
         </button>
       </div>
+
+      {/* Last Credit Confirmation Dialog */}
+      <AnimatePresence>
+        {showLastCreditConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setShowLastCreditConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-background p-6 rounded-lg shadow-xl max-w-md mx-4"
+              onClick={e => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold text-text-primary mb-2">
+                Last Credit Warning
+              </h3>
+              <p className="text-sm text-text-secondary mb-4">
+                This is your last daily credit. Are you sure you want to spend
+                it on AI Risk Analysis?
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowLastCreditConfirm(false)}
+                  className="px-4 py-2 text-sm border border-border-color rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    setShowLastCreditConfirm(false)
+                    if (onRequestFeedback) {
+                      await onRequestFeedback()
+                      requestFeedback()
+                    } else {
+                      requestFeedback()
+                    }
+                  }}
+                  className="px-4 py-2 text-sm bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600"
+                >
+                  Use Last Credit
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence mode="wait">
         {error && (
