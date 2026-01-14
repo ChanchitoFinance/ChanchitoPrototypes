@@ -76,6 +76,13 @@ export function IdeaCard({
   useEffect(() => {
     if (initialUserVotes) {
       setUserVote(initialUserVotes)
+    } else {
+      // Ensure userVote is initialized with default values if initialUserVotes is undefined
+      setUserVote({
+        use: false,
+        dislike: false,
+        pay: false,
+      })
     }
   }, [initialUserVotes])
 
@@ -103,18 +110,20 @@ export function IdeaCard({
     const isRemovingVote = userVote[voteType]
 
     setIsVoting(true)
-    setCurrentIdea(prev => ({
-      ...prev,
-      votes: isRemovingVote ? prev.votes - 1 : prev.votes + 1,
-      votesByType: {
-        ...prev.votesByType,
-        [voteType]: isRemovingVote
-          ? prev.votesByType[voteType] - 1
-          : prev.votesByType[voteType] + 1,
-      },
-    }))
 
-    // Update user vote state
+    // Only update UI optimistically if we're adding a vote, not removing
+    if (!isRemovingVote) {
+      setCurrentIdea(prev => ({
+        ...prev,
+        votes: prev.votes + 1,
+        votesByType: {
+          ...prev.votesByType,
+          [voteType]: prev.votesByType[voteType] + 1,
+        },
+      }))
+    }
+
+    // Update user vote state optimistically
     if (voteType === 'use' || voteType === 'dislike') {
       setUserVote(prev => ({
         ...prev,
@@ -131,6 +140,13 @@ export function IdeaCard({
     try {
       const updatedIdea = await ideaService.toggleVote(currentIdea.id, voteType)
       setCurrentIdea(updatedIdea)
+      // After successful vote, refresh the user votes to ensure consistency
+      const updatedUserVotes = await ideaService.getUserVotes(currentIdea.id)
+
+      // Debug: Log the updated user votes
+      console.log('Updated user votes after toggle:', updatedUserVotes)
+
+      setUserVote(updatedUserVotes)
     } catch (error) {
       // Rollback on error
       setCurrentIdea(previousIdea)

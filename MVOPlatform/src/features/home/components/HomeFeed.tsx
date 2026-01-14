@@ -115,6 +115,10 @@ export function HomeFeed() {
           )
           try {
             const votesMap = await ideaService.getUserVotesForIdeas(allIdeaIds)
+
+            // Debug: Log the votesMap to see what's being returned
+            console.log('User votes map:', votesMap)
+
             setIdeas(prev =>
               prev.map(idea => ({
                 ...idea,
@@ -137,6 +141,27 @@ export function HomeFeed() {
             )
           } catch (error) {
             console.error('Error fetching user votes:', error)
+            // Fallback: Set default userVotes for all ideas if there's an error
+            setIdeas(prev =>
+              prev.map(idea => ({
+                ...idea,
+                userVotes: {
+                  use: false,
+                  dislike: false,
+                  pay: false,
+                },
+              }))
+            )
+            setNewIdeas(prev =>
+              prev.map(idea => ({
+                ...idea,
+                userVotes: {
+                  use: false,
+                  dislike: false,
+                  pay: false,
+                },
+              }))
+            )
           }
         }
 
@@ -180,7 +205,16 @@ export function HomeFeed() {
               setIdeas(prev => [...prev, ...newIdeasWithVotes])
             } catch (error) {
               console.error('Error fetching user votes for new ideas:', error)
-              setIdeas(prev => [...prev, ...filteredNewIdeas])
+              // Fallback: Set default userVotes for new ideas if there's an error
+              const newIdeasWithVotes = filteredNewIdeas.map(idea => ({
+                ...idea,
+                userVotes: {
+                  use: false,
+                  dislike: false,
+                  pay: false,
+                },
+              }))
+              setIdeas(prev => [...prev, ...newIdeasWithVotes])
             }
           } else {
             setIdeas(prev => [...prev, ...filteredNewIdeas])

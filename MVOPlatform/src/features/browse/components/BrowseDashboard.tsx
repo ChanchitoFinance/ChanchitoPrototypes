@@ -20,6 +20,7 @@ import {
   IdeaFilters,
 } from '@/features/ideas/types/filter.types'
 import { IdeaFilterService } from '@/features/ideas/services/ideaFilterService'
+import { useAppSelector } from '@/core/lib/hooks'
 
 const ITEMS_PER_PAGE = 20
 
@@ -27,9 +28,12 @@ export function BrowseDashboard({ isAdmin = false }) {
   const t = useTranslations()
   const { locale } = useLocale()
   const router = useRouter()
+  const { profile, isAuthenticated, loading, initialized } = useAppSelector(
+    state => state.auth
+  )
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [totalIdeas, setTotalIdeas] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const [loadingIdeas, setLoadingIdeas] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
@@ -164,7 +168,12 @@ export function BrowseDashboard({ isAdmin = false }) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
-        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+        if (
+          entries[0].isIntersecting &&
+          hasMore &&
+          !loadingIdeas &&
+          !loadingMore
+        ) {
           loadMoreIdeas()
         }
       },
@@ -176,11 +185,11 @@ export function BrowseDashboard({ isAdmin = false }) {
     }
 
     return () => observer.disconnect()
-  }, [hasMore, loading, loadingMore])
+  }, [hasMore, loadingIdeas, loadingMore])
 
   const loadIdeas = async (reset = false) => {
     try {
-      setLoading(true)
+      setLoadingIdeas(true)
       const offset = reset ? 0 : currentOffset
 
       // Use database-level filtering and sorting
@@ -203,9 +212,56 @@ export function BrowseDashboard({ isAdmin = false }) {
           message: `Found ${result.ideas.length} ideas`,
           isOpen: true,
         })
+
+        // Fetch user votes for the loaded ideas if authenticated
+        if (isAuthenticated && result.ideas.length > 0) {
+          const ideaIds = result.ideas.map(idea => idea.id)
+          try {
+            const votesMap = await ideaService.getUserVotesForIdeas(ideaIds)
+            setIdeas(prev =>
+              prev.map(idea => ({
+                ...idea,
+                userVotes: votesMap[idea.id] || {
+                  use: false,
+                  dislike: false,
+                  pay: false,
+                },
+              }))
+            )
+          } catch (error) {
+            console.error('Error fetching user votes for browse ideas:', error)
+          }
+        }
       } else {
         setIdeas(prev => [...prev, ...result.ideas])
         setCurrentOffset(prev => prev + result.ideas.length)
+
+        // Fetch user votes for the additional ideas if authenticated
+        if (isAuthenticated && result.ideas.length > 0) {
+          const ideaIds = result.ideas.map(idea => idea.id)
+          try {
+            const votesMap = await ideaService.getUserVotesForIdeas(ideaIds)
+            setIdeas(prev =>
+              prev.map(idea =>
+                ideaIds.includes(idea.id)
+                  ? {
+                      ...idea,
+                      userVotes: votesMap[idea.id] || {
+                        use: false,
+                        dislike: false,
+                        pay: false,
+                      },
+                    }
+                  : idea
+              )
+            )
+          } catch (error) {
+            console.error(
+              'Error fetching user votes for additional browse ideas:',
+              error
+            )
+          }
+        }
       }
 
       setHasMore(result.ideas.length === ITEMS_PER_PAGE)
@@ -213,7 +269,7 @@ export function BrowseDashboard({ isAdmin = false }) {
       console.error('Error loading ideas:', error)
       setToast({ message: t('status.loading'), isOpen: true })
     } finally {
-      setLoading(false)
+      setLoadingIdeas(false)
       setIsSearching(false)
     }
   }
@@ -235,7 +291,40 @@ export function BrowseDashboard({ isAdmin = false }) {
         offset: currentOffset,
       })
 
-      setIdeas(prev => [...prev, ...result.ideas])
+      // Fetch user votes for the additional ideas if authenticated
+      if (isAuthenticated && result.ideas.length > 0) {
+        const newIdeaIds = result.ideas.map(idea => idea.id)
+        try {
+          const votesMap = await ideaService.getUserVotesForIdeas(newIdeaIds)
+          const newIdeasWithVotes = result.ideas.map(idea => ({
+            ...idea,
+            userVotes: votesMap[idea.id] || {
+              use: false,
+              dislike: false,
+              pay: false,
+            },
+          }))
+          setIdeas(prev => [...prev, ...newIdeasWithVotes])
+        } catch (error) {
+          console.error(
+            'Error fetching user votes for additional browse ideas:',
+            error
+          )
+          // Fallback: Set default userVotes for new ideas if there's an error
+          const newIdeasWithVotes = result.ideas.map(idea => ({
+            ...idea,
+            userVotes: {
+              use: false,
+              dislike: false,
+              pay: false,
+            },
+          }))
+          setIdeas(prev => [...prev, ...newIdeasWithVotes])
+        }
+      } else {
+        setIdeas(prev => [...prev, ...result.ideas])
+      }
+
       setCurrentOffset(prev => prev + result.ideas.length)
       setHasMore(result.ideas.length === ITEMS_PER_PAGE)
     } catch (error) {
@@ -295,7 +384,7 @@ export function BrowseDashboard({ isAdmin = false }) {
           {t('browse.dashboard.all_ideas')} ({totalIdeas})
         </h2>
 
-        {loading && ideas.length === 0 ? (
+        {loadingIdeas && ideas.length === 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="card-hover overflow-hidden">
@@ -328,6 +417,7 @@ export function BrowseDashboard({ isAdmin = false }) {
                   variant={isAdmin ? 'admin' : 'interactive'}
                   locale={locale}
                   router={router}
+                  initialUserVotes={idea.userVotes}
                   onDelete={
                     isAdmin
                       ? async () => {

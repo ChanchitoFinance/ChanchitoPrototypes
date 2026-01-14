@@ -730,7 +730,41 @@ class SupabaseIdeaService implements IIdeaService {
   ): Promise<Record<string, { use: boolean; dislike: boolean; pay: boolean }>> {
     // Use optimized RPC function for batch fetch
     const votes = await getUserVotesForIdeasRPC(ideaIds)
-    return votes || {}
+
+    // Debug: Log the raw RPC response
+    console.log('Raw RPC response for user votes:', votes)
+
+    // Ensure the response is properly formatted
+    if (!votes || typeof votes !== 'object') {
+      console.warn('Invalid votes response format, returning empty object')
+      return {}
+    }
+
+    // Transform the response to ensure all vote types are present for each idea
+    const result: Record<
+      string,
+      { use: boolean; dislike: boolean; pay: boolean }
+    > = {}
+
+    for (const ideaId of ideaIds) {
+      if (votes[ideaId]) {
+        result[ideaId] = {
+          use: votes[ideaId].use || false,
+          dislike: votes[ideaId].dislike || false,
+          pay: votes[ideaId].pay || false,
+        }
+      } else {
+        // If no votes for this idea, set all to false
+        result[ideaId] = {
+          use: false,
+          dislike: false,
+          pay: false,
+        }
+      }
+    }
+
+    console.log('Processed votes result:', result)
+    return result
   }
 
   async getUserIdeas(limit?: number, offset = 0): Promise<Idea[]> {
@@ -1084,8 +1118,24 @@ class SupabaseIdeaService implements IIdeaService {
 
     const tags = dbIdea.idea_tags?.map((it: any) => it.tags.name) || []
 
-    const author =
-      dbIdea.users?.username || dbIdea.users?.full_name || 'Anonymous'
+    // Debug: Log the user data to investigate author display issues
+    console.log('User data for idea:', dbIdea.id, dbIdea.users)
+
+    // Check if anonymous flag is set
+    const isAnonymous = dbIdea.anonymous || false
+
+    const author = isAnonymous
+      ? 'Anonymous'
+      : dbIdea.users?.username || dbIdea.users?.full_name || 'Unknown User'
+
+    // Debug: Log the final author value
+    console.log(
+      'Final author for idea:',
+      dbIdea.id,
+      author,
+      'anonymous:',
+      isAnonymous
+    )
 
     // Handle both old format (array) and new format (object with blocks)
     let contentBlocks: ContentBlock[] | undefined
