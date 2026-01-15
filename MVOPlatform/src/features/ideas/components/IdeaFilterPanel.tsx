@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Filter, X, Plus, Minus, ChevronDown, ChevronUp } from 'lucide-react'
+import { Filter, X, Plus, ChevronDown, ChevronUp } from 'lucide-react'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
+import { useAppSelector } from '@/core/lib/hooks'
 import {
   FilterConfig,
   FilterCondition,
@@ -30,6 +31,8 @@ export function IdeaFilterPanel({
   initialSort?: SortOption
 }) {
   const t = useTranslations()
+  const { theme } = useAppSelector(state => state.theme)
+  const isDark = theme === 'dark'
   const [filters, setFilters] = useState<FilterCondition[]>(initialFilters)
   const [sortOption, setSortOption] = useState<SortOption | undefined>(
     initialSort
@@ -82,15 +85,27 @@ export function IdeaFilterPanel({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+    <div
+      className={`rounded-lg shadow-sm border p-4 mb-6 ${
+        isDark ? 'bg-black border-white/10' : 'bg-white border-gray-200'
+      }`}
+    >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-text-primary dark:text-white flex items-center gap-2">
+        <h3
+          className={`text-lg font-semibold flex items-center gap-2 ${
+            isDark ? 'text-white' : 'text-text-primary'
+          }`}
+        >
           <Filter className="w-5 h-5" />
           {t('browse.dashboard.advanced_filters_sorting')}
         </h3>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-text-secondary dark:text-gray-300 transition-colors"
+          className={`transition-colors ${
+            isDark
+              ? 'text-white/60 hover:text-white'
+              : 'text-text-secondary hover:text-text-primary'
+          }`}
         >
           {isExpanded ? (
             <>
@@ -108,16 +123,19 @@ export function IdeaFilterPanel({
 
       {isExpanded && (
         <div className="space-y-6">
-          {/* Filter Conditions */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium text-text-primary dark:text-white">
+              <h4
+                className={`font-medium ${
+                  isDark ? 'text-white' : 'text-text-primary'
+                }`}
+              >
                 {t('browse.dashboard.filter_conditions')}
               </h4>
               <div className="flex gap-2">
                 <button
                   onClick={addFilter}
-                  className="px-3 py-1 bg-accent text-black rounded-md hover:bg-accent-dark transition-colors flex items-center gap-1"
+                  className="px-3 py-1 bg-accent text-text-primary rounded-md hover:bg-accent/90 transition-colors flex items-center gap-1"
                 >
                   <Plus className="w-4 h-4" />
                   {t('browse.dashboard.add_filter')}
@@ -125,7 +143,11 @@ export function IdeaFilterPanel({
                 {filters.length > 0 && (
                   <button
                     onClick={clearAllFilters}
-                    className="px-3 py-1 bg-gray-100 text-text-secondary rounded-md hover:bg-gray-200 transition-colors flex items-center gap-1"
+                    className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1 ${
+                      isDark
+                        ? 'bg-white/10 text-white/60 hover:bg-white/20'
+                        : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
+                    }`}
                   >
                     <X className="w-4 h-4" />
                     {t('browse.dashboard.clear_all')}
@@ -135,7 +157,11 @@ export function IdeaFilterPanel({
             </div>
 
             {filters.length === 0 ? (
-              <p className="text-text-secondary dark:text-gray-300 text-sm italic">
+              <p
+                className={`text-sm italic ${
+                  isDark ? 'text-white/60' : 'text-text-secondary'
+                }`}
+              >
                 {t('browse.dashboard.no_filters_applied')}
               </p>
             ) : (
@@ -143,10 +169,18 @@ export function IdeaFilterPanel({
                 {filters.map((filter, index) => (
                   <div
                     key={index}
-                    className="flex items-end gap-3 p-3 border border-gray-100 rounded-md bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
+                    className={`flex items-end gap-3 p-3 border rounded-md ${
+                      isDark
+                        ? 'bg-white/5 border-white/10'
+                        : 'bg-gray-50 border-gray-100'
+                    }`}
                   >
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-text-secondary dark:text-white mb-1">
+                      <label
+                        className={`block text-sm font-medium mb-1 ${
+                          isDark ? 'text-white' : 'text-text-secondary'
+                        }`}
+                      >
                         {t('browse.dashboard.field')}
                       </label>
                       <select
@@ -154,7 +188,11 @@ export function IdeaFilterPanel({
                         onChange={e =>
                           updateFilter(index, { field: e.target.value as any })
                         }
-                        className="w-full p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent text-black"
+                        className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-accent focus:border-transparent text-black ${
+                          isDark
+                            ? 'bg-white/10 border-white/20'
+                            : 'bg-white border-gray-200'
+                        }`}
                       >
                         {filterConfigs.map(config => (
                           <option
@@ -169,7 +207,11 @@ export function IdeaFilterPanel({
                     </div>
 
                     <div className="w-40">
-                      <label className="block text-sm font-medium text-text-secondary dark:text-white mb-1">
+                      <label
+                        className={`block text-sm font-medium mb-1 ${
+                          isDark ? 'text-white' : 'text-text-secondary'
+                        }`}
+                      >
                         {t('browse.dashboard.condition')}
                       </label>
                       <select
@@ -179,7 +221,11 @@ export function IdeaFilterPanel({
                             operator: e.target.value as FilterOperator,
                           })
                         }
-                        className="w-full p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent text-black"
+                        className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-accent focus:border-transparent text-black ${
+                          isDark
+                            ? 'bg-white/10 border-white/20'
+                            : 'bg-white border-gray-200'
+                        }`}
                       >
                         {FILTER_OPERATORS.map(op => (
                           <option
@@ -194,7 +240,11 @@ export function IdeaFilterPanel({
                     </div>
 
                     <div className="w-24">
-                      <label className="block text-sm font-medium text-text-secondary dark:text-white mb-1">
+                      <label
+                        className={`block text-sm font-medium mb-1 ${
+                          isDark ? 'text-white' : 'text-text-secondary'
+                        }`}
+                      >
                         {t('browse.dashboard.value')}
                       </label>
                       <input
@@ -217,13 +267,21 @@ export function IdeaFilterPanel({
                           filterConfigs.find(c => c.field === filter.field)
                             ?.step || 1
                         }
-                        className="w-full p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent text-black"
+                        className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-accent focus:border-transparent text-black ${
+                          isDark
+                            ? 'bg-white/10 border-white/20'
+                            : 'bg-white border-gray-200'
+                        }`}
                       />
                     </div>
 
                     <button
                       onClick={() => removeFilter(index)}
-                      className="p-2 text-text-secondary hover:text-red-500 transition-colors mb-2"
+                      className={`p-2 transition-colors mb-2 ${
+                        isDark
+                          ? 'text-white/60 hover:text-red-500'
+                          : 'text-text-secondary hover:text-red-500'
+                      }`}
                       title="Remove filter"
                     >
                       <X className="w-5 h-5" />
@@ -234,15 +292,22 @@ export function IdeaFilterPanel({
             )}
           </div>
 
-          {/* Sorting Options */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium text-text-primary dark:text-white">
+              <h4
+                className={`font-medium ${
+                  isDark ? 'text-white' : 'text-text-primary'
+                }`}
+              >
                 {t('browse.dashboard.sorting')}
               </h4>
               <button
                 onClick={clearSort}
-                className="px-3 py-1 bg-gray-100 text-text-secondary rounded-md hover:bg-gray-200 transition-colors flex items-center gap-1"
+                className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1 ${
+                  isDark
+                    ? 'bg-white/10 text-white/60 hover:bg-white/20'
+                    : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
+                }`}
                 disabled={!sortOption}
               >
                 <X className="w-4 h-4" />
@@ -257,8 +322,10 @@ export function IdeaFilterPanel({
                   onClick={() => handleSortChange(config.field)}
                   className={`px-3 py-2 rounded-md text-sm transition-colors border flex items-center justify-between ${
                     sortOption?.field === config.field
-                      ? 'bg-accent text-black border-accent'
-                      : 'bg-white text-black border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-black'
+                      ? 'bg-accent text-text-primary border-accent'
+                      : isDark
+                        ? 'bg-white/5 text-white border-white/10 hover:bg-white/10'
+                        : 'bg-white text-text-primary border-gray-200 hover:bg-gray-50'
                   }`}
                 >
                   <span>{config.label}</span>
@@ -272,11 +339,15 @@ export function IdeaFilterPanel({
             </div>
 
             {sortOption && (
-              <div className="mt-4 text-sm text-text-secondary dark:text-gray-300">
+              <div
+                className={`mt-4 text-sm ${
+                  isDark ? 'text-white/60' : 'text-text-secondary'
+                }`}
+              >
                 {t('browse.dashboard.sorting_by')}:{' '}
                 <strong>
                   {sortConfigs.find(c => c.field === sortOption.field)?.label}
-                </strong>
+                </strong>{' '}
                 (
                 {sortOption.direction === 'asc'
                   ? t('browse.dashboard.ascending')

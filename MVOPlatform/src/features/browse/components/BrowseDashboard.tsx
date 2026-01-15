@@ -19,7 +19,6 @@ import {
   SortOption,
   IdeaFilters,
 } from '@/features/ideas/types/filter.types'
-import { IdeaFilterService } from '@/features/ideas/services/ideaFilterService'
 import { useAppSelector } from '@/core/lib/hooks'
 
 const ITEMS_PER_PAGE = 20

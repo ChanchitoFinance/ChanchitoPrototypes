@@ -508,10 +508,64 @@ class SupabaseIdeaService implements IIdeaService {
     }
 
     const ideas: Idea[] = ideasData.map((ideaJson: any) => {
+      // Handle content parsing similar to mapDbIdeaToIdea
+      let contentBlocks: ContentBlock[] | undefined
+      let heroImage: string | undefined
+      let heroVideo: string | undefined
+      let description: string | undefined
+
+      if (Array.isArray(ideaJson.content)) {
+        // Old format: content is directly an array of blocks
+        contentBlocks = ideaJson.content as ContentBlock[]
+      } else if (ideaJson.content && typeof ideaJson.content === 'object') {
+        // New format: content is an object with blocks, hero_image, hero_video, description
+        contentBlocks = ideaJson.content.blocks as ContentBlock[] | undefined
+        heroImage = ideaJson.content.hero_image
+        heroVideo = ideaJson.content.hero_video
+        description = ideaJson.content.description
+      }
+
+      // Backward compatibility: extract from first block if hero media not in metadata
+      if (
+        !heroImage &&
+        !heroVideo &&
+        contentBlocks &&
+        contentBlocks.length > 0
+      ) {
+        const firstBlock = contentBlocks[0]
+        if (firstBlock.type === 'video') {
+          heroVideo = firstBlock.src
+        } else if (firstBlock.type === 'image') {
+          heroImage = firstBlock.src
+        }
+      }
+
+      // Backward compatibility: extract description from first text block if not in metadata
+      if (!description && contentBlocks) {
+        const firstTextBlock = contentBlocks.find(
+          block => block.type === 'text'
+        )
+        description = firstTextBlock?.content || ''
+      }
+
+      const video =
+        heroVideo ||
+        contentBlocks?.find(block => block.type === 'video')?.src ||
+        contentBlocks
+          ?.find(block => block.type === 'carousel')
+          ?.slides?.find(slide => slide.video)?.video
+
+      const image =
+        heroImage ||
+        contentBlocks?.find(block => block.type === 'image')?.src ||
+        contentBlocks
+          ?.find(block => block.type === 'carousel')
+          ?.slides?.find(slide => slide.image)?.image
+
       return {
         id: ideaJson.id,
         title: ideaJson.title,
-        description: ideaJson.content?.description || '',
+        description: description || '',
         author:
           ideaJson.creator?.username ||
           ideaJson.creator?.full_name ||
@@ -526,9 +580,9 @@ class SupabaseIdeaService implements IIdeaService {
         commentCount: ideaJson.commentCount || 0,
         tags: ideaJson.tags || [],
         createdAt: ideaJson.createdAt,
-        image: ideaJson.content?.hero_image || '',
-        video: ideaJson.content?.hero_video || '',
-        content: ideaJson.content?.blocks || [],
+        image: image,
+        video: video,
+        content: contentBlocks,
         status_flag: ideaJson.status_flag,
         anonymous: ideaJson.anonymous || false,
         creatorEmail: ideaJson.creator?.email || null,
@@ -1227,10 +1281,57 @@ class SupabaseIdeaService implements IIdeaService {
     }
     const totalVotes = voteCounts.dislike + voteCounts.use + voteCounts.pay
 
+    // Handle content parsing similar to mapDbIdeaToIdea
+    let contentBlocks: ContentBlock[] | undefined
+    let heroImage: string | undefined
+    let heroVideo: string | undefined
+    let description: string | undefined
+
+    if (Array.isArray(rpcResult.content)) {
+      // Old format: content is directly an array of blocks
+      contentBlocks = rpcResult.content as ContentBlock[]
+    } else if (rpcResult.content && typeof rpcResult.content === 'object') {
+      // New format: content is an object with blocks, hero_image, hero_video, description
+      contentBlocks = rpcResult.content.blocks as ContentBlock[] | undefined
+      heroImage = rpcResult.content.hero_image
+      heroVideo = rpcResult.content.hero_video
+      description = rpcResult.content.description
+    }
+
+    // Backward compatibility: extract from first block if hero media not in metadata
+    if (!heroImage && !heroVideo && contentBlocks && contentBlocks.length > 0) {
+      const firstBlock = contentBlocks[0]
+      if (firstBlock.type === 'video') {
+        heroVideo = firstBlock.src
+      } else if (firstBlock.type === 'image') {
+        heroImage = firstBlock.src
+      }
+    }
+
+    // Backward compatibility: extract description from first text block if not in metadata
+    if (!description && contentBlocks) {
+      const firstTextBlock = contentBlocks.find(block => block.type === 'text')
+      description = firstTextBlock?.content || ''
+    }
+
+    const video =
+      heroVideo ||
+      contentBlocks?.find(block => block.type === 'video')?.src ||
+      contentBlocks
+        ?.find(block => block.type === 'carousel')
+        ?.slides?.find(slide => slide.video)?.video
+
+    const image =
+      heroImage ||
+      contentBlocks?.find(block => block.type === 'image')?.src ||
+      contentBlocks
+        ?.find(block => block.type === 'carousel')
+        ?.slides?.find(slide => slide.image)?.image
+
     return {
       id: rpcResult.id,
       title: rpcResult.title,
-      description: rpcResult.content?.description || '',
+      description: description || '',
       author: 'Anonymous', // RPC doesn't include user data
       score: rpcResult.score || 0,
       votes: totalVotes,
@@ -1238,9 +1339,9 @@ class SupabaseIdeaService implements IIdeaService {
       commentCount: rpcResult.comment_count || 0,
       tags: [], // RPC doesn't include tags
       createdAt: rpcResult.created_at,
-      image: rpcResult.content?.hero_image,
-      video: rpcResult.content?.hero_video,
-      content: rpcResult.content?.blocks || rpcResult.content,
+      image: image,
+      video: video,
+      content: contentBlocks,
       status_flag: rpcResult.status_flag,
       anonymous: rpcResult.anonymous || false,
       creatorEmail: null,
