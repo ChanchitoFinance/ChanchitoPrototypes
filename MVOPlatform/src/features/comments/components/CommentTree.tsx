@@ -62,6 +62,7 @@ export function CommentTree({
   compactMode = false,
 }: CommentTreeProps) {
   const { user } = useAppSelector(state => state.auth)
+  const { theme } = useAppSelector(state => state.theme)
   const textareaRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map())
 
   const getIndentation = (currentDepth: number) => {
@@ -255,7 +256,9 @@ export function CommentTree({
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0 w-full overflow-hidden">
+            <div
+              className={`flex-1 min-w-0 w-full ${replyingTo === comment.id ? 'overflow-visible' : 'overflow-hidden'}`}
+            >
               {/* Mobile: Author on one line, date on new line */}
               <div className="md:hidden flex flex-col mb-1">
                 <span
@@ -387,9 +390,9 @@ export function CommentTree({
               {replyingTo === comment.id && canReply && (
                 <form
                   onSubmit={e => onReplySubmit(comment.id, e)}
-                  className={`mt-3 pt-3 border-t ${isDark ? 'border-white/10' : 'border-border-color'}`}
+                  className="mt-3 pt-3 border-t border-border-color dark:border-white/10 relative z-20"
                 >
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 relative z-50 p-1 -m-1">
                     <textarea
                       ref={el => {
                         if (el) textareaRefs.current.set(comment.id, el)
@@ -409,12 +412,9 @@ export function CommentTree({
                       }}
                       placeholder="Write a reply..."
                       maxLength={MAX_COMMENT_LENGTH}
-                      className={`flex-1 px-3 py-2 rounded-lg border resize-none overflow-hidden ${
-                        isDark
-                          ? 'bg-white/10 placeholder-white/50 border-white/20 focus:ring-accent text-white'
-                          : 'bg-gray-50 border-border-color focus:ring-accent text-black placeholder-gray-500'
-                      } focus:outline-none focus:ring-2`}
+                      className="flex-1 px-3 py-2 rounded-lg border resize-none overflow-hidden bg-gray-50 dark:bg-white/10 border-border-color dark:border-white/20 focus:ring-accent placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:ring-2"
                       style={{
+                        color: theme === 'dark' ? '#ffffff' : '#000000',
                         minHeight: depth >= 2 ? '2rem' : '2.5rem',
                         maxHeight: depth >= 2 ? '8rem' : '10rem',
                         fontSize:

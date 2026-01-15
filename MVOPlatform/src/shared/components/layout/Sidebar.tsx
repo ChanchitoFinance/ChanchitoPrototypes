@@ -18,6 +18,7 @@ import {
   X,
   LogIn,
   Shield,
+  Compass,
 } from 'lucide-react'
 import { UserMenu } from '@/shared/components/ui/UserMenu'
 
@@ -157,12 +158,19 @@ export function Sidebar({
         pathname === `/${currentLocale}/home`,
     },
     {
-      id: 'foryou',
-      label: t('navigation.for_you'),
-      icon: Heart,
-      href: `/${currentLocale}/for-you`,
-      active: pathname === `/${currentLocale}/for-you`,
+      id: 'browse',
+      label: t('navigation.browse'),
+      icon: Compass,
+      href: `/${currentLocale}/browse`,
+      active: pathname === `/${currentLocale}/browse`,
     },
+    // {
+    //   id: 'foryou',
+    //   label: t('navigation.for_you'),
+    //   icon: Heart,
+    //   href: `/${currentLocale}/for-you`,
+    //   active: pathname === `/${currentLocale}/for-you`,
+    // },
     {
       id: 'activity',
       label: t('navigation.activity'),
@@ -177,17 +185,17 @@ export function Sidebar({
       href: `/${currentLocale}/upload`,
       active: pathname === `/${currentLocale}/upload`,
     },
-    ...(profile?.role === 'admin'
-      ? [
-          {
-            id: 'admin',
-            label: t('navigation.admin'),
-            icon: Shield,
-            href: `/${currentLocale}/admin`,
-            active: pathname === `/${currentLocale}/admin`,
-          },
-        ]
-      : []),
+    // ...(profile?.role === 'admin'
+    //   ? [
+    //       {
+    //         id: 'admin',
+    //         label: t('navigation.admin'),
+    //         icon: Shield,
+    //         href: `/${currentLocale}/admin`,
+    //         active: pathname === `/${currentLocale}/admin`,
+    //       },
+    //     ]
+    //   : []),
   ]
 
   const bottomItems = []
@@ -205,144 +213,102 @@ export function Sidebar({
   }
 
   return (
-    <>
-      {/* Mobile Overlay */}
-      <AnimatePresence>
-        {isMobileOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: isNavigating && isMobile ? 0 : 0.2 }}
-            onClick={() => setIsMobileOpen(false)}
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          />
-        )}
-      </AnimatePresence>
-
-      <aside
-        className={`fixed left-0 top-0 z-[9998] flex-shrink-0 ${
-          isMobile
-            ? isMobileOpen
-              ? 'w-64 transition-all duration-300'
-              : 'w-0'
-            : 'w-64'
-        } shadow-lg md:shadow-none`}
-        style={{
-          height: isMobile ? sidebarHeight : '100vh',
-          maxHeight: isMobile ? sidebarHeight : '100vh',
-        }}
-      >
-        <div className="h-full flex flex-col bg-background overflow-hidden">
-          {/* Logo/Brand - Acts as back button on detail pages */}
-          <div className="p-4 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              {isDetailPage ? (
-                <button
-                  onClick={handleBack}
-                  className="text-xl font-semibold text-text-primary hover:text-accent transition-colors cursor-pointer truncate flex-1 min-w-0"
-                >
-                  {t('brand.name')}
-                </button>
-              ) : (
-                <Link
-                  href={`/${currentLocale}/home`}
-                  className="text-xl font-semibold text-text-primary truncate flex-1 min-w-0"
-                >
-                  {t('brand.name')}
-                </Link>
-              )}
-              {isMobile && isMobileOpen && (
-                <button
-                  onClick={() => setIsMobileOpen(false)}
-                  className="p-1 rounded-md interactive-hover flex-shrink-0 ml-2"
-                  aria-label="Close sidebar"
-                >
-                  <X className="w-7 h-7 text-text-secondary" />
-                </button>
-              )}
-            </div>
+    <aside
+      className={`flex-shrink-0 ${
+        isMobile
+          ? isMobileOpen
+            ? 'w-64 transition-all duration-300'
+            : 'w-0'
+          : 'w-[13.5rem]'
+      } shadow-lg md:shadow-none h-full`}
+      style={{
+        height: isMobile ? sidebarHeight : '100vh',
+        maxHeight: isMobile ? sidebarHeight : '100vh',
+      }}
+    >
+      <div className="h-full flex flex-col bg-background overflow-visible">
+        {/* Logo/Brand - Acts as back button on detail pages */}
+        <div className="p-4 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            {isDetailPage ? (
+              <button
+                onClick={handleBack}
+                className="text-xl font-semibold text-text-primary hover:text-accent transition-colors cursor-pointer truncate flex-1 min-w-0"
+              >
+                {t('brand.name')}
+              </button>
+            ) : (
+              <Link
+                href={`/${currentLocale}/home`}
+                className="text-xl font-semibold text-text-primary truncate flex-1 min-w-0"
+              >
+                {t('brand.name')}
+              </Link>
+            )}
+            {isMobile && isMobileOpen && (
+              <button
+                onClick={() => setIsMobileOpen(false)}
+                className="p-1 rounded-md interactive-hover flex-shrink-0 ml-2"
+                aria-label="Close sidebar"
+              >
+                <X className="w-7 h-7 text-text-secondary" />
+              </button>
+            )}
           </div>
+        </div>
 
-          {/* Navigation Items */}
-          <nav className="flex-1 py-4 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            <div className="space-y-1 px-2">
-              {navItems.map(item => {
-                const Icon = item.icon
-                const isActive = item.active || false
-
-                // Handle home item with special logic
-                if (item.id === 'home') {
-                  if (isDetailPage) {
-                    // On detail pages, home icon acts as back button
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={handleBack}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
-                          isActive
-                            ? 'bg-accent/10 text-accent'
-                            : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
-                        }`}
-                      >
-                        <Icon className="w-7 h-7 flex-shrink-0" />
-                        <span className="text-sm font-medium">
-                          {item.label}
-                        </span>
-                      </button>
-                    )
-                  } else if (isHomePage && onTabChange) {
-                    // On home page with tab change handler
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => onTabChange('home')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
-                          isActive
-                            ? 'bg-accent/10 text-accent'
-                            : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
-                        }`}
-                      >
-                        <Icon className="w-7 h-7 flex-shrink-0" />
-                        <span className="text-sm font-medium">
-                          {item.label}
-                        </span>
-                      </button>
-                    )
-                  }
-                }
-
-                // Regular navigation items
-                return (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    onClick={() => setIsMobileOpen(false)}
-                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
-                      isActive
-                        ? 'bg-accent/10 text-accent'
-                        : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
-                    }`}
-                  >
-                    <Icon className="w-7 h-7 flex-shrink-0" />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </Link>
-                )
-              })}
-            </div>
-          </nav>
-
-          {/* Bottom Items */}
-          <div className="p-2 space-y-1">
-            {bottomItems.map(item => {
+        {/* Navigation Items */}
+        <nav className="flex-1 py-4 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="space-y-1 px-2">
+            {navItems.map(item => {
               const Icon = item.icon
+              const isActive = item.active || false
+
+              // Handle home item with special logic
+              if (item.id === 'home') {
+                if (isDetailPage) {
+                  // On detail pages, home icon acts as back button
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={handleBack}
+                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
+                        isActive
+                          ? 'bg-accent/10 text-accent'
+                          : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
+                      }`}
+                    >
+                      <Icon className="w-7 h-7 flex-shrink-0" />
+                      <span className="text-sm font-medium">{item.label}</span>
+                    </button>
+                  )
+                } else if (isHomePage && onTabChange) {
+                  // On home page with tab change handler
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => onTabChange('home')}
+                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
+                        isActive
+                          ? 'bg-accent/10 text-accent'
+                          : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
+                      }`}
+                    >
+                      <Icon className="w-7 h-7 flex-shrink-0" />
+                      <span className="text-sm font-medium">{item.label}</span>
+                    </button>
+                  )
+                }
+              }
+
+              // Regular navigation items
               return (
                 <Link
                   key={item.id}
                   href={item.href}
                   onClick={() => setIsMobileOpen(false)}
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
-                    item.active
+                    isActive
                       ? 'bg-accent/10 text-accent'
                       : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
                   }`}
@@ -352,45 +318,93 @@ export function Sidebar({
                 </Link>
               )
             })}
+          </div>
+        </nav>
 
-            {/* Auth Section */}
-            <div className="pt-0">
-              {isAuthenticated ? (
-                <div className="px-3 py-2.5">
-                  <UserMenu
-                    user={{
-                      name: profile?.full_name || user?.email || 'User',
-                      email: user?.email || '',
-                      image:
-                        profile?.media_assets?.url ||
-                        user?.user_metadata?.avatar_url ||
-                        null,
-                    }}
-                    onSignOut={() => dispatch(signOut())}
-                    showProfileLink={false}
-                    position="above"
-                    hasUnreadNotifications={hasUnreadNotifications}
-                    currentLocale={currentLocale}
-                  />
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    dispatch(signInWithGoogle())
-                    setIsMobileOpen(false)
+        {/* Bottom Items */}
+        <div className="p-2 space-y-1">
+          {bottomItems.map(item => {
+            const Icon = item.icon
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                onClick={() => setIsMobileOpen(false)}
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
+                  item.active
+                    ? 'bg-accent/10 text-accent'
+                    : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
+                }`}
+              >
+                <Icon className="w-7 h-7 flex-shrink-0" />
+                <span className="text-sm font-medium">{item.label}</span>
+              </Link>
+            )
+          })}
+
+          {/* Auth Section */}
+          <div className="pt-0">
+            {isAuthenticated ? (
+              <div className="px-3 py-2.5">
+                <UserMenu
+                  user={{
+                    name: profile?.full_name || user?.email || 'User',
+                    email: user?.email || '',
+                    image:
+                      profile?.media_assets?.url ||
+                      user?.user_metadata?.avatar_url ||
+                      null,
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-text-secondary hover:bg-gray-100 hover:text-text-primary`}
-                >
-                  <LogIn className="w-7 h-7 flex-shrink-0" />
-                  <span className="text-sm font-medium">
-                    {t('actions.sign_in')}
-                  </span>
-                </button>
-              )}
-            </div>
+                  onSignOut={() => dispatch(signOut())}
+                  showProfileLink={false}
+                  position="above"
+                  hasUnreadNotifications={hasUnreadNotifications}
+                  currentLocale={currentLocale}
+                />
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  dispatch(signInWithGoogle())
+                  setIsMobileOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-text-secondary hover:bg-gray-100 hover:text-text-primary`}
+              >
+                <LogIn className="w-7 h-7 flex-shrink-0" />
+                <span className="text-sm font-medium">
+                  {t('actions.sign_in')}
+                </span>
+              </button>
+            )}
           </div>
         </div>
-      </aside>
-    </>
+      </div>
+    </aside>
+  )
+}
+
+// Mobile Sidebar Overlay component
+interface MobileSidebarOverlayProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export function MobileSidebarOverlay({
+  isOpen,
+  onClose,
+}: MobileSidebarOverlayProps) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={onClose}
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+        />
+      )}
+    </AnimatePresence>
   )
 }

@@ -38,6 +38,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState<Map<string, string>>(new Map())
   const { user, profile } = useAppSelector(state => state.auth)
+  const { theme } = useAppSelector(state => state.theme)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const newCommentRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false)
@@ -566,7 +567,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
                     textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
                   }
                 }}
-                style={{ color: '#000000' }}
+                style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}
                 placeholder={t('comments.write_comment')}
                 maxLength={MAX_COMMENT_LENGTH}
                 className="w-full px-4 py-3 bg-gray-100 rounded-lg border border-border-color focus:outline-none focus:ring-2 focus:ring-accent resize-none overflow-hidden"

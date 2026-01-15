@@ -6,8 +6,8 @@
   },
   "navigation": {
     "home": "Inicio",
+    "browse": "Explorar",
     "for_you": "Para Ti",
-    "explore": "Explorar",
     "activity": "Actividad",
     "upload": "Subir",
     "profile": "Perfil",
@@ -78,6 +78,21 @@
     "total_comments": "Comentarios Totales",
     "vote": "voto"
   },
+  "filter": {
+    "title": "Título",
+    "score": "Puntuación",
+    "total_votes": "Votos Totales",
+    "use_votes": "Votos de Uso",
+    "dislike_votes": "Votos de No Me Gusta",
+    "pay_votes": "Votos de Pago",
+    "comments": "Comentarios",
+    "date_created": "Fecha de Creación",
+    "greater_than": "Mayor que",
+    "less_than": "Menor que",
+    "equal_to": "Igual a",
+    "greater_than_or_equal": "Mayor o igual que",
+    "less_than_or_equal": "Menor o igual que"
+  },
   "auth": {
     "sign_in_required": "Inicio de Sesión Requerido",
     "sign_in_with_google": "Iniciar Sesión",
@@ -93,6 +108,31 @@
     "for_you_title": "Para Ti",
     "for_you_subtitle": "Ideas curadas especialmente para ti",
     "new_ideas": "Nuevas Ideas"
+  },
+  "browse": {
+    "dashboard": {
+      "title": "Explorar Ideas",
+      "subtitle": "Descubre y vota por ideas de negocio validadas",
+      "all_ideas": "Todas las Ideas",
+      "search_placeholder": "Buscar ideas por título, descripción o etiquetas...",
+      "loading": "Cargando ideas...",
+      "no_ideas": "No se encontraron ideas",
+      "advanced_filters_sorting": "Filtros y Orden Avanzados",
+      "filter_conditions": "Condiciones de Filtro",
+      "add_filter": "Agregar Filtro",
+      "clear_all": "Limpiar Todo",
+      "no_filters_applied": "No se han aplicado filtros. Haz clic en \"Agregar Filtro\" para crear condiciones de filtrado.",
+      "field": "Campo",
+      "condition": "Condición",
+      "value": "Valor",
+      "sorting": "Ordenar",
+      "clear_sort": "Limpiar Orden",
+      "sorting_by": "Ordenando por",
+      "ascending": "Ascendente",
+      "descending": "Descendente",
+      "collapse": "Contraer",
+      "expand": "Expandir"
+    }
   },
   "activity": {
     "title": "Actividad",
@@ -397,16 +437,6 @@
       "change_url": "Cambiar URL"
     }
   },
-  "spaces": {
-    "confirm_delete_idea": "¿Estás seguro de que quieres eliminar esta idea? Esta acción no se puede deshacer.",
-    "error_deleting_idea": "Error al eliminar la idea. Por favor, inténtalo de nuevo.",
-    "delete_idea": "Eliminar Idea",
-    "error": "Error",
-    "tags": "Etiquetas",
-    "topics": "Categorías",
-    "select_tags": "Seleccionar etiquetas",
-    "select_topics": "Seleccionar categorías"
-  },
   "premium": {
     "title": "Actualizar a Premium",
     "description": "Desbloquea funciones avanzadas",
@@ -432,8 +462,11 @@
       "delete_idea": "Eliminar Idea",
       "delete_confirm": "¿Estás seguro de que quieres eliminar esta idea? Esta acción no se puede deshacer.",
       "delete_success": "Idea eliminada exitosamente",
+      "idea_deleted": "Idea eliminada exitosamente",
       "delete_error": "Error al eliminar la idea. Por favor, inténtalo de nuevo.",
-      "load_more": "Cargar Más Ideas"
+      "load_more": "Cargar Más Ideas",
+      "admin_info_title": "Privilegios de Administrador Activos",
+      "admin_info_message": "Tienes privilegios de administrador en esta página. Puedes eliminar ideas y gestionar contenido."
     }
   },
   "settings": {

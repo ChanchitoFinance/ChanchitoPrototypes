@@ -17,7 +17,6 @@ A feature should represent a distinct business capability. Examples from our cod
 
 - **ideas**: Idea creation, display, voting, and management
 - **comments**: Comment system and interactions
-- **spaces**: Team collaboration spaces
 - **payment**: Payment processing and checkout
 - **admin**: Administrative functions
 

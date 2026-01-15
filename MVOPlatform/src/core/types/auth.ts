@@ -5,9 +5,7 @@ export interface UserProfile {
   username: string
   full_name: string
   email: string
-  reputation_score: number
   role: 'user' | 'admin'
-  streak_count: number
   profile_media_id?: string
   media_assets?: {
     url: string
@@ -15,7 +13,6 @@ export interface UserProfile {
   created_at: string
   updated_at: string
 }
-
 
 export interface AuthState {
   user: User | null

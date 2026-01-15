@@ -11,6 +11,7 @@ import { Idea } from '@/core/types/idea'
 import { IdeaCard } from '@/features/ideas/components/IdeaCard'
 import { Button } from '@/shared/components/ui/Button'
 import { Plus, SortAsc, Filter, RefreshCw } from 'lucide-react'
+import { useAppSelector } from '@/core/lib/hooks'
 
 type SortOption = 'recent' | 'popular' | 'most_votes' | 'highest_score'
 
@@ -18,6 +19,7 @@ export function UserIdeasList() {
   const t = useTranslations()
   const router = useRouter()
   const { locale } = useLocale()
+  const { isAuthenticated } = useAppSelector(state => state.auth)
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState<SortOption>('recent')
@@ -40,7 +42,28 @@ export function UserIdeasList() {
       console.log('Loading user ideas...')
       const userIdeas = await ideaService.getUserIdeas()
       console.log('Loaded user ideas:', userIdeas.length, userIdeas)
-      setIdeas(userIdeas)
+
+      // Fetch user votes for the ideas if authenticated
+      if (isAuthenticated && userIdeas.length > 0) {
+        const ideaIds = userIdeas.map(idea => idea.id)
+        try {
+          const votesMap = await ideaService.getUserVotesForIdeas(ideaIds)
+          const ideasWithVotes = userIdeas.map(idea => ({
+            ...idea,
+            userVotes: votesMap[idea.id] || {
+              use: false,
+              dislike: false,
+              pay: false,
+            },
+          }))
+          setIdeas(ideasWithVotes)
+        } catch (error) {
+          console.error('Error fetching user votes for activity ideas:', error)
+          setIdeas(userIdeas)
+        }
+      } else {
+        setIdeas(userIdeas)
+      }
     } catch (err) {
       console.error('Error loading user ideas:', err)
       setError('Failed to load ideas')
@@ -185,7 +208,12 @@ export function UserIdeasList() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedIdeas.map(idea => (
-            <IdeaCard key={idea.id} idea={idea} variant="metrics" />
+            <IdeaCard
+              key={idea.id}
+              idea={idea}
+              variant="interactive"
+              initialUserVotes={idea.userVotes}
+            />
           ))}
         </div>
       )}

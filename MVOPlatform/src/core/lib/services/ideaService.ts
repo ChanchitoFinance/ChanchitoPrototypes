@@ -455,6 +455,204 @@ class SupabaseIdeaService implements IIdeaService {
     }
   }
 
+  async getIdeasWithAdvancedFilters(filters: {
+    searchQuery?: string
+    filterConditions?: {
+      field: string
+      operator: string
+      value: number
+    }[]
+    sortField?: string
+    sortDirection?: string
+    limit?: number
+    offset?: number
+  }): Promise<{ ideas: Idea[]; total: number }> {
+    const {
+      searchQuery,
+      filterConditions = [],
+      sortField = 'createdAt',
+      sortDirection = 'desc',
+      limit = 20,
+      offset = 0,
+    } = filters
+
+    const { data, error } = await supabase.rpc('rpc_get_filtered_ideas', {
+      search_query: searchQuery || null,
+      filter_conditions: filterConditions.length > 0 ? filterConditions : null,
+      sort_field: sortField,
+      sort_direction: sortDirection,
+      limit_int: limit,
+      offset_int: offset,
+    })
+
+    if (error) {
+      console.error('Error fetching filtered ideas:', error)
+      throw error
+    }
+
+    if (!data || data.length === 0) {
+      return { ideas: [], total: 0 }
+    }
+
+    const result = data[0]
+    const totalCount = result.total_count || 0
+
+    let ideasData = result.ideas
+    if (typeof ideasData === 'string') {
+      ideasData = JSON.parse(ideasData)
+    }
+
+    if (!Array.isArray(ideasData)) {
+      console.error('ideasData is not an array:', ideasData)
+      ideasData = []
+    }
+
+    const ideas: Idea[] = ideasData.map((ideaJson: any) => {
+      // Handle content parsing similar to mapDbIdeaToIdea
+      let contentBlocks: ContentBlock[] | undefined
+      let heroImage: string | undefined
+      let heroVideo: string | undefined
+      let description: string | undefined
+
+      if (Array.isArray(ideaJson.content)) {
+        // Old format: content is directly an array of blocks
+        contentBlocks = ideaJson.content as ContentBlock[]
+      } else if (ideaJson.content && typeof ideaJson.content === 'object') {
+        // New format: content is an object with blocks, hero_image, hero_video, description
+        contentBlocks = ideaJson.content.blocks as ContentBlock[] | undefined
+        heroImage = ideaJson.content.hero_image
+        heroVideo = ideaJson.content.hero_video
+        description = ideaJson.content.description
+      }
+
+      // Backward compatibility: extract from first block if hero media not in metadata
+      if (
+        !heroImage &&
+        !heroVideo &&
+        contentBlocks &&
+        contentBlocks.length > 0
+      ) {
+        const firstBlock = contentBlocks[0]
+        if (firstBlock.type === 'video') {
+          heroVideo = firstBlock.src
+        } else if (firstBlock.type === 'image') {
+          heroImage = firstBlock.src
+        }
+      }
+
+      // Backward compatibility: extract description from first text block if not in metadata
+      if (!description && contentBlocks) {
+        const firstTextBlock = contentBlocks.find(
+          block => block.type === 'text'
+        )
+        description = firstTextBlock?.content || ''
+      }
+
+      const video =
+        heroVideo ||
+        contentBlocks?.find(block => block.type === 'video')?.src ||
+        contentBlocks
+          ?.find(block => block.type === 'carousel')
+          ?.slides?.find(slide => slide.video)?.video
+
+      const image =
+        heroImage ||
+        contentBlocks?.find(block => block.type === 'image')?.src ||
+        contentBlocks
+          ?.find(block => block.type === 'carousel')
+          ?.slides?.find(slide => slide.image)?.image
+
+      return {
+        id: ideaJson.id,
+        title: ideaJson.title,
+        description: description || '',
+        author:
+          ideaJson.creator?.username ||
+          ideaJson.creator?.full_name ||
+          'Anonymous',
+        score: ideaJson.score || 0,
+        votes: ideaJson.votes || 0,
+        votesByType: {
+          use: ideaJson.votesByType?.use || 0,
+          dislike: ideaJson.votesByType?.dislike || 0,
+          pay: ideaJson.votesByType?.pay || 0,
+        },
+        commentCount: ideaJson.commentCount || 0,
+        tags: ideaJson.tags || [],
+        createdAt: ideaJson.createdAt,
+        image: image,
+        video: video,
+        content: contentBlocks,
+        status_flag: ideaJson.status_flag,
+        anonymous: ideaJson.anonymous || false,
+        creatorEmail: ideaJson.creator?.email || null,
+      }
+    })
+
+    return {
+      ideas,
+      total: totalCount,
+    }
+  }
+
+  private getFieldValueForFiltering(idea: Idea, field: string): number {
+    // Handle nested fields like 'votesByType.use'
+    if (field.startsWith('votesByType.')) {
+      const voteType = field.split('.')[1] as keyof typeof idea.votesByType
+      return idea.votesByType[voteType] || 0
+    }
+
+    // Handle regular fields
+    switch (field) {
+      case 'score':
+        return idea.score
+      case 'votes':
+        return idea.votes
+      case 'commentCount':
+        return idea.commentCount
+      default:
+        return 0
+    }
+  }
+
+  private compareValues(
+    value: number,
+    operator: string,
+    target: number
+  ): boolean {
+    switch (operator) {
+      case '>':
+        return value > target
+      case '<':
+        return value < target
+      case '=':
+        return value === target
+      case '>=':
+        return value >= target
+      case '<=':
+        return value <= target
+      default:
+        return true
+    }
+  }
+
+  private applyClientSideSorting(
+    ideas: Idea[],
+    sortField: string,
+    sortDirection: string
+  ): Idea[] {
+    return [...ideas].sort((a, b) => {
+      const fieldA = this.getFieldValueForFiltering(a, sortField)
+      const fieldB = this.getFieldValueForFiltering(b, sortField)
+
+      if (sortDirection === 'asc') {
+        return fieldA - fieldB
+      } else {
+        return fieldB - fieldA
+      }
+    })
+  }
+
   async getAllTags(): Promise<string[]> {
     const { data, error } = await supabase.from('tags').select('name')
     if (error) throw error
@@ -586,7 +784,41 @@ class SupabaseIdeaService implements IIdeaService {
   ): Promise<Record<string, { use: boolean; dislike: boolean; pay: boolean }>> {
     // Use optimized RPC function for batch fetch
     const votes = await getUserVotesForIdeasRPC(ideaIds)
-    return votes || {}
+
+    // Debug: Log the raw RPC response
+    console.log('Raw RPC response for user votes:', votes)
+
+    // Ensure the response is properly formatted
+    if (!votes || typeof votes !== 'object') {
+      console.warn('Invalid votes response format, returning empty object')
+      return {}
+    }
+
+    // Transform the response to ensure all vote types are present for each idea
+    const result: Record<
+      string,
+      { use: boolean; dislike: boolean; pay: boolean }
+    > = {}
+
+    for (const ideaId of ideaIds) {
+      if (votes[ideaId]) {
+        result[ideaId] = {
+          use: votes[ideaId].use || false,
+          dislike: votes[ideaId].dislike || false,
+          pay: votes[ideaId].pay || false,
+        }
+      } else {
+        // If no votes for this idea, set all to false
+        result[ideaId] = {
+          use: false,
+          dislike: false,
+          pay: false,
+        }
+      }
+    }
+
+    console.log('Processed votes result:', result)
+    return result
   }
 
   async getUserIdeas(limit?: number, offset = 0): Promise<Idea[]> {
@@ -940,8 +1172,24 @@ class SupabaseIdeaService implements IIdeaService {
 
     const tags = dbIdea.idea_tags?.map((it: any) => it.tags.name) || []
 
-    const author =
-      dbIdea.users?.username || dbIdea.users?.full_name || 'Anonymous'
+    // Debug: Log the user data to investigate author display issues
+    console.log('User data for idea:', dbIdea.id, dbIdea.users)
+
+    // Check if anonymous flag is set
+    const isAnonymous = dbIdea.anonymous || false
+
+    const author = isAnonymous
+      ? 'Anonymous'
+      : dbIdea.users?.username || dbIdea.users?.full_name || 'Unknown User'
+
+    // Debug: Log the final author value
+    console.log(
+      'Final author for idea:',
+      dbIdea.id,
+      author,
+      'anonymous:',
+      isAnonymous
+    )
 
     // Handle both old format (array) and new format (object with blocks)
     let contentBlocks: ContentBlock[] | undefined
@@ -1033,10 +1281,57 @@ class SupabaseIdeaService implements IIdeaService {
     }
     const totalVotes = voteCounts.dislike + voteCounts.use + voteCounts.pay
 
+    // Handle content parsing similar to mapDbIdeaToIdea
+    let contentBlocks: ContentBlock[] | undefined
+    let heroImage: string | undefined
+    let heroVideo: string | undefined
+    let description: string | undefined
+
+    if (Array.isArray(rpcResult.content)) {
+      // Old format: content is directly an array of blocks
+      contentBlocks = rpcResult.content as ContentBlock[]
+    } else if (rpcResult.content && typeof rpcResult.content === 'object') {
+      // New format: content is an object with blocks, hero_image, hero_video, description
+      contentBlocks = rpcResult.content.blocks as ContentBlock[] | undefined
+      heroImage = rpcResult.content.hero_image
+      heroVideo = rpcResult.content.hero_video
+      description = rpcResult.content.description
+    }
+
+    // Backward compatibility: extract from first block if hero media not in metadata
+    if (!heroImage && !heroVideo && contentBlocks && contentBlocks.length > 0) {
+      const firstBlock = contentBlocks[0]
+      if (firstBlock.type === 'video') {
+        heroVideo = firstBlock.src
+      } else if (firstBlock.type === 'image') {
+        heroImage = firstBlock.src
+      }
+    }
+
+    // Backward compatibility: extract description from first text block if not in metadata
+    if (!description && contentBlocks) {
+      const firstTextBlock = contentBlocks.find(block => block.type === 'text')
+      description = firstTextBlock?.content || ''
+    }
+
+    const video =
+      heroVideo ||
+      contentBlocks?.find(block => block.type === 'video')?.src ||
+      contentBlocks
+        ?.find(block => block.type === 'carousel')
+        ?.slides?.find(slide => slide.video)?.video
+
+    const image =
+      heroImage ||
+      contentBlocks?.find(block => block.type === 'image')?.src ||
+      contentBlocks
+        ?.find(block => block.type === 'carousel')
+        ?.slides?.find(slide => slide.image)?.image
+
     return {
       id: rpcResult.id,
       title: rpcResult.title,
-      description: rpcResult.content?.description || '',
+      description: description || '',
       author: 'Anonymous', // RPC doesn't include user data
       score: rpcResult.score || 0,
       votes: totalVotes,
@@ -1044,9 +1339,9 @@ class SupabaseIdeaService implements IIdeaService {
       commentCount: rpcResult.comment_count || 0,
       tags: [], // RPC doesn't include tags
       createdAt: rpcResult.created_at,
-      image: rpcResult.content?.hero_image,
-      video: rpcResult.content?.hero_video,
-      content: rpcResult.content?.blocks || rpcResult.content,
+      image: image,
+      video: video,
+      content: contentBlocks,
       status_flag: rpcResult.status_flag,
       anonymous: rpcResult.anonymous || false,
       creatorEmail: null,

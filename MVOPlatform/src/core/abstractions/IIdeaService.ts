@@ -23,6 +23,19 @@ export interface IIdeaService {
     offset?: number
   ): Promise<{ ideas: Idea[]; total: number }>
 
+  getIdeasWithAdvancedFilters(filters: {
+    searchQuery?: string
+    filterConditions?: {
+      field: string
+      operator: string
+      value: number
+    }[]
+    sortField?: string
+    sortDirection?: string
+    limit?: number
+    offset?: number
+  }): Promise<{ ideas: Idea[]; total: number }>
+
   getAllTags(): Promise<string[]>
 
   getIdeasWithFilters(options: {

@@ -137,22 +137,28 @@ DECLARE
 BEGIN
   -- Get the current user from auth
   v_user_id := auth.uid();
-  
+
+  -- Build result for all idea_ids, with votes where they exist
   SELECT json_object_agg(
-    idea_id::TEXT,
+    i.idea_id::TEXT,
     json_build_object(
-      'use', (vote_type = 'use'::idea_vote_type),
-      'dislike', (vote_type = 'dislike'::idea_vote_type),
-      'pay', (vote_type = 'pay'::idea_vote_type)
+      'use', COALESCE(vote_data.use_vote, false),
+      'dislike', COALESCE(vote_data.dislike_vote, false),
+      'pay', COALESCE(vote_data.pay_vote, false)
     )
   ) INTO v_result
-  FROM (
-    SELECT DISTINCT ON (idea_id, vote_type)
-      idea_id, vote_type
+  FROM unnest(p_idea_ids) AS i(idea_id)
+  LEFT JOIN (
+    SELECT
+      idea_id,
+      bool_or(vote_type = 'use'::idea_vote_type) as use_vote,
+      bool_or(vote_type = 'dislike'::idea_vote_type) as dislike_vote,
+      bool_or(vote_type = 'pay'::idea_vote_type) as pay_vote
     FROM idea_votes
-    WHERE idea_id = ANY(p_idea_ids)
-      AND voter_id = v_user_id
-  ) votes;
+    WHERE voter_id = v_user_id
+      AND idea_id = ANY(p_idea_ids)
+    GROUP BY idea_id
+  ) vote_data ON i.idea_id = vote_data.idea_id;
 
   RETURN COALESCE(v_result, '{}'::JSON);
 END;

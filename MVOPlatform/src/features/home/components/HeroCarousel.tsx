@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react'
 import {
   ArrowUp,
   Share2,
-  Bookmark,
   TrendingUp,
   ThumbsDown,
   CheckCircle,
@@ -444,9 +443,6 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                       >
                         {t('carousel.view_details')}
                       </Link>
-                      <button className="p-2 md:p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors">
-                        <Bookmark className="w-4 h-4 md:w-5 md:h-5" />
-                      </button>
                       <button
                         onClick={e => {
                           e.preventDefault()
