@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
-import { useAppSelector } from '@/core/lib/hooks'
-import { PayPalCheckoutButton } from '@/features/payment/components/PayPalCheckoutButton'
+import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
+import { loadUserCredits } from '@/core/lib/slices/creditsSlice'
+import { supabase } from '@/core/lib/supabase'
 import { Crown, Check, Zap, Star, Users } from 'lucide-react'
 
 const plans = [
@@ -45,15 +47,42 @@ const plans = [
   },
 ]
 
+const planHierarchy = {
+  free: 0,
+  pro: 1,
+  premium: 2,
+  innovator: 3,
+}
+
 export function PremiumPage() {
   const t = useTranslations()
+  const router = useRouter()
+  const dispatch = useAppDispatch()
   const { user } = useAppSelector(state => state.auth)
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const { plan: userPlan, loading: creditsLoading } = useAppSelector(
+    state => state.credits
+  )
 
-  const handlePaymentSuccess = () => {
-    // Refresh the page or update user data
-    window.location.reload()
-  }
+  // Load user credits when component mounts
+  useEffect(() => {
+    const loadCredits = async () => {
+      // Try to get user from Redux first, then from Supabase auth
+      let userId = user?.id
+
+      if (!userId) {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        userId = session?.user?.id
+      }
+
+      if (userId) {
+        dispatch(loadUserCredits(userId))
+      }
+    }
+
+    loadCredits()
+  }, [user, dispatch])
 
   return (
     <div className="bg-background min-h-screen">
@@ -73,13 +102,26 @@ export function PremiumPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {plans.map(plan => {
             const Icon = plan.icon
+            // Default to free plan if credits are still loading
+            const currentUserPlan = creditsLoading ? 'free' : userPlan
+            const userPlanLevel =
+              planHierarchy[currentUserPlan as keyof typeof planHierarchy] || 0
+            const planLevel =
+              planHierarchy[plan.id as keyof typeof planHierarchy]
+            const canSelect = planLevel > userPlanLevel
+            const isCurrentPlan = plan.id === currentUserPlan
+
             return (
               <div
                 key={plan.id}
                 className={`p-6 border rounded-lg transition-all ${
-                  plan.id === 'free'
-                    ? 'border-border-color'
-                    : 'border-accent/30 bg-accent/5 hover:bg-accent/10'
+                  isCurrentPlan
+                    ? 'border-accent bg-accent/10'
+                    : plan.id === 'free'
+                      ? 'border-border-color'
+                      : canSelect
+                        ? 'border-accent/30 bg-accent/5 hover:bg-accent/10'
+                        : 'border-gray-300 bg-gray-50 opacity-60'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-4">
@@ -87,6 +129,11 @@ export function PremiumPage() {
                   <h3 className="text-xl font-semibold text-text-primary">
                     {plan.name}
                   </h3>
+                  {isCurrentPlan && (
+                    <span className="text-xs bg-accent text-white px-2 py-1 rounded-full">
+                      Current
+                    </span>
+                  )}
                 </div>
                 <div className="mb-4">
                   <div className="text-3xl font-bold text-accent mb-1">
@@ -111,28 +158,24 @@ export function PremiumPage() {
                     </li>
                   ))}
                 </ul>
-                {plan.id === 'free' ? (
+                {isCurrentPlan ? (
+                  <div className="text-sm text-accent font-medium">
+                    ✓ Current plan
+                  </div>
+                ) : !canSelect ? (
                   <div className="text-sm text-text-secondary">
-                    Current plan
+                    Already have access
                   </div>
                 ) : user ? (
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => setSelectedPlan(plan.id)}
-                      className="w-full px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors"
-                    >
-                      Select {plan.name}
-                    </button>
-                    {selectedPlan === plan.id && (
-                      <div className="mt-4">
-                        <PayPalCheckoutButton
-                          plan={plan.id}
-                          userId={user.id}
-                          onSuccess={handlePaymentSuccess}
-                        />
-                      </div>
-                    )}
-                  </div>
+                  <button
+                    onClick={() => {
+                      router.push(`/en/checkout?plan=${plan.id}`)
+                    }}
+                    className="w-full px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!canSelect}
+                  >
+                    Select {plan.name}
+                  </button>
                 ) : (
                   <div className="text-sm text-text-secondary">
                     Sign in to subscribe

@@ -7,6 +7,7 @@ interface CreditsState {
   usedCredits: number
   lastReset: string // ISO date string
   loading: boolean
+  loaded: boolean
   error: string | null
 }
 
@@ -16,6 +17,7 @@ const initialState: CreditsState = {
   usedCredits: 0,
   lastReset: new Date().toISOString().split('T')[0],
   loading: false,
+  loaded: false,
   error: null,
 }
 
@@ -119,14 +121,24 @@ export const updateUserPlan = createAsyncThunk(
     userId: string
     plan: keyof typeof planCredits
   }) => {
+    const today = new Date().toISOString().split('T')[0]
     const { error } = await supabase
       .from('users')
-      .update({ plan })
+      .update({
+        plan,
+        daily_credits_used: 0,
+        last_credits_reset: today,
+      })
       .eq('id', userId)
 
     if (error) throw error
 
-    return { plan, dailyCredits: planCredits[plan] }
+    return {
+      plan,
+      dailyCredits: planCredits[plan],
+      usedCredits: 0,
+      lastReset: today,
+    }
   }
 )
 
@@ -150,6 +162,7 @@ const creditsSlice = createSlice({
       })
       .addCase(loadUserCredits.fulfilled, (state, action) => {
         state.loading = false
+        state.loaded = true
         state.plan = action.payload.plan
         state.dailyCredits = action.payload.dailyCredits
         state.usedCredits = action.payload.usedCredits
@@ -167,8 +180,8 @@ const creditsSlice = createSlice({
       .addCase(updateUserPlan.fulfilled, (state, action) => {
         state.plan = action.payload.plan
         state.dailyCredits = action.payload.dailyCredits
-        // Reset used credits when plan changes
-        state.usedCredits = 0
+        state.usedCredits = action.payload.usedCredits
+        state.lastReset = action.payload.lastReset
       })
   },
 })

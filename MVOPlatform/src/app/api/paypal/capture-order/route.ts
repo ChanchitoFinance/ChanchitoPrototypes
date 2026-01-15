@@ -32,10 +32,14 @@ export async function POST(request: NextRequest) {
 
     const amount = planPrices[plan as keyof typeof planPrices]
 
-    // Update user plan
+    // Update user plan and reset credits
     const { error: userError } = await supabase
       .from('users')
-      .update({ plan })
+      .update({
+        plan,
+        daily_credits_used: 0,
+        last_credits_reset: new Date().toISOString().split('T')[0],
+      })
       .eq('id', userId)
 
     if (userError) {
