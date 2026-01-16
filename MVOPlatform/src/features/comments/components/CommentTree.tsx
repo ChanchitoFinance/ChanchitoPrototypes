@@ -18,6 +18,7 @@ import { CommentReadMore } from './CommentReadMore'
 import {
   aiCommentService,
   AI_PERSONA_NAMES,
+  AI_PERSONA_HANDLES,
 } from '@/core/lib/services/aiCommentService'
 
 const MAX_COMMENT_LENGTH = 3000
@@ -42,6 +43,13 @@ interface CommentTreeProps {
   compactMode?: boolean // For tighter indentation in TikTok-style panels
 }
 
+interface CommentTreeWithMentionsProps extends CommentTreeProps {
+  showMentionSuggestions: boolean
+  mentionSuggestions: string[]
+  onMentionSelect: (commentId: string, handle: string) => void
+  onMentionInputChange: (commentId: string, value: string) => void
+}
+
 export function CommentTree({
   comments,
   depth,
@@ -64,6 +72,12 @@ export function CommentTree({
   const { user } = useAppSelector(state => state.auth)
   const { theme } = useAppSelector(state => state.theme)
   const textareaRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map())
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState<
+    Map<string, boolean>
+  >(new Map())
+  const [mentionSuggestions, setMentionSuggestions] = useState<
+    Map<string, string[]>
+  >(new Map())
 
   const getIndentation = (currentDepth: number) => {
     // Progressive indentation that doesn't get too wide
@@ -392,42 +406,130 @@ export function CommentTree({
                   onSubmit={e => onReplySubmit(comment.id, e)}
                   className="mt-3 pt-3 border-t border-border-color dark:border-white/10 relative z-20"
                 >
-                  <div className="flex gap-2 relative z-50 p-1 -m-1">
-                    <textarea
-                      ref={el => {
-                        if (el) textareaRefs.current.set(comment.id, el)
-                      }}
-                      value={replyText.get(comment.id) || ''}
-                      onChange={e => {
-                        const value = e.target.value
-                        // Enforce character limit
-                        if (value.length <= MAX_COMMENT_LENGTH) {
-                          onReplyTextChange(comment.id, value)
-                        }
-                        // Auto-resize
-                        if (e.target) {
-                          e.target.style.height = 'auto'
-                          e.target.style.height = `${e.target.scrollHeight}px`
-                        }
-                      }}
-                      placeholder="Write a reply..."
-                      maxLength={MAX_COMMENT_LENGTH}
-                      className="flex-1 px-3 py-2 rounded-lg border resize-none overflow-hidden bg-gray-50 dark:bg-white/10 border-border-color dark:border-white/20 focus:ring-accent placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:ring-2"
-                      style={{
-                        color: theme === 'dark' ? '#ffffff' : '#000000',
-                        minHeight: depth >= 2 ? '2rem' : '2.5rem',
-                        maxHeight: depth >= 2 ? '8rem' : '10rem',
-                        fontSize:
-                          depth >= 2 ? '12px' : depth >= 1 ? '14px' : '16px',
-                      }}
-                      rows={1}
-                    />
+                  <div className="flex gap-2 relative z-50 p-1 -m-1 w-full">
+                    <div className="flex-1 relative w-full">
+                      <textarea
+                        ref={el => {
+                          if (el) textareaRefs.current.set(comment.id, el)
+                        }}
+                        value={replyText.get(comment.id) || ''}
+                        onChange={e => {
+                          const value = e.target.value
+                          const commentId = comment.id
+                          const cursorPosition = e.target.selectionStart
+                          const textBeforeCursor = value.substring(
+                            0,
+                            cursorPosition
+                          )
+                          const lastAtSymbol = textBeforeCursor.lastIndexOf('@')
+
+                          // Enforce character limit
+                          if (value.length <= MAX_COMMENT_LENGTH) {
+                            onReplyTextChange(comment.id, value)
+                          }
+
+                          // Handle AI persona mentions
+                          if (lastAtSymbol !== -1) {
+                            const query = textBeforeCursor.substring(
+                              lastAtSymbol + 1
+                            )
+                            if (query.length > 0 && !query.includes(' ')) {
+                              const matches = Object.entries(AI_PERSONA_HANDLES)
+                                .filter(([_, handle]) =>
+                                  handle
+                                    .toLowerCase()
+                                    .includes(query.toLowerCase())
+                                )
+                                .map(([_, handle]) => handle)
+
+                              if (matches.length > 0) {
+                                setMentionSuggestions(prev =>
+                                  new Map(prev).set(commentId, matches)
+                                )
+                                setShowMentionSuggestions(prev =>
+                                  new Map(prev).set(commentId, true)
+                                )
+                              } else {
+                                setShowMentionSuggestions(prev =>
+                                  new Map(prev).set(commentId, false)
+                                )
+                              }
+                            } else {
+                              setShowMentionSuggestions(prev =>
+                                new Map(prev).set(commentId, false)
+                              )
+                            }
+                          } else {
+                            setShowMentionSuggestions(prev =>
+                              new Map(prev).set(commentId, false)
+                            )
+                          }
+
+                          // Auto-resize
+                          if (e.target) {
+                            e.target.style.height = 'auto'
+                            e.target.style.height = `${e.target.scrollHeight}px`
+                          }
+                        }}
+                        placeholder="Write a reply..."
+                        maxLength={MAX_COMMENT_LENGTH}
+                        className="w-full px-3 py-2 rounded-lg border resize-none overflow-hidden bg-gray-50 dark:bg-white/10 border-border-color dark:border-white/20 focus:ring-accent placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:ring-2"
+                        style={{
+                          color: theme === 'dark' ? '#ffffff' : '#000000',
+                          minHeight: depth >= 2 ? '2rem' : '2.5rem',
+                          maxHeight: depth >= 2 ? '8rem' : '10rem',
+                          fontSize:
+                            depth >= 2 ? '12px' : depth >= 1 ? '14px' : '16px',
+                        }}
+                        rows={1}
+                      />
+                      {showMentionSuggestions.get(comment.id) && (
+                        <div className="absolute bottom-full mb-2 left-0 bg-white dark:bg-gray-800 border border-border-color rounded-lg shadow-lg max-h-48 overflow-y-auto z-50 w-full">
+                          {mentionSuggestions.get(comment.id)?.map(handle => (
+                            <button
+                              key={handle}
+                              type="button"
+                              onClick={() => {
+                                const cursorPosition =
+                                  textareaRefs.current.get(comment.id)
+                                    ?.selectionStart || 0
+                                const textBeforeCursor = (
+                                  replyText.get(comment.id) || ''
+                                ).substring(0, cursorPosition)
+                                const lastAtSymbol =
+                                  textBeforeCursor.lastIndexOf('@')
+                                const textAfterCursor = (
+                                  replyText.get(comment.id) || ''
+                                ).substring(cursorPosition)
+
+                                const newText =
+                                  textBeforeCursor.substring(0, lastAtSymbol) +
+                                  handle +
+                                  ' ' +
+                                  textAfterCursor
+
+                                onReplyTextChange(comment.id, newText)
+                                setShowMentionSuggestions(prev =>
+                                  new Map(prev).set(comment.id, false)
+                                )
+                                textareaRefs.current.get(comment.id)?.focus()
+                              }}
+                              className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm"
+                            >
+                              <span className="text-accent font-medium">
+                                {handle}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <button
                       type="submit"
                       disabled={
                         !replyText.get(comment.id)?.trim() || submitting
                       }
-                      className={`px-3 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center ${
+                      className={`flex-shrink-0 px-3 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center ${
                         isDark
                           ? 'bg-accent text-text-primary hover:bg-accent/90'
                           : 'bg-accent text-text-primary hover:bg-accent/90'

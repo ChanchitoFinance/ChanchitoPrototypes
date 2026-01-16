@@ -22,6 +22,7 @@ import {
 } from '@/shared/components/providers/I18nProvider'
 import { MarkdownRenderer } from '@/shared/components/ui/MarkdownRenderer'
 import { useAppSelector } from '@/core/lib/hooks'
+import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import Image from 'next/image'
 
 interface AIRiskFeedbackProps {
@@ -50,7 +51,7 @@ export function AIRiskFeedback({
   const [isExpanded, setIsExpanded] = useState(false)
   const [currentVersion, setCurrentVersion] = useState(1)
   const [totalVersions, setTotalVersions] = useState(0)
-  const [showLastCreditConfirm, setShowLastCreditConfirm] = useState(false)
+  const [showCreditConfirm, setShowCreditConfirm] = useState(false)
 
   const { plan, dailyCredits, usedCredits } = useAppSelector(
     state => state.credits
@@ -181,25 +182,10 @@ export function AIRiskFeedback({
     <div className="mb-6">
       <div className="relative">
         <button
-          onClick={async () => {
-            if (!hasCredits) {
-              router.push(`/${locale}/premium`)
-              return
-            }
-
+          type="button"
+          onClick={() => {
             if (!feedback) {
-              if (isLastCredit) {
-                setShowLastCreditConfirm(true)
-                return
-              }
-
-              if (onRequestFeedback) {
-                await onRequestFeedback()
-                // After credits are deducted, request feedback
-                requestFeedback()
-              } else {
-                requestFeedback()
-              }
+              setShowCreditConfirm(true)
             } else {
               setIsExpanded(!isExpanded)
             }
@@ -222,11 +208,6 @@ export function AIRiskFeedback({
                       ? t('ai_risk_feedback.view_analysis')
                       : t('ai_risk_feedback.receive_feedback')}
                   </span>
-                  {!feedback && (
-                    <span className="text-xs flex items-center gap-1">
-                      <Coins className="w-3 h-3" />1 credit
-                    </span>
-                  )}
                 </div>
                 {feedback && (
                   <motion.div
@@ -252,60 +233,30 @@ export function AIRiskFeedback({
         </button>
       </div>
 
-      {/* Last Credit Confirmation Dialog */}
-      <AnimatePresence>
-        {showLastCreditConfirm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={() => setShowLastCreditConfirm(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-background p-6 rounded-lg shadow-xl max-w-md mx-4"
-              onClick={e => e.stopPropagation()}
-            >
-              <h3 className="text-lg font-semibold text-text-primary mb-2">
-                Last Credit Warning
-              </h3>
-              <p className="text-sm text-text-secondary mb-4">
-                This is your last daily credit. Are you sure you want to spend
-                it on AI Risk Analysis?
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setShowLastCreditConfirm(false)}
-                  className="px-4 py-2 text-sm border border-border-color rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    setShowLastCreditConfirm(false)
-                    if (onRequestFeedback) {
-                      await onRequestFeedback()
-                      requestFeedback()
-                    } else {
-                      requestFeedback()
-                    }
-                  }}
-                  className="px-4 py-2 text-sm bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600"
-                >
-                  Use Last Credit
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Credit Confirmation Modal */}
+      <CreditConfirmationModal
+        isOpen={showCreditConfirm}
+        onClose={() => setShowCreditConfirm(false)}
+        onConfirm={async () => {
+          setShowCreditConfirm(false)
+          if (onRequestFeedback) {
+            await onRequestFeedback()
+            requestFeedback()
+          } else {
+            requestFeedback()
+          }
+        }}
+        creditCost={1}
+        featureName={t('ai_risk_feedback.risk_analysis')}
+        hasCredits={hasCredits}
+        isLastCredit={isLastCredit}
+        showNoButton={false}
+      />
 
       <AnimatePresence mode="wait">
         {error && (
           <motion.div
+            key="error"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -313,6 +264,7 @@ export function AIRiskFeedback({
           >
             <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
             <button
+              type="button"
               onClick={requestFeedback}
               className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
             >
@@ -323,6 +275,7 @@ export function AIRiskFeedback({
 
         {feedback && isExpanded && (
           <motion.div
+            key="feedback"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -358,6 +311,7 @@ export function AIRiskFeedback({
               {totalVersions > 1 && (
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={() =>
                       changeVersion(Math.max(1, currentVersion - 1))
                     }
@@ -367,6 +321,7 @@ export function AIRiskFeedback({
                     {t('ai_risk_feedback.previous')}
                   </button>
                   <button
+                    type="button"
                     onClick={() =>
                       changeVersion(Math.min(totalVersions, currentVersion + 1))
                     }
@@ -380,7 +335,8 @@ export function AIRiskFeedback({
 
               <div className="flex items-center gap-2 ml-auto">
                 <button
-                  onClick={requestFeedback}
+                  type="button"
+                  onClick={() => setShowCreditConfirm(true)}
                   disabled={loading}
                   className="px-4 py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
                 >
@@ -392,6 +348,7 @@ export function AIRiskFeedback({
                   {t('ai_risk_feedback.re_analyze')}
                 </button>
                 <button
+                  type="button"
                   onClick={clearAllFeedback}
                   className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center gap-2"
                 >
