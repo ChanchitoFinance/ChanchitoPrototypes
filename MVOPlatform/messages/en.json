@@ -111,6 +111,17 @@
     "for_you_subtitle": "Ideas curated just for you",
     "new_ideas": "New Ideas"
   },
+  "home": {
+    "discover_new": "Discover Something New",
+    "featured": "Featured",
+    "trends": "Trends",
+    "communities_favorite": "Communities' Favorite",
+    "most_commented": "Most Commented",
+    "status_new": "New",
+    "status_active_discussion": "Active Discussion",
+    "status_trending": "Trending",
+    "status_validated": "Validated"
+  },
   "browse": {
     "dashboard": {
       "title": "Browse Ideas",

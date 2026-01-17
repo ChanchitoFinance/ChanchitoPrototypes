@@ -111,6 +111,17 @@
     "for_you_subtitle": "Ideas curadas especialmente para ti",
     "new_ideas": "Nuevas Ideas"
   },
+  "home": {
+    "discover_new": "Descubre Algo Nuevo",
+    "featured": "Destacados",
+    "trends": "Tendencias",
+    "communities_favorite": "Favoritos de la Comunidad",
+    "most_commented": "Más Comentados",
+    "status_new": "Nuevas",
+    "status_active_discussion": "Discusión Activa",
+    "status_trending": "En Tendencia",
+    "status_validated": "Validadas"
+  },
   "browse": {
     "dashboard": {
       "title": "Explorar Ideas",

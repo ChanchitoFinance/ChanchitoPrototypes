@@ -13,6 +13,19 @@ export interface IIdeaService {
 
   getNewIdeas(limit?: number): Promise<Idea[]>
 
+  getRecentIdeas(limit?: number): Promise<Idea[]>
+
+  getFeaturedByScore(limit?: number): Promise<Idea[]>
+
+  getIdeasByStatusFlag(
+    statusFlag: 'new' | 'active_discussion' | 'trending' | 'validated',
+    limit?: number
+  ): Promise<Idea[]>
+
+  getCommunitiesFavorite(limit?: number): Promise<Idea[]>
+
+  getMostCommented(limit?: number): Promise<Idea[]>
+
   getForYouIdeas(limit?: number, offset?: number): Promise<Idea[]>
 
   getExploreIdeas(limit?: number, offset?: number): Promise<Idea[]>

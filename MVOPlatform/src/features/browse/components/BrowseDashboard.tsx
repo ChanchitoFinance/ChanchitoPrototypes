@@ -384,8 +384,8 @@ export function BrowseDashboard({ isAdmin = false }) {
         </h2>
 
         {loadingIdeas && ideas.length === 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+            {[...Array(10)].map((_, i) => (
               <div key={i} className="card-hover overflow-hidden">
                 <div className="p-4 space-y-4">
                   <div className="aspect-video bg-gray-200 rounded-md animate-pulse"></div>
@@ -408,7 +408,7 @@ export function BrowseDashboard({ isAdmin = false }) {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
               {ideas.map(idea => (
                 <IdeaCard
                   key={idea.id}

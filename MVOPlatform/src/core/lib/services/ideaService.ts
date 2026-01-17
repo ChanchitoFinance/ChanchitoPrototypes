@@ -219,6 +219,214 @@ class SupabaseIdeaService implements IIdeaService {
     return data?.map(this.mapDbIdeaToIdea) || []
   }
 
+  async getRecentIdeas(limit = 30): Promise<Idea[]> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        status_flag,
+        content,
+        created_at,
+        anonymous,
+        users!ideas_creator_id_fkey (
+          username,
+          full_name,
+          email
+        ),
+        idea_votes (
+          vote_type
+        ),
+        idea_tags (
+          tags (
+            name
+          )
+        ),
+        comments!left (
+          id
+        )
+      `
+      )
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+
+    return data?.map(this.mapDbIdeaToIdea) || []
+  }
+
+  async getFeaturedByScore(limit = 30): Promise<Idea[]> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        status_flag,
+        content,
+        created_at,
+        anonymous,
+        users!ideas_creator_id_fkey (
+          username,
+          full_name,
+          email
+        ),
+        idea_votes (
+          vote_type
+        ),
+        idea_tags (
+          tags (
+            name
+          )
+        ),
+        comments!left (
+          id
+        )
+      `
+      )
+      .order('created_at', { ascending: false })
+      .limit(limit * 3)
+
+    if (error) throw error
+
+    const ideas = data?.map(this.mapDbIdeaToIdea) || []
+
+    // Sort by score (most positive) descending
+    const sortedIdeas = ideas.sort((a, b) => b.score - a.score)
+
+    return sortedIdeas.slice(0, limit)
+  }
+
+  async getIdeasByStatusFlag(
+    statusFlag: 'new' | 'active_discussion' | 'trending' | 'validated',
+    limit = 30
+  ): Promise<Idea[]> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        status_flag,
+        content,
+        created_at,
+        anonymous,
+        users!ideas_creator_id_fkey (
+          username,
+          full_name,
+          email
+        ),
+        idea_votes (
+          vote_type
+        ),
+        idea_tags (
+          tags (
+            name
+          )
+        ),
+        comments!left (
+          id
+        )
+      `
+      )
+      .eq('status_flag', statusFlag)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+
+    return data?.map(this.mapDbIdeaToIdea) || []
+  }
+
+  async getCommunitiesFavorite(limit = 30): Promise<Idea[]> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        status_flag,
+        content,
+        created_at,
+        anonymous,
+        users!ideas_creator_id_fkey (
+          username,
+          full_name,
+          email
+        ),
+        idea_votes (
+          vote_type
+        ),
+        idea_tags (
+          tags (
+            name
+          )
+        ),
+        comments!left (
+          id
+        )
+      `
+      )
+      .order('created_at', { ascending: false })
+      .limit(limit * 3)
+
+    if (error) throw error
+
+    const ideas = data?.map(this.mapDbIdeaToIdea) || []
+
+    // Sort by votes (use + pay) descending - community favorites
+    const sortedIdeas = ideas.sort((a, b) => {
+      const aFavoriteScore = a.votesByType.use + a.votesByType.pay * 2
+      const bFavoriteScore = b.votesByType.use + b.votesByType.pay * 2
+      return bFavoriteScore - aFavoriteScore
+    })
+
+    return sortedIdeas.slice(0, limit)
+  }
+
+  async getMostCommented(limit = 30): Promise<Idea[]> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        status_flag,
+        content,
+        created_at,
+        anonymous,
+        users!ideas_creator_id_fkey (
+          username,
+          full_name,
+          email
+        ),
+        idea_votes (
+          vote_type
+        ),
+        idea_tags (
+          tags (
+            name
+          )
+        ),
+        comments!left (
+          id
+        )
+      `
+      )
+      .order('created_at', { ascending: false })
+      .limit(limit * 3)
+
+    if (error) throw error
+
+    const ideas = data?.map(this.mapDbIdeaToIdea) || []
+
+    // Sort by comment count descending
+    const sortedIdeas = ideas.sort((a, b) => b.commentCount - a.commentCount)
+
+    return sortedIdeas.slice(0, limit)
+  }
+
   async getForYouIdeas(limit?: number, offset = 0): Promise<Idea[]> {
     const { data, error } = await supabase
       .from('ideas')

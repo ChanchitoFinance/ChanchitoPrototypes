@@ -1,37 +1,70 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { IdeaCard } from '@/features/ideas/components/IdeaCard'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useCallback } from 'react'
 import { Idea } from '@/core/types/idea'
 import { ideaService } from '@/core/lib/services/ideaService'
-import { IdeaCardSkeleton } from '@/shared/components/ui/Skeleton'
 import { useAppSelector } from '@/core/lib/hooks'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import { toast } from 'sonner'
+import { HorizontalScrollSection } from './HorizontalScrollSection'
+import { TendenciesSection } from './TendenciesSection'
 
 export function HomeFeed() {
   const t = useTranslations()
-  const [ideas, setIdeas] = useState<Idea[]>([])
-  const [newIdeas, setNewIdeas] = useState<Idea[]>([])
-  const [loading, setLoading] = useState(false)
-  const [initialized, setInitialized] = useState(false)
-  const [hasMore, setHasMore] = useState(true)
-  const [search, setSearch] = useState('')
-  const [trendingIdeas, setTrendingIdeas] = useState<Idea[]>([])
+  const [loading, setLoading] = useState(true)
   const [isVoting, setIsVoting] = useState(false)
   const [hoveredIdeaId, setHoveredIdeaId] = useState<string | null>(null)
-  const loadMoreRef = useRef<HTMLDivElement>(null)
-  const observerRef = useRef<IntersectionObserver | null>(null)
   const { isAuthenticated } = useAppSelector(state => state.auth)
+
+  // Section data states
+  const [recentIdeas, setRecentIdeas] = useState<Idea[]>([])
+  const [featuredIdeas, setFeaturedIdeas] = useState<Idea[]>([])
+  const [communitiesFavorite, setCommunitiesFavorite] = useState<Idea[]>([])
+  const [mostCommented, setMostCommented] = useState<Idea[]>([])
+  const [ideasByStatus, setIdeasByStatus] = useState<{
+    new: Idea[]
+    active_discussion: Idea[]
+    trending: Idea[]
+    validated: Idea[]
+  }>({
+    new: [],
+    active_discussion: [],
+    trending: [],
+    validated: [],
+  })
+
+  const updateIdeaInAllSections = useCallback((updatedIdea: Idea) => {
+    const updateIdeas = (ideas: Idea[]) =>
+      ideas.map(idea => (idea.id === updatedIdea.id ? updatedIdea : idea))
+
+    setRecentIdeas(prev => updateIdeas(prev))
+    setFeaturedIdeas(prev => updateIdeas(prev))
+    setCommunitiesFavorite(prev => updateIdeas(prev))
+    setMostCommented(prev => updateIdeas(prev))
+    setIdeasByStatus(prev => ({
+      new: updateIdeas(prev.new),
+      active_discussion: updateIdeas(prev.active_discussion),
+      trending: updateIdeas(prev.trending),
+      validated: updateIdeas(prev.validated),
+    }))
+  }, [])
 
   const handleKeyDown = useCallback(
     async (e: KeyboardEvent) => {
-      if (!initialized || !hoveredIdeaId || isVoting) return
+      if (!hoveredIdeaId || isVoting) return
 
-      const hoveredIdea = [...ideas, ...newIdeas].find(
-        idea => idea.id === hoveredIdeaId
-      )
+      const allIdeas = [
+        ...recentIdeas,
+        ...featuredIdeas,
+        ...communitiesFavorite,
+        ...mostCommented,
+        ...ideasByStatus.new,
+        ...ideasByStatus.active_discussion,
+        ...ideasByStatus.trending,
+        ...ideasByStatus.validated,
+      ]
+
+      const hoveredIdea = allIdeas.find(idea => idea.id === hoveredIdeaId)
       if (!hoveredIdea) return
 
       if (e.key === 'ArrowUp') {
@@ -46,12 +79,7 @@ export function HomeFeed() {
             hoveredIdea.id,
             'use'
           )
-          setIdeas(prev =>
-            prev.map(idea => (idea.id === hoveredIdea.id ? updatedIdea : idea))
-          )
-          setNewIdeas(prev =>
-            prev.map(idea => (idea.id === hoveredIdea.id ? updatedIdea : idea))
-          )
+          updateIdeaInAllSections(updatedIdea)
         } catch (error) {
           console.error('Error voting:', error)
         } finally {
@@ -69,12 +97,7 @@ export function HomeFeed() {
             hoveredIdea.id,
             'dislike'
           )
-          setIdeas(prev =>
-            prev.map(idea => (idea.id === hoveredIdea.id ? updatedIdea : idea))
-          )
-          setNewIdeas(prev =>
-            prev.map(idea => (idea.id === hoveredIdea.id ? updatedIdea : idea))
-          )
+          updateIdeaInAllSections(updatedIdea)
         } catch (error) {
           console.error('Error voting:', error)
         } finally {
@@ -82,7 +105,18 @@ export function HomeFeed() {
         }
       }
     },
-    [initialized, hoveredIdeaId, isVoting, isAuthenticated, ideas, newIdeas, t]
+    [
+      hoveredIdeaId,
+      isVoting,
+      isAuthenticated,
+      recentIdeas,
+      featuredIdeas,
+      communitiesFavorite,
+      mostCommented,
+      ideasByStatus,
+      t,
+      updateIdeaInAllSections,
+    ]
   )
 
   useEffect(() => {
@@ -93,34 +127,62 @@ export function HomeFeed() {
   }, [handleKeyDown])
 
   useEffect(() => {
-    if (!initialized) {
+    const loadAllSections = async () => {
       setLoading(true)
-      Promise.all([
-        ideaService.getIdeas(12),
-        ideaService.getNewIdeas(2),
-        ideaService.getTrendingIdeas(10),
-      ]).then(async ([loadedIdeas, loadedNewIdeas, loadedTrending]) => {
-        const newIdeaIds = new Set(loadedNewIdeas.map(idea => idea.id))
-        const filteredIdeas = loadedIdeas.filter(
-          idea => !newIdeaIds.has(idea.id)
-        )
+      try {
+        const [
+          recent,
+          featured,
+          favorite,
+          commented,
+          statusNew,
+          statusActive,
+          statusTrending,
+          statusValidated,
+        ] = await Promise.all([
+          ideaService.getRecentIdeas(30),
+          ideaService.getFeaturedByScore(30),
+          ideaService.getCommunitiesFavorite(30),
+          ideaService.getMostCommented(30),
+          ideaService.getIdeasByStatusFlag('new', 30),
+          ideaService.getIdeasByStatusFlag('active_discussion', 30),
+          ideaService.getIdeasByStatusFlag('trending', 30),
+          ideaService.getIdeasByStatusFlag('validated', 30),
+        ])
 
-        setIdeas(filteredIdeas)
-        setNewIdeas(loadedNewIdeas)
-        setTrendingIdeas(loadedTrending)
+        setRecentIdeas(recent)
+        setFeaturedIdeas(featured)
+        setCommunitiesFavorite(favorite)
+        setMostCommented(commented)
+        setIdeasByStatus({
+          new: statusNew,
+          active_discussion: statusActive,
+          trending: statusTrending,
+          validated: statusValidated,
+        })
 
-        if (isAuthenticated && [...loadedIdeas, ...loadedNewIdeas].length > 0) {
-          const allIdeaIds = [...loadedIdeas, ...loadedNewIdeas].map(
-            idea => idea.id
-          )
+        // Fetch user votes if authenticated
+        if (isAuthenticated) {
+          const allIdeaIds = [
+            ...recent,
+            ...featured,
+            ...favorite,
+            ...commented,
+            ...statusNew,
+            ...statusActive,
+            ...statusTrending,
+            ...statusValidated,
+          ].map(idea => idea.id)
+
+          // Remove duplicates
+          const uniqueIdeaIds = [...new Set(allIdeaIds)]
+
           try {
-            const votesMap = await ideaService.getUserVotesForIdeas(allIdeaIds)
+            const votesMap =
+              await ideaService.getUserVotesForIdeas(uniqueIdeaIds)
 
-            // Debug: Log the votesMap to see what's being returned
-            console.log('User votes map:', votesMap)
-
-            setIdeas(prev =>
-              prev.map(idea => ({
+            const addVotesToIdeas = (ideas: Idea[]) =>
+              ideas.map(idea => ({
                 ...idea,
                 userVotes: votesMap[idea.id] || {
                   use: false,
@@ -128,232 +190,81 @@ export function HomeFeed() {
                   pay: false,
                 },
               }))
-            )
-            setNewIdeas(prev =>
-              prev.map(idea => ({
-                ...idea,
-                userVotes: votesMap[idea.id] || {
-                  use: false,
-                  dislike: false,
-                  pay: false,
-                },
-              }))
-            )
+
+            setRecentIdeas(prev => addVotesToIdeas(prev))
+            setFeaturedIdeas(prev => addVotesToIdeas(prev))
+            setCommunitiesFavorite(prev => addVotesToIdeas(prev))
+            setMostCommented(prev => addVotesToIdeas(prev))
+            setIdeasByStatus(prev => ({
+              new: addVotesToIdeas(prev.new),
+              active_discussion: addVotesToIdeas(prev.active_discussion),
+              trending: addVotesToIdeas(prev.trending),
+              validated: addVotesToIdeas(prev.validated),
+            }))
           } catch (error) {
             console.error('Error fetching user votes:', error)
-            // Fallback: Set default userVotes for all ideas if there's an error
-            setIdeas(prev =>
-              prev.map(idea => ({
-                ...idea,
-                userVotes: {
-                  use: false,
-                  dislike: false,
-                  pay: false,
-                },
-              }))
-            )
-            setNewIdeas(prev =>
-              prev.map(idea => ({
-                ...idea,
-                userVotes: {
-                  use: false,
-                  dislike: false,
-                  pay: false,
-                },
-              }))
-            )
           }
         }
-
+      } catch (error) {
+        console.error('Error loading home feed:', error)
+      } finally {
         setLoading(false)
-        setInitialized(true)
-      })
-    }
-  }, [initialized, isAuthenticated])
-
-  const handleLoadMore = useCallback(async () => {
-    if (loading || !hasMore) return
-    setLoading(true)
-    try {
-      const loadedMoreIdeas = await ideaService.loadMoreIdeas(ideas.length)
-      if (loadedMoreIdeas.length === 0) {
-        setHasMore(false)
-      } else {
-        const existingIdeaIds = new Set(
-          [...ideas, ...newIdeas].map(idea => idea.id)
-        )
-        const filteredNewIdeas = loadedMoreIdeas.filter(
-          idea => !existingIdeaIds.has(idea.id)
-        )
-
-        if (filteredNewIdeas.length === 0) {
-          setHasMore(false)
-        } else {
-          if (isAuthenticated) {
-            try {
-              const newIdeaIds = filteredNewIdeas.map(idea => idea.id)
-              const votesMap =
-                await ideaService.getUserVotesForIdeas(newIdeaIds)
-              const newIdeasWithVotes = filteredNewIdeas.map(idea => ({
-                ...idea,
-                userVotes: votesMap[idea.id] || {
-                  use: false,
-                  dislike: false,
-                  pay: false,
-                },
-              }))
-              setIdeas(prev => [...prev, ...newIdeasWithVotes])
-            } catch (error) {
-              console.error('Error fetching user votes for new ideas:', error)
-              // Fallback: Set default userVotes for new ideas if there's an error
-              const newIdeasWithVotes = filteredNewIdeas.map(idea => ({
-                ...idea,
-                userVotes: {
-                  use: false,
-                  dislike: false,
-                  pay: false,
-                },
-              }))
-              setIdeas(prev => [...prev, ...newIdeasWithVotes])
-            }
-          } else {
-            setIdeas(prev => [...prev, ...filteredNewIdeas])
-          }
-        }
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [loading, hasMore, ideas.length, ideas, newIdeas, isAuthenticated])
-
-  useEffect(() => {
-    if (!initialized || !hasMore) return
-
-    const options = {
-      root: null,
-      rootMargin: '200px',
-      threshold: 0.1,
-    }
-
-    observerRef.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore && !loading) {
-        handleLoadMore()
-      }
-    }, options)
-
-    const currentRef = loadMoreRef.current
-    if (currentRef) {
-      observerRef.current.observe(currentRef)
-    }
-
-    return () => {
-      if (observerRef.current && currentRef) {
-        observerRef.current.unobserve(currentRef)
       }
     }
-  }, [initialized, hasMore, loading, handleLoadMore])
 
-  const filteredIdeas = ideas.filter(
-    idea =>
-      !search ||
-      idea.title.toLowerCase().includes(search.toLowerCase()) ||
-      idea.description.toLowerCase().includes(search.toLowerCase()) ||
-      idea.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
-  )
-
-  const filteredNewIdeas = newIdeas.filter(
-    idea =>
-      !search ||
-      idea.title.toLowerCase().includes(search.toLowerCase()) ||
-      idea.description.toLowerCase().includes(search.toLowerCase()) ||
-      idea.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
-  )
+    loadAllSections()
+  }, [isAuthenticated])
 
   return (
-    <main className="flex-1 w-full px-4 md:px-6 py-8 max-w-7xl mx-auto">
-      {/* <div className="mb-8">
-        <input
-          type="text"
-          placeholder="Search ideas by title, description, or tags..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full p-4 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent bg-background text-text-primary placeholder-text-secondary"
-        />
-      </div> */}
+    <main className="flex-1 w-full px-4 md:px-6 xl:px-8 py-8 max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1600px] mx-auto">
+      {/* Descubre algo nuevo - Recent ideas */}
+      <HorizontalScrollSection
+        title={t('home.discover_new')}
+        ideas={recentIdeas}
+        loading={loading}
+        visibleCards={3}
+        onIdeaHover={setHoveredIdeaId}
+        hoveredIdeaId={hoveredIdeaId}
+      />
 
-      {!initialized && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(i => (
-            <IdeaCardSkeleton key={`skeleton-${i}`} />
-          ))}
-        </div>
-      )}
+      {/* Destacados - Featured by score */}
+      <HorizontalScrollSection
+        title={t('home.featured')}
+        ideas={featuredIdeas}
+        loading={loading}
+        visibleCards={3}
+        onIdeaHover={setHoveredIdeaId}
+        hoveredIdeaId={hoveredIdeaId}
+      />
 
-      {initialized && (
-        <>
-          {filteredNewIdeas.length > 0 && (
-            <div className="mb-6 md:mb-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                {filteredNewIdeas.map((idea, index) => (
-                  <motion.div
-                    key={idea.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.03 }}
-                  >
-                    <IdeaCard
-                      idea={idea}
-                      variant="interactive"
-                      onMouseEnter={() => setHoveredIdeaId(idea.id)}
-                      onMouseLeave={() => setHoveredIdeaId(null)}
-                      initialUserVotes={idea.userVotes}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* Tendencias - Vertical lists by status */}
+      <TendenciesSection
+        title={t('home.trends')}
+        ideasByStatus={ideasByStatus}
+        loading={loading}
+        onIdeaHover={setHoveredIdeaId}
+        hoveredIdeaId={hoveredIdeaId}
+      />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            {filteredIdeas.map((idea, index) => (
-              <motion.div
-                key={idea.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.03 }}
-              >
-                <IdeaCard
-                  idea={idea}
-                  variant="interactive"
-                  onMouseEnter={() => setHoveredIdeaId(idea.id)}
-                  onMouseLeave={() => setHoveredIdeaId(null)}
-                  initialUserVotes={idea.userVotes}
-                />
-              </motion.div>
-            ))}
-            {loading &&
-              [1, 2].map(i => <IdeaCardSkeleton key={`loading-${i}`} />)}
-          </div>
+      {/* Communities' Favorite */}
+      <HorizontalScrollSection
+        title={t('home.communities_favorite')}
+        ideas={communitiesFavorite}
+        loading={loading}
+        visibleCards={2}
+        onIdeaHover={setHoveredIdeaId}
+        hoveredIdeaId={hoveredIdeaId}
+      />
 
-          <div ref={loadMoreRef} className="mt-8 h-4" />
-
-          {loading && (
-            <div className="mt-8 text-center">
-              <div className="text-text-secondary">
-                {t('status.loading_more_ideas')}
-              </div>
-            </div>
-          )}
-
-          {!hasMore && ideas.length > 0 && (
-            <div className="mt-8 text-center">
-              <div className="text-text-secondary">
-                {t('status.no_more_ideas')}
-              </div>
-            </div>
-          )}
-        </>
-      )}
+      {/* Most Commented */}
+      <HorizontalScrollSection
+        title={t('home.most_commented')}
+        ideas={mostCommented}
+        loading={loading}
+        visibleCards={3}
+        onIdeaHover={setHoveredIdeaId}
+        hoveredIdeaId={hoveredIdeaId}
+      />
     </main>
   )
 }
