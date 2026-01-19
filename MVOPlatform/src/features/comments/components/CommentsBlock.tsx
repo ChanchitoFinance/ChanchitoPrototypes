@@ -4,7 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import { ArrowUp } from 'lucide-react'
 import { Comment } from '@/core/types/comment'
-import { useAppSelector } from '@/core/lib/hooks'
+import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
+import { deductCredits } from '@/core/lib/slices/creditsSlice'
+import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import { commentService } from '@/core/lib/services/commentService'
 import {
   useTranslations,
@@ -39,11 +41,24 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
   const [replyText, setReplyText] = useState<Map<string, string>>(new Map())
   const { user, profile } = useAppSelector(state => state.auth)
   const { theme } = useAppSelector(state => state.theme)
+  const { plan, dailyCredits, usedCredits } = useAppSelector(
+    state => state.credits
+  )
+  const dispatch = useAppDispatch()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const newCommentRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false)
   const [mentionQuery, setMentionQuery] = useState('')
   const [mentionSuggestions, setMentionSuggestions] = useState<string[]>([])
+  const [showCreditConfirm, setShowCreditConfirm] = useState(false)
+  const [pendingCommentData, setPendingCommentData] = useState<{
+    commentText: string
+    mentionedPersonas: string[]
+    newCommentData: any
+    parentId?: string
+    authorName?: string
+    authorImage?: string
+  } | null>(null)
 
   useEffect(() => {
     loadComments()
@@ -265,6 +280,155 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
     })
   }
 
+  const handleCreditConfirm = async () => {
+    if (!pendingCommentData) return
+
+    setShowCreditConfirm(false)
+
+    try {
+      await dispatch(
+        deductCredits({ userId: user?.id || '', amount: 1 })
+      ).unwrap()
+
+      // Submit the comment after credit confirmation
+      setSubmitting(true)
+
+      let newCommentData
+      if (pendingCommentData.parentId) {
+        // This is a reply
+        newCommentData = await commentService.addComment(
+          ideaId,
+          pendingCommentData.commentText,
+          pendingCommentData.authorName || 'Anonymous',
+          pendingCommentData.authorImage,
+          pendingCommentData.parentId
+        )
+      } else {
+        // This is a main comment
+        newCommentData = await commentService.addComment(
+          ideaId,
+          pendingCommentData.commentText,
+          pendingCommentData.authorName || 'Anonymous',
+          pendingCommentData.authorImage,
+          undefined
+        )
+      }
+
+      const idea = await ideaService.getIdeaById(ideaId)
+      if (idea) {
+        await aiCommentService.handleMentionedPersonas(
+          idea,
+          comments,
+          newCommentData,
+          pendingCommentData.mentionedPersonas,
+          user?.id || '',
+          locale as 'en' | 'es'
+        )
+      }
+
+      // Refresh comments
+      const updatedComments = await commentService.getComments(ideaId)
+
+      if (user) {
+        const allCommentIds: string[] = []
+        const collectCommentIds = (comments: Comment[]) => {
+          comments.forEach(comment => {
+            allCommentIds.push(comment.id)
+            if (comment.replies) {
+              collectCommentIds(comment.replies)
+            }
+          })
+        }
+        collectCommentIds(updatedComments)
+
+        try {
+          const userVotes =
+            await commentService.getUserCommentVotes(allCommentIds)
+
+          const applyUserVotes = (comments: Comment[]): Comment[] => {
+            return comments.map(comment => ({
+              ...comment,
+              upvoted: userVotes[comment.id]?.upvoted || false,
+              downvoted: userVotes[comment.id]?.downvoted || false,
+              replies: comment.replies
+                ? applyUserVotes(comment.replies)
+                : undefined,
+            }))
+          }
+
+          const commentsWithVotes = applyUserVotes(updatedComments)
+          setComments(commentsWithVotes)
+        } catch (error) {
+          console.error('Error re-applying user comment votes:', error)
+          setComments(updatedComments)
+        }
+      } else {
+        setComments(updatedComments)
+      }
+
+      // Clear reply state if this was a reply
+      if (pendingCommentData.parentId) {
+        setReplyText(prev => {
+          const newMap = new Map(prev)
+          newMap.delete(pendingCommentData.parentId)
+          return newMap
+        })
+        setReplyingTo(null)
+
+        if (!expandedReplies.has(pendingCommentData.parentId)) {
+          setExpandedReplies(prev =>
+            new Set(prev).add(pendingCommentData.parentId)
+          )
+        }
+      }
+
+      // Clear the new comment field if this was a main comment
+      if (!pendingCommentData.parentId) {
+        setNewComment('')
+
+        const newCommentElement = updatedComments[0]
+        if (newCommentElement) {
+          setHighlightedCommentId(newCommentElement.id)
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              const commentElement = newCommentRefs.current.get(
+                newCommentElement.id
+              )
+              if (commentElement) {
+                const elementTop =
+                  commentElement.getBoundingClientRect().top +
+                  window.pageYOffset
+                window.scrollTo({
+                  top: elementTop - 100,
+                  behavior: 'smooth',
+                })
+                setTimeout(() => {
+                  setHighlightedCommentId(null)
+                }, 2000)
+              }
+            })
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Error processing AI mentions:', error)
+      if (
+        error instanceof Error &&
+        error.message === 'AI_DAILY_LIMIT_EXCEEDED'
+      ) {
+        toast.error(
+          t('ai.daily_limit_exceeded') ||
+            'AI model has reached daily usage peak. Please try again later.'
+        )
+      } else {
+        toast.error('Failed to process AI mentions')
+      }
+    } finally {
+      setPendingCommentData(null)
+      setSubmitting(false)
+    }
+  }
+
   const handleReplySubmit = async (parentId: string, e: React.FormEvent) => {
     e.preventDefault()
     const replyContent = replyText.get(parentId)?.trim()
@@ -275,16 +439,34 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
       return
     }
 
+    const authorName =
+      profile?.full_name ||
+      user?.user_metadata?.full_name ||
+      user?.email ||
+      'Anonymous'
+    const authorImage = user?.user_metadata?.avatar_url || undefined
+
+    const mentionedPersonas =
+      aiCommentService.extractMentionedPersonas(replyContent)
+
+    // Show credit confirmation modal before submitting the reply
+    if (mentionedPersonas.length > 0) {
+      setPendingCommentData({
+        commentText: replyContent,
+        mentionedPersonas,
+        newCommentData: null,
+        parentId,
+        authorName,
+        authorImage,
+      })
+      setShowCreditConfirm(true)
+      return
+    }
+
+    // If no AI mentions, submit directly
     setSubmitting(true)
     try {
-      const authorName =
-        profile?.full_name ||
-        user?.user_metadata?.full_name ||
-        user?.email ||
-        'Anonymous'
-      const authorImage = user?.user_metadata?.avatar_url || undefined
-
-      await commentService.addComment(
+      const newReplyData = await commentService.addComment(
         ideaId,
         replyContent,
         authorName,
@@ -372,69 +554,42 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
       return
     }
 
+    const authorName =
+      profile?.full_name ||
+      user?.user_metadata?.full_name ||
+      user?.email ||
+      'Anonymous'
+    const authorImage = user?.user_metadata?.avatar_url || undefined
+
+    const mentionedPersonas =
+      aiCommentService.extractMentionedPersonas(commentText)
+
+    // Show credit confirmation modal before submitting the comment
+    if (mentionedPersonas.length > 0) {
+      setPendingCommentData({
+        commentText,
+        mentionedPersonas,
+        newCommentData: null,
+        authorName,
+        authorImage,
+      })
+      setShowCreditConfirm(true)
+      return
+    }
+
+    // If no AI mentions, submit directly
     setSubmitting(true)
     setNewComment('')
 
     try {
-      const authorName =
-        profile?.full_name ||
-        user?.user_metadata?.full_name ||
-        user?.email ||
-        'Anonymous'
-      const authorImage = user?.user_metadata?.avatar_url || undefined
-
-      const mentionedPersonas =
-        aiCommentService.extractMentionedPersonas(commentText)
-
+      // Always submit as a new comment, not a reply, when using the main comment form
       const newCommentData = await commentService.addComment(
         ideaId,
         commentText,
         authorName,
         authorImage,
-        replyingTo || undefined
+        undefined // Always undefined for main comments
       )
-
-      // Try to handle AI mentions after comment is posted
-      if (mentionedPersonas.length > 0) {
-        try {
-          const idea = await ideaService.getIdeaById(ideaId)
-          if (idea) {
-            await aiCommentService.handleMentionedPersonas(
-              idea,
-              comments,
-              newCommentData,
-              mentionedPersonas,
-              user.id,
-              locale as 'en' | 'es'
-            )
-          }
-        } catch (aiError) {
-          console.error('AI service error:', aiError)
-
-          // Handle specific AI errors
-          if (
-            aiError instanceof Error &&
-            aiError.message === 'AI_DAILY_LIMIT_EXCEEDED'
-          ) {
-            toast.error(
-              t('ai.daily_limit_exceeded') ||
-                'AI model has reached daily usage peak. Please try again later.'
-            )
-          } else {
-            toast.error(
-              t('ai.service_unavailable') ||
-                'AI service is currently unavailable. Please try again later.'
-            )
-          }
-
-          // Note: Comment is already posted, but user is notified of AI failure
-        }
-      }
-
-      if (replyingTo) {
-        setReplyingTo(null)
-        setReplyText(new Map())
-      }
 
       const updatedComments = await commentService.getComments(ideaId)
 
@@ -541,9 +696,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
                       if (query.length > 0 && !query.includes(' ')) {
                         const matches = Object.entries(AI_PERSONA_HANDLES)
                           .filter(([_, handle]) =>
-                            handle
-                              .toLowerCase()
-                              .includes(`@${query.toLowerCase()}`)
+                            handle.toLowerCase().includes(query.toLowerCase())
                           )
                           .map(([_, handle]) => handle)
 
@@ -673,6 +826,21 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
           />
         </div>
       )}
+
+      {/* Credit Confirmation Modal for AI Mentions */}
+      <CreditConfirmationModal
+        isOpen={showCreditConfirm}
+        onClose={() => {
+          setShowCreditConfirm(false)
+          setPendingCommentData(null)
+        }}
+        onConfirm={handleCreditConfirm}
+        creditCost={1}
+        featureName="AI Persona mentions in comments"
+        hasCredits={plan === 'innovator' || dailyCredits - usedCredits >= 1}
+        isLastCredit={dailyCredits - usedCredits === 1}
+        showNoButton={false}
+      />
     </div>
   )
 }

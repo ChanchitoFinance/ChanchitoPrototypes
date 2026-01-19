@@ -26,6 +26,8 @@
     "checkout": "Pagar",
     "processing": "Procesando...",
     "cancel": "Cancelar",
+    "no": "No",
+    "yes": "Sí",
     "add": "Agregar",
     "edit": "Editar",
     "preview": "Vista Previa",
@@ -108,6 +110,17 @@
     "for_you_title": "Para Ti",
     "for_you_subtitle": "Ideas curadas especialmente para ti",
     "new_ideas": "Nuevas Ideas"
+  },
+  "home": {
+    "discover_new": "Descubre Algo Nuevo",
+    "featured": "Destacados",
+    "trends": "Tendencias",
+    "communities_favorite": "Favoritos de la Comunidad",
+    "most_commented": "Más Comentados",
+    "status_new": "Nuevas",
+    "status_active_discussion": "Discusión Activa",
+    "status_trending": "En Tendencia",
+    "status_validated": "Validadas"
   },
   "browse": {
     "dashboard": {
@@ -515,5 +528,70 @@
   "ai": {
     "daily_limit_exceeded": "El modelo de IA ha alcanzado el pico de uso diario. Por favor intenta de nuevo más tarde.",
     "service_unavailable": "El servicio de IA no está disponible actualmente. Por favor intenta de nuevo más tarde."
+  },
+  "ai_comments": {
+    "dialog_title": "Comentarios Generados por IA",
+    "question": "¿Te gustaría que tu idea reciba tres comentarios generados por IA dándote retroalimentación sobre tu idea?",
+    "explanation": "Estos comentarios proporcionan perspectivas diversas de las AI Personas para ayudarte a validar y mejorar tu idea antes de que vaya al público.",
+    "yes": "Sí (1 crédito)",
+    "no": "No",
+    "no_credits_title": "No Hay Créditos Disponibles",
+    "no_credits_message": "No tienes créditos en este momento. Puedes esperar hasta mañana para que se restablezcan tus créditos diarios, o actualizar tu plan para obtener más créditos.",
+    "wait_or_upgrade": "Esperar o Actualizar"
+  },
+  "credits": {
+    "remaining": "Créditos restantes",
+    "insufficient_title": "Créditos Insuficientes",
+    "insufficient_message": "Necesitas créditos para usar esta función. Actualiza tu plan para obtener más créditos.",
+    "upgrade_plan": "Actualizar Plan",
+    "plan_free": "Plan Gratuito",
+    "plan_pro": "Plan Pro",
+    "plan_premium": "Plan Premium",
+    "plan_innovator": "Plan Innovador",
+    "confirmation_title": "Confirmación de Créditos",
+    "confirmation_message": "Esto usará {cost} crédito(s) para {feature}. ¿Quieres continuar?",
+    "cost_display": "{cost} crédito(s)",
+    "last_credit_title": "Advertencia de Último Crédito",
+    "last_credit_message": "Este es tu último crédito diario. Después de usarlo, necesitarás esperar hasta mañana o actualizar tu plan para obtener más créditos."
+  },
+  "plans": {
+    "free": {
+      "name": "Gratuito",
+      "description": "Funciones básicas con 3 créditos diarios",
+      "features": ["Funciones básicas de IA", "Soporte comunitario"]
+    },
+    "pro": {
+      "name": "Pro",
+      "description": "Funciones avanzadas con 50 créditos diarios",
+      "features": [
+        "Funciones avanzadas de IA",
+        "Soporte prioritario",
+        "50 créditos diarios"
+      ]
+    },
+    "premium": {
+      "name": "Premium",
+      "description": "Todas las funciones con 250 créditos diarios",
+      "features": [
+        "Todas las funciones Pro",
+        "250 créditos diarios",
+        "Analíticas avanzadas"
+      ]
+    },
+    "innovator": {
+      "name": "Innovador",
+      "description": "Créditos ilimitados para innovadores",
+      "features": [
+        "Todas las funciones Premium",
+        "Créditos ilimitados",
+        "Colaboración en equipo"
+      ]
+    }
+  },
+  "payment": {
+    "success": "¡Pago exitoso!",
+    "error_creating_order": "Error al crear orden de pago",
+    "error_capturing": "Error al procesar pago",
+    "paypal_error": "Error de pago PayPal"
   }
 }

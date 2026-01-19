@@ -9,8 +9,14 @@
 
 // Server-side environment variables
 const rawServerEnv = {
-  stripeSecretKey: process.env.STRIPE_SECRET_KEY!,
+  nextAuthUrl: process.env.NEXTAUTH_URL || 'http://localhost:3000',
   supabaseStorageEndpoint: process.env.SUPABASE_STORAGE_ENDPOINT!,
+  paypalClientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
+  paypalEnvironment: process.env.NEXT_PUBLIC_PAYPAL_ENVIRONMENT!,
+  paypalClientSecret: process.env.PAYPAL_CLIENT_SECRET,
+  paypalMerchantId: process.env.PAYPAL_MERCHANT_ID,
+  paypalEnableFunding: process.env.PAYPAL_ENABLE_FUNDING,
+  paypalDisableFunding: process.env.PAYPAL_DISABLE_FUNDING,
   supabaseStorageRegion: process.env.SUPABASE_STORAGE_REGION!,
   supabaseStorageAccessKeyId: process.env.SUPABASE_STORAGE_ACCESS_KEY_ID!,
   supabaseStorageSecretAccessKey:
@@ -22,8 +28,12 @@ const rawServerEnv = {
 const rawClientEnv = {
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
   adminEmail: process.env.NEXT_PUBLIC_ADMIN_EMAIL!,
+  paypalClientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
+  paypalEnvironment: process.env.NEXT_PUBLIC_PAYPAL_ENVIRONMENT!,
+  paypalCurrency: process.env.NEXT_PUBLIC_PAYPAL_CURRENCY!,
+  paypalIntent: process.env.NEXT_PUBLIC_PAYPAL_INTENT!,
+  paypalLocale: process.env.NEXT_PUBLIC_PAYPAL_LOCALE!,
   geminiApiKey: process.env.GEMINI_API_KEY!,
   geminiModel: process.env.NEXT_PUBLIC_GEMINI_MODEL!,
 } as const

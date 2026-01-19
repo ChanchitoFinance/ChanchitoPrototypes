@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { RichContentEditor } from './RichContentEditor'
 import {
@@ -29,7 +29,9 @@ import {
   useTranslations,
 } from '@/shared/components/providers/I18nProvider'
 import { AIRiskFeedback } from '../../../ai/components/AIRiskFeedback'
-import { useAppSelector } from '@/core/lib/hooks'
+import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
+import { deductCredits } from '@/core/lib/slices/creditsSlice'
+import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import { supabase } from '@/core/lib/supabase'
 import { ideaService } from '@/core/lib/services/ideaService'
 import { Idea } from '@/core/types/idea'
@@ -90,10 +92,16 @@ export function IdeaForm({
   const [urlValidationError, setUrlValidationError] = useState<string | null>(
     null
   )
+  const [showAICommentsDialog, setShowAICommentsDialog] = useState(false)
+  const [wantAIComments, setWantAIComments] = useState<boolean | null>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
   const { profile, user } = useAppSelector(state => state.auth)
   const { isAuthenticated } = useAppSelector(state => state.auth)
+  const { plan, dailyCredits, usedCredits } = useAppSelector(
+    state => state.credits
+  )
+  const dispatch = useAppDispatch()
 
   const ideaSchema = z.object({
     title: z.string().min(10, t('validation.title_min_length')),
@@ -101,7 +109,7 @@ export function IdeaForm({
       .string()
       .optional()
       .refine(
-        (val) => {
+        val => {
           if (!val) return true
           const tags = val.split(',').filter(Boolean)
           return tags.length <= 3
@@ -384,14 +392,7 @@ export function IdeaForm({
         }
       }
     }
-  }, [
-    titleValue,
-    selectedTags,
-    contentBlocks,
-    heroImage,
-    heroVideo,
-    heroCrop,
-  ])
+  }, [titleValue, selectedTags, contentBlocks, heroImage, heroVideo, heroCrop])
 
   const addTag = () => {
     const tag = tagInput.trim()
@@ -534,8 +535,67 @@ export function IdeaForm({
       return
     }
 
+    // For new ideas, show AI comments dialog
+    if (!ideaId) {
+      setShowAICommentsDialog(true)
+      return
+    }
+
+    // For editing, proceed directly without AI comments
+    await proceedWithSubmission(data, false, validBlocks)
+  }
+
+  const handleAICommentsChoice = async (choice: boolean) => {
+    setShowAICommentsDialog(false)
+    // Get the form data
+    const data = watch()
+    // Filter valid blocks again
+    const validBlocks = contentBlocks.filter(block => {
+      if (block.type === 'heading') return block.text.trim().length > 0
+      if (block.type === 'text') return block.content.trim().length > 0
+      if (block.type === 'image') return block.src.trim().length > 0
+      if (block.type === 'video') return block.src.trim().length > 0
+      if (block.type === 'carousel')
+        return (
+          block.slides.length > 0 &&
+          block.slides.some(s => s.description.trim().length > 0)
+        )
+      if (block.type === 'button') return block.text.trim().length > 0
+      if (block.type === 'html') return block.content.trim().length > 0
+      return true // spacer blocks are always valid
+    })
+    await proceedWithSubmission(data, choice, validBlocks)
+  }
+
+  const proceedWithSubmission = async (
+    data: IdeaFormData,
+    wantAIComments: boolean,
+    validBlocks: ContentBlock[]
+  ) => {
     setIsSubmitting(true)
     setSubmitProgress('Preparing idea data...')
+
+    // Deduct credits if AI comments are requested
+    if (wantAIComments && user) {
+      const hasEnoughCredits =
+        plan === 'innovator' || dailyCredits - usedCredits >= 1
+      if (!hasEnoughCredits) {
+        toast.error(t('ai_comments.no_credits_message'))
+        setIsSubmitting(false)
+        setSubmitProgress('')
+        return
+      }
+
+      try {
+        await dispatch(deductCredits({ userId: user.id, amount: 1 })).unwrap()
+      } catch (error) {
+        console.error('Error deducting credits:', error)
+        toast.error('Failed to process credits')
+        setIsSubmitting(false)
+        setSubmitProgress('')
+        return
+      }
+    }
 
     try {
       setSubmitProgress('Processing content...')
@@ -677,7 +737,7 @@ export function IdeaForm({
         setShowHeroCrop(false)
       }
 
-      if (!ideaId && user) {
+      if (!ideaId && user && wantAIComments) {
         await aiCommentService.createInitialAIComments(
           resultIdea,
           user.id,
@@ -1305,6 +1365,31 @@ export function IdeaForm({
                 content={contentBlocks}
                 tags={selectedTags}
                 isAnonymous={isAnonymous}
+                onRequestFeedback={async () => {
+                  if (!user) return
+
+                  // Check credits
+                  const hasEnoughCredits =
+                    plan === 'innovator' || dailyCredits - usedCredits >= 1
+                  if (!hasEnoughCredits) {
+                    toast.error(
+                      'Insufficient credits. Upgrade your plan to continue using AI features.'
+                    )
+                    return
+                  }
+
+                  // Deduct credits
+                  try {
+                    await dispatch(
+                      deductCredits({ userId: user.id, amount: 1 })
+                    ).unwrap()
+                    // Now request the feedback
+                    // This will be handled by the AIRiskFeedback component's internal requestFeedback
+                  } catch (error) {
+                    console.error('Error deducting credits:', error)
+                    toast.error('Failed to process credits')
+                  }
+                }}
               />
             )}
 
@@ -1358,6 +1443,19 @@ export function IdeaForm({
           </div>
         </motion.form>
       </article>
+
+      {/* AI Comments Credit Confirmation Modal */}
+      <CreditConfirmationModal
+        isOpen={showAICommentsDialog}
+        onClose={() => setShowAICommentsDialog(false)}
+        onConfirm={() => handleAICommentsChoice(true)}
+        onNo={() => handleAICommentsChoice(false)}
+        creditCost={1}
+        featureName={t('ai_comments.dialog_title')}
+        hasCredits={plan === 'innovator' || dailyCredits - usedCredits >= 1}
+        isLastCredit={dailyCredits - usedCredits === 1}
+        showNoButton={true}
+      />
     </div>
   )
 }

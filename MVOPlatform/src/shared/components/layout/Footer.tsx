@@ -7,8 +7,8 @@ export function Footer() {
   const t = useTranslations()
   return (
     <footer className="bg-background mt-auto">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1800px] mx-auto px-6 xl:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-8 xl:gap-12">
           <div>
             <h3 className="text-lg font-semibold text-text-primary mb-4">
               {t('brand.full_name')}
@@ -71,9 +71,12 @@ export function Footer() {
               </li>
             </ul>
           </div>
+
+          {/* Extra space column for xl screens - hidden on smaller */}
+          <div className="hidden xl:block" />
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border-color text-center text-sm text-text-secondary">
+        <div className="mt-12 pt-8 border-t border-border-color text-center text-sm text-text-secondary xl:flex xl:items-center xl:justify-between">
           <p>
             &copy; {new Date().getFullYear()} {t('brand.full_name')}.{' '}
             {t('footer.copyright')}

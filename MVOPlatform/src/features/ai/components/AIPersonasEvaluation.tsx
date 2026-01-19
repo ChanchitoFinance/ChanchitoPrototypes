@@ -19,6 +19,9 @@ import {
   useLocale,
 } from '@/shared/components/providers/I18nProvider'
 import { AIPersonasRenderer } from '@/features/ai/components/AIPersonasRenderer'
+import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
+import { deductCredits } from '@/core/lib/slices/creditsSlice'
+import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import Image from 'next/image'
 
 interface AIPersonasEvaluationProps {
@@ -38,6 +41,18 @@ export function AIPersonasEvaluation({
   const [isExpanded, setIsExpanded] = useState(false)
   const [currentVersion, setCurrentVersion] = useState(1)
   const [totalVersions, setTotalVersions] = useState(0)
+  const [showCreditConfirm, setShowCreditConfirm] = useState(false)
+
+  const { profile, user } = useAppSelector(state => state.auth)
+  const { plan, dailyCredits, usedCredits } = useAppSelector(
+    state => state.credits
+  )
+  const dispatch = useAppDispatch()
+
+  const remainingCredits =
+    plan === 'innovator' ? Infinity : dailyCredits - usedCredits
+  const hasCredits = remainingCredits > 0
+  const isLastCredit = remainingCredits === 1
 
   useEffect(() => {
     const cachedFeedback = aiPersonasFeedbackStorage.getLatestFeedback(
@@ -152,7 +167,7 @@ export function AIPersonasEvaluation({
         <button
           onClick={() => {
             if (!feedback) {
-              requestFeedback()
+              setShowCreditConfirm(true)
             } else {
               setIsExpanded(!isExpanded)
             }
@@ -195,9 +210,32 @@ export function AIPersonasEvaluation({
         </button>
       </div>
 
+      {/* Credit Confirmation Modal */}
+      <CreditConfirmationModal
+        isOpen={showCreditConfirm}
+        onClose={() => setShowCreditConfirm(false)}
+        onConfirm={async () => {
+          setShowCreditConfirm(false)
+          try {
+            await dispatch(
+              deductCredits({ userId: user?.id || '', amount: 1 })
+            ).unwrap()
+            requestFeedback()
+          } catch (error) {
+            console.error('Error deducting credits:', error)
+          }
+        }}
+        creditCost={1}
+        featureName={t('ai_personas_evaluation.evaluation_title')}
+        hasCredits={hasCredits}
+        isLastCredit={isLastCredit}
+        showNoButton={false}
+      />
+
       <AnimatePresence mode="wait">
         {error && (
           <motion.div
+            key="error"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -205,7 +243,7 @@ export function AIPersonasEvaluation({
           >
             <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
             <button
-              onClick={requestFeedback}
+              onClick={() => setShowCreditConfirm(true)}
               className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
             >
               {t('ai_personas_evaluation.try_again')}
@@ -215,6 +253,7 @@ export function AIPersonasEvaluation({
 
         {feedback && isExpanded && (
           <motion.div
+            key="feedback"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -272,7 +311,7 @@ export function AIPersonasEvaluation({
 
               <div className="flex items-center gap-2 ml-auto">
                 <button
-                  onClick={requestFeedback}
+                  onClick={() => setShowCreditConfirm(true)}
                   disabled={loading}
                   className="px-4 py-2 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
                 >

@@ -56,6 +56,11 @@ export function IdeaCard({
   const { locale } = useLocale()
   const [currentIdea, setCurrentIdea] = useState(idea)
   const [isVoting, setIsVoting] = useState(false)
+
+  // Update currentIdea when idea prop changes (for media and other properties)
+  useEffect(() => {
+    setCurrentIdea(idea)
+  }, [idea])
   const [userVote, setUserVote] = useState<{
     use: boolean
     dislike: boolean

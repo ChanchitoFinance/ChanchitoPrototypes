@@ -26,7 +26,7 @@ export function BrowsePanel() {
   }
 
   return (
-    <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12">
+    <main className="flex-1 max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1800px] mx-auto w-full px-6 xl:px-8 py-12">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

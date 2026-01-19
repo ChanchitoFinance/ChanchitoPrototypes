@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '@/core/lib/store'
 import {
@@ -143,6 +144,21 @@ export default function SettingsPage() {
                 Español
               </Button>
             </div>
+          </div>
+
+          {/* Premium Plans */}
+          <div className="card-base">
+            <h2 className="text-lg font-semibold text-text-primary mb-4">
+              Subscription Plans
+            </h2>
+            <p className="text-sm text-text-secondary mb-4">
+              Upgrade your plan to unlock more AI features and credits
+            </p>
+            <Link href={`/${locale}/premium`}>
+              <Button variant="primary" className="w-full">
+                View Plans & Upgrade
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

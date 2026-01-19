@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Loader2,
@@ -10,6 +11,7 @@ import {
   History,
   RefreshCw,
   FileWarning,
+  Coins,
 } from 'lucide-react'
 import { AIFeedback } from '@/core/types/ai'
 import { aiFeedbackStorage } from '@/core/lib/services/aiFeedbackStorage'
@@ -19,6 +21,8 @@ import {
   useLocale,
 } from '@/shared/components/providers/I18nProvider'
 import { MarkdownRenderer } from '@/shared/components/ui/MarkdownRenderer'
+import { useAppSelector } from '@/core/lib/hooks'
+import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import Image from 'next/image'
 
 interface AIRiskFeedbackProps {
@@ -27,6 +31,7 @@ interface AIRiskFeedbackProps {
   content: ContentBlock[]
   tags: string[]
   isAnonymous: boolean
+  onRequestFeedback?: () => Promise<void>
 }
 
 export function AIRiskFeedback({
@@ -35,15 +40,26 @@ export function AIRiskFeedback({
   content,
   tags,
   isAnonymous,
+  onRequestFeedback,
 }: AIRiskFeedbackProps) {
   const t = useTranslations()
   const { locale } = useLocale()
+  const router = useRouter()
   const [feedback, setFeedback] = useState<AIFeedback | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
   const [currentVersion, setCurrentVersion] = useState(1)
   const [totalVersions, setTotalVersions] = useState(0)
+  const [showCreditConfirm, setShowCreditConfirm] = useState(false)
+
+  const { plan, dailyCredits, usedCredits } = useAppSelector(
+    state => state.credits
+  )
+  const remainingCredits =
+    plan === 'innovator' ? Infinity : dailyCredits - usedCredits
+  const hasCredits = remainingCredits > 0
+  const isLastCredit = remainingCredits === 1
 
   const shouldShow = title.length >= 10 && content.length > 0
 
@@ -166,9 +182,10 @@ export function AIRiskFeedback({
     <div className="mb-6">
       <div className="relative">
         <button
+          type="button"
           onClick={() => {
             if (!feedback) {
-              requestFeedback()
+              setShowCreditConfirm(true)
             } else {
               setIsExpanded(!isExpanded)
             }
@@ -185,11 +202,13 @@ export function AIRiskFeedback({
             ) : (
               <>
                 <span className="text-2xl">⚠️</span>
-                <span>
-                  {feedback
-                    ? t('ai_risk_feedback.view_analysis')
-                    : t('ai_risk_feedback.receive_feedback')}
-                </span>
+                <div className="flex flex-col items-center">
+                  <span>
+                    {feedback
+                      ? t('ai_risk_feedback.view_analysis')
+                      : t('ai_risk_feedback.receive_feedback')}
+                  </span>
+                </div>
                 {feedback && (
                   <motion.div
                     animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -214,9 +233,30 @@ export function AIRiskFeedback({
         </button>
       </div>
 
+      {/* Credit Confirmation Modal */}
+      <CreditConfirmationModal
+        isOpen={showCreditConfirm}
+        onClose={() => setShowCreditConfirm(false)}
+        onConfirm={async () => {
+          setShowCreditConfirm(false)
+          if (onRequestFeedback) {
+            await onRequestFeedback()
+            requestFeedback()
+          } else {
+            requestFeedback()
+          }
+        }}
+        creditCost={1}
+        featureName={t('ai_risk_feedback.risk_analysis')}
+        hasCredits={hasCredits}
+        isLastCredit={isLastCredit}
+        showNoButton={false}
+      />
+
       <AnimatePresence mode="wait">
         {error && (
           <motion.div
+            key="error"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -224,6 +264,7 @@ export function AIRiskFeedback({
           >
             <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
             <button
+              type="button"
               onClick={requestFeedback}
               className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
             >
@@ -234,6 +275,7 @@ export function AIRiskFeedback({
 
         {feedback && isExpanded && (
           <motion.div
+            key="feedback"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -269,6 +311,7 @@ export function AIRiskFeedback({
               {totalVersions > 1 && (
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={() =>
                       changeVersion(Math.max(1, currentVersion - 1))
                     }
@@ -278,6 +321,7 @@ export function AIRiskFeedback({
                     {t('ai_risk_feedback.previous')}
                   </button>
                   <button
+                    type="button"
                     onClick={() =>
                       changeVersion(Math.min(totalVersions, currentVersion + 1))
                     }
@@ -291,7 +335,8 @@ export function AIRiskFeedback({
 
               <div className="flex items-center gap-2 ml-auto">
                 <button
-                  onClick={requestFeedback}
+                  type="button"
+                  onClick={() => setShowCreditConfirm(true)}
                   disabled={loading}
                   className="px-4 py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
                 >
@@ -303,6 +348,7 @@ export function AIRiskFeedback({
                   {t('ai_risk_feedback.re_analyze')}
                 </button>
                 <button
+                  type="button"
                   onClick={clearAllFeedback}
                   className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center gap-2"
                 >
