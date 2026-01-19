@@ -28,9 +28,6 @@ export function validateEnvironmentVariables() {
 
     // Use process.env directly for validation (matches schema keys)
     const envVarsForValidation = {
-      STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
-      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
-        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       SUPABASE_STORAGE_ENDPOINT: process.env.SUPABASE_STORAGE_ENDPOINT,
@@ -42,6 +39,17 @@ export function validateEnvironmentVariables() {
       SUPABASE_STORAGE_BUCKET_NAME: process.env.SUPABASE_STORAGE_BUCKET_NAME,
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
       NEXT_PUBLIC_GEMINI_MODEL: process.env.NEXT_PUBLIC_GEMINI_MODEL,
+      SERPAPI_API_KEY: process.env.SERPAPI_API_KEY,
+      NEXT_PUBLIC_PAYPAL_CLIENT_ID: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
+      NEXT_PUBLIC_PAYPAL_ENVIRONMENT:
+        process.env.NEXT_PUBLIC_PAYPAL_ENVIRONMENT,
+      NEXT_PUBLIC_PAYPAL_CURRENCY: process.env.NEXT_PUBLIC_PAYPAL_CURRENCY,
+      NEXT_PUBLIC_PAYPAL_INTENT: process.env.NEXT_PUBLIC_PAYPAL_INTENT,
+      NEXT_PUBLIC_PAYPAL_LOCALE: process.env.NEXT_PUBLIC_PAYPAL_LOCALE,
+      PAYPAL_CLIENT_SECRET: process.env.PAYPAL_CLIENT_SECRET,
+      PAYPAL_MERCHANT_ID: process.env.PAYPAL_MERCHANT_ID,
+      PAYPAL_ENABLE_FUNDING: process.env.PAYPAL_ENABLE_FUNDING,
+      PAYPAL_DISABLE_FUNDING: process.env.PAYPAL_DISABLE_FUNDING,
     }
 
     // Load schema from config directory

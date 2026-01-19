@@ -239,12 +239,12 @@ export function AIPersonasEvaluation({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+            className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg"
           >
             <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
             <button
               onClick={() => setShowCreditConfirm(true)}
-              className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
+              className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline font-medium"
             >
               {t('ai_personas_evaluation.try_again')}
             </button>
@@ -258,17 +258,17 @@ export function AIPersonasEvaluation({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="mt-4 space-y-4 p-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-purple-400"
+            className="mt-4 space-y-4 p-6 bg-white dark:bg-gray-800 rounded-lg border-2 border-purple-400 shadow-lg"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-purple-500" />
-                <h4 className="font-semibold text-text-primary">
+                <h4 className="font-semibold text-gray-900 dark:text-white">
                   {t('ai_personas_evaluation.evaluation_title')}
                 </h4>
               </div>
               {totalVersions > 1 && (
-                <div className="flex items-center gap-2 text-sm text-text-secondary">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <History className="w-4 h-4" />
                   <span>
                     {t('ai_personas_evaluation.version')} {currentVersion}{' '}
@@ -278,10 +278,10 @@ export function AIPersonasEvaluation({
               )}
             </div>
 
-            <div className="p-4 bg-white dark:bg-gray-800 rounded-lg">
+            <div className="p-4 bg-purple-50 dark:bg-gray-900 rounded-lg border border-purple-200 dark:border-gray-700">
               <AIPersonasRenderer
                 content={feedback.conversation}
-                className="text-gray-700 dark:text-gray-300"
+                className="text-gray-800 dark:text-gray-200"
               />
             </div>
 
@@ -293,7 +293,7 @@ export function AIPersonasEvaluation({
                       changeVersion(Math.max(1, currentVersion - 1))
                     }
                     disabled={currentVersion === 1}
-                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-text-primary rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
                     {t('ai_personas_evaluation.previous')}
                   </button>
@@ -302,7 +302,7 @@ export function AIPersonasEvaluation({
                       changeVersion(Math.min(totalVersions, currentVersion + 1))
                     }
                     disabled={currentVersion === totalVersions}
-                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-text-primary rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
                     {t('ai_personas_evaluation.next')}
                   </button>

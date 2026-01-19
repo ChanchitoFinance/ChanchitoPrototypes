@@ -29,6 +29,7 @@ import {
   useTranslations,
 } from '@/shared/components/providers/I18nProvider'
 import { AIRiskFeedback } from '../../../ai/components/AIRiskFeedback'
+import { AIDeepResearch } from '../../../ai/components/AIDeepResearch'
 import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
 import { deductCredits } from '@/core/lib/slices/creditsSlice'
 import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
@@ -1352,6 +1353,43 @@ export function IdeaForm({
               </div>
             </motion.label>
           </div>
+
+          {isAuthenticated &&
+            titleValue &&
+            titleValue.length >= 10 &&
+            selectedTags.length > 0 && (
+              <AIDeepResearch
+                title={titleValue}
+                description={
+                  contentBlocks.find(b => b.type === 'text')?.content || ''
+                }
+                content={contentBlocks}
+                tags={selectedTags}
+                onRequestResearch={async () => {
+                  if (!user) return
+
+                  // Check credits (Deep Research costs 5 credits)
+                  const hasEnoughCredits =
+                    plan === 'innovator' || dailyCredits - usedCredits >= 5
+                  if (!hasEnoughCredits) {
+                    toast.error(
+                      'Insufficient credits. Deep Research requires 5 credits.'
+                    )
+                    return
+                  }
+
+                  // Deduct credits
+                  try {
+                    await dispatch(
+                      deductCredits({ userId: user.id, amount: 5 })
+                    ).unwrap()
+                  } catch (error) {
+                    console.error('Error deducting credits:', error)
+                    toast.error('Failed to process credits')
+                  }
+                }}
+              />
+            )}
 
           {isAuthenticated &&
             titleValue &&

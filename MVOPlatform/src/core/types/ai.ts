@@ -28,6 +28,40 @@ export interface AIPersonaFeedback {
   timestamp: Date
 }
 
+// Deep Research Types
+export interface GoogleSearchResult {
+  position: number
+  title: string
+  link: string
+  snippet: string
+  displayedLink?: string
+  date?: string
+}
+
+export interface GoogleTrendsData {
+  query: string
+  date: string
+  value: number
+  extractedValue: number
+}
+
+export interface BingSearchResult {
+  position: number
+  title: string
+  link: string
+  snippet: string
+  displayedLink?: string
+  date?: string
+}
+
+export interface DeepResearchResult {
+  googleResults: GoogleSearchResult[]
+  googleTrends: GoogleTrendsData[]
+  bingResults: BingSearchResult[]
+  aiSummary: string
+  timestamp: Date
+}
+
 export const AI_PERSONAS: Record<AIPersonaType, AIPersona> = {
   technical: {
     id: 'technical',

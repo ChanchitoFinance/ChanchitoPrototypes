@@ -227,9 +227,6 @@ export function AIRiskFeedback({
             height={80}
             className="absolute -top-5 right-4 w-25 h-25"
           />
-          {/* <div className=" bg-white rounded-full shadow-xl border-4 border-yellow-400 overflow-hidden">
-           
-          </div> */}
         </button>
       </div>
 
@@ -260,13 +257,13 @@ export function AIRiskFeedback({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+            className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg"
           >
             <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
             <button
               type="button"
               onClick={requestFeedback}
-              className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
+              className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline font-medium"
             >
               {t('ai_risk_feedback.try_again')}
             </button>
@@ -280,17 +277,17 @@ export function AIRiskFeedback({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="mt-4 space-y-4 p-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-yellow-400"
+            className="mt-4 space-y-4 p-6 bg-white dark:bg-gray-800 rounded-lg border-2 border-yellow-400 shadow-lg"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🛡️</span>
-                <h4 className="font-semibold text-text-primary">
+                <h4 className="font-semibold text-gray-900 dark:text-white">
                   {t('ai_risk_feedback.risk_analysis')}
                 </h4>
               </div>
               {totalVersions > 1 && (
-                <div className="flex items-center gap-2 text-sm text-text-secondary">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <History className="w-4 h-4" />
                   <span>
                     {t('ai_risk_feedback.version')} {currentVersion}{' '}
@@ -300,10 +297,10 @@ export function AIRiskFeedback({
               )}
             </div>
 
-            <div className="p-4 bg-white dark:bg-gray-800 rounded-lg">
+            <div className="p-4 bg-yellow-50 dark:bg-gray-900 rounded-lg border border-yellow-200 dark:border-gray-700">
               <MarkdownRenderer
                 content={feedback.feedback}
-                className="text-gray-700 dark:text-gray-300"
+                className="text-gray-800 dark:text-gray-200"
               />
             </div>
 
@@ -316,7 +313,7 @@ export function AIRiskFeedback({
                       changeVersion(Math.max(1, currentVersion - 1))
                     }
                     disabled={currentVersion === 1}
-                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-text-primary rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
                     {t('ai_risk_feedback.previous')}
                   </button>
@@ -326,7 +323,7 @@ export function AIRiskFeedback({
                       changeVersion(Math.min(totalVersions, currentVersion + 1))
                     }
                     disabled={currentVersion === totalVersions}
-                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-text-primary rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
                     {t('ai_risk_feedback.next')}
                   </button>
@@ -338,7 +335,7 @@ export function AIRiskFeedback({
                   type="button"
                   onClick={() => setShowCreditConfirm(true)}
                   disabled={loading}
-                  className="px-4 py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
+                  className="px-4 py-2 text-sm bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
