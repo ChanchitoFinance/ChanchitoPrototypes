@@ -30,6 +30,8 @@ import { Button } from '@/shared/components/ui/Button'
 import { IdeaAnalytics } from './IdeaAnalytics'
 import { toast } from 'sonner'
 import { AIPersonasEvaluation } from '@/features/ai/components/AIPersonasEvaluation'
+import { AIDeepResearch } from '@/features/ai/components/AIDeepResearch'
+import { deductCredits } from '@/core/lib/slices/creditsSlice'
 
 interface IdeaDetailProps {
   ideaId: string
@@ -54,6 +56,9 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   const commentsSectionRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const { isAuthenticated, user } = useAppSelector(state => state.auth)
+  const { dailyCredits, usedCredits, plan } = useAppSelector(
+    state => state.credits
+  )
 
   const handleBack = () => {
     // Get the previous path from sessionStorage (set when navigating to idea)
@@ -407,14 +412,54 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         )}
 
         {isOwner && ideaData && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              <AIPersonasEvaluation idea={ideaData} comments={comments} />
-            </motion.div>
-          )}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            <AIDeepResearch
+              title={ideaData.title}
+              description={
+                ideaData.content?.find(b => b.type === 'text')?.content || ''
+              }
+              content={ideaData.content || []}
+              tags={ideaData.tags}
+              onRequestResearch={async () => {
+                if (!user) return
+
+                // Check credits (Deep Research costs 5 credits)
+                const hasEnoughCredits =
+                  plan === 'innovator' || dailyCredits - usedCredits >= 5
+                if (!hasEnoughCredits) {
+                  toast.error(
+                    'Insufficient credits. Deep Research requires 5 credits.'
+                  )
+                  return
+                }
+
+                // Deduct credits
+                try {
+                  await dispatch(
+                    deductCredits({ userId: user.id, amount: 5 })
+                  ).unwrap()
+                } catch (error) {
+                  console.error('Error deducting credits:', error)
+                  toast.error('Failed to process credits')
+                }
+              }}
+            />
+          </motion.div>
+        )}
+
+        {isOwner && ideaData && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <AIPersonasEvaluation idea={ideaData} comments={comments} />
+          </motion.div>
+        )}
       </article>
     </div>
   )

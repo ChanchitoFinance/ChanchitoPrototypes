@@ -66,11 +66,7 @@ export function AIDeepResearch({
   const hasCredits = remainingCredits >= 5
   const isLastCredits = remainingCredits >= 5 && remainingCredits < 10
 
-  const shouldShow = title.length >= 10 && tags.length > 0
-
   useEffect(() => {
-    if (!shouldShow) return
-
     const cachedResearch = deepResearchStorage.getLatestResearch(
       title,
       description || '',
@@ -89,11 +85,9 @@ export function AIDeepResearch({
       setTotalVersions(history.versions.length)
       setCurrentVersion(history.currentVersion)
     }
-  }, [title, description, content.length, tags, shouldShow])
+  }, [title, description, content.length, tags])
 
   const requestResearch = async () => {
-    if (!shouldShow) return
-
     setLoading(true)
     setError(null)
 
@@ -231,10 +225,6 @@ export function AIDeepResearch({
       </div>
     </div>
   )
-
-  if (!shouldShow) {
-    return null
-  }
 
   return (
     <div className="mb-6">
