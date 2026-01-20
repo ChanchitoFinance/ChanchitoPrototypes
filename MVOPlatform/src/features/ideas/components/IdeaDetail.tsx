@@ -190,6 +190,16 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     }
   }
 
+  const handleEdit = () => {
+    if (ideaData) {
+      router.push(`/${locale}/edit/${ideaData.id}`)
+    }
+  }
+
+  // Use the original 'idea' state for ownership check, not 'ideaData'
+  // because ideaData may come from Redux currentIdea which doesn't include creatorEmail after voting
+  const isOwner = isAuthenticated && user?.email === idea?.creatorEmail
+
   if (loading) {
     return <IdeaDetailSkeleton />
   }
@@ -339,6 +349,8 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           onLike={handleLike}
           onCommentsClick={handleCommentsClick}
           isVoting={isVoting}
+          isOwner={isOwner}
+          onEdit={handleEdit}
         />
 
         {/* Rich Content - filter out hero media if it's the first block */}
@@ -389,14 +401,12 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
             <IdeaAnalytics
               ideaId={ideaId}
               idea={ideaData}
-              isOwner={user?.email === ideaData.creatorEmail}
+              isOwner={isOwner}
             />
           </motion.div>
         )}
 
-        {isAuthenticated &&
-          ideaData &&
-          user?.email === ideaData.creatorEmail && (
+        {isOwner && ideaData && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
