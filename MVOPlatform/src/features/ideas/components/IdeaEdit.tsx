@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   useTranslations,
   useLocale,
@@ -16,6 +16,8 @@ interface IdeaEditProps {
   ideaId: string
 }
 
+export type EditMode = 'edit' | 'new-version'
+
 export function IdeaEdit({ ideaId }: IdeaEditProps) {
   const t = useTranslations()
   const { locale } = useLocale()
@@ -23,9 +25,13 @@ export function IdeaEdit({ ideaId }: IdeaEditProps) {
     state => state.auth
   )
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [idea, setIdea] = useState<Idea | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthorized, setIsAuthorized] = useState(false)
+
+  // Get edit mode from URL params
+  const mode: EditMode = searchParams.get('mode') === 'new-version' ? 'new-version' : 'edit'
 
   // Load idea and check ownership
   useEffect(() => {
@@ -87,5 +93,5 @@ export function IdeaEdit({ ideaId }: IdeaEditProps) {
     )
   }
 
-  return <IdeaForm ideaId={ideaId} />
+  return <IdeaForm ideaId={ideaId} isNewVersion={mode === 'new-version'} />
 }

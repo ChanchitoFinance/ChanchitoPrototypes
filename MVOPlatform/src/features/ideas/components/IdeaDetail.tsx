@@ -6,7 +6,10 @@ import { User, Calendar, ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { formatDate } from '@/core/lib/utils/date'
-import { Idea } from '@/core/types/idea'
+import { Idea, IdeaVersionGroup } from '@/core/types/idea'
+import { VersionSelectionModal } from './VersionSelectionModal'
+import { VersionIndicator } from './VersionIndicator'
+import { VersionHistoryPanel } from './VersionHistoryPanel'
 import { Comment } from '@/core/types/comment'
 import { ideaService } from '@/core/lib/services/ideaService'
 import { commentService } from '@/core/lib/services/commentService'
@@ -48,6 +51,10 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     video?: string
     image?: string
   }>({})
+  const [showVersionModal, setShowVersionModal] = useState(false)
+  const [versionGroup, setVersionGroup] = useState<IdeaVersionGroup | null>(
+    null
+  )
   const dispatch = useAppDispatch()
   const { currentIdea, userVotes, isVoting } = useAppSelector(
     state => state.ideas
@@ -121,6 +128,22 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
       fetchComments()
     }
   }, [ideaId])
+
+  // Fetch version group for owners
+  useEffect(() => {
+    if (isAuthenticated && idea?.creatorEmail === user?.email && ideaId) {
+      const fetchVersionGroup = async () => {
+        try {
+          const group = await ideaService.getVersionGroup(ideaId)
+          setVersionGroup(group)
+        } catch (error) {
+          console.error('Error fetching version group:', error)
+        }
+      }
+
+      fetchVersionGroup()
+    }
+  }, [ideaId, isAuthenticated, idea?.creatorEmail, user?.email])
 
   const ideaData = currentIdea || idea
 
@@ -197,8 +220,47 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
 
   const handleEdit = () => {
     if (ideaData) {
+      // If there are multiple versions, show the version selection modal
+      if (versionGroup && versionGroup.totalVersions > 1) {
+        setShowVersionModal(true)
+      } else {
+        // Single version or no version info - show modal to allow creating new version
+        setShowVersionModal(true)
+      }
+    }
+  }
+
+  const handleEditCurrentVersion = () => {
+    if (ideaData) {
       router.push(`/${locale}/edit/${ideaData.id}`)
     }
+  }
+
+  const handleCreateNewVersion = () => {
+    if (ideaData) {
+      router.push(`/${locale}/edit/${ideaData.id}?mode=new-version`)
+    }
+  }
+
+  const handleSetActiveVersion = async (versionId: string) => {
+    try {
+      await ideaService.setActiveVersion(versionId)
+      // Refresh version group
+      const group = await ideaService.getVersionGroup(ideaId)
+      setVersionGroup(group)
+      toast.success(t('versioning.version_activated'))
+    } catch (error) {
+      console.error('Error setting active version:', error)
+      toast.error(t('messages.error_occurred'))
+    }
+  }
+
+  const handleViewVersion = (versionId: string) => {
+    router.push(`/${locale}/ideas/${versionId}`)
+  }
+
+  const handleEditVersion = (versionId: string) => {
+    router.push(`/${locale}/edit/${versionId}`)
   }
 
   // Use the original 'idea' state for ownership check, not 'ideaData'
@@ -300,16 +362,27 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
                 </span>
               ))}
             </div>
-            <h1
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 drop-shadow-lg break-words"
-              style={{
-                overflowWrap: 'break-word',
-                wordBreak: 'break-word',
-                maxWidth: '100%',
-              }}
-            >
-              {idea.title}
-            </h1>
+            <div className="flex items-center gap-3 mb-3 sm:mb-4">
+              <h1
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-lg break-words"
+                style={{
+                  overflowWrap: 'break-word',
+                  wordBreak: 'break-word',
+                  maxWidth: '100%',
+                }}
+              >
+                {idea.title}
+              </h1>
+              {isOwner && idea.versionNumber && (
+                <VersionIndicator
+                  versionNumber={idea.versionNumber}
+                  isActiveVersion={idea.isActiveVersion ?? true}
+                  totalVersions={versionGroup?.totalVersions}
+                  onClick={() => setShowVersionModal(true)}
+                  size="md"
+                />
+              )}
+            </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-white text-sm md:text-base">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 {!idea.anonymous && (
@@ -356,6 +429,8 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           isVoting={isVoting}
           isOwner={isOwner}
           onEdit={handleEdit}
+          versionNumber={idea.versionNumber}
+          showVersionBadge={isOwner && (versionGroup?.totalVersions ?? 0) > 1}
         />
 
         {/* Rich Content - filter out hero media if it's the first block */}
@@ -396,6 +471,23 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           <CommentsBlock ideaId={ideaId} />
         </motion.div>
 
+        {/* Version History Panel - Only show for idea owner with multiple versions */}
+        {isOwner && versionGroup && versionGroup.totalVersions > 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+          >
+            <VersionHistoryPanel
+              versions={versionGroup.versions}
+              currentVersionId={ideaId}
+              onSetActive={handleSetActiveVersion}
+              onViewVersion={handleViewVersion}
+              onEditVersion={handleEditVersion}
+            />
+          </motion.div>
+        )}
+
         {/* Idea Analytics Section - Only show for idea owner */}
         {isAuthenticated && ideaData && (
           <motion.div
@@ -403,11 +495,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <IdeaAnalytics
-              ideaId={ideaId}
-              idea={ideaData}
-              isOwner={isOwner}
-            />
+            <IdeaAnalytics ideaId={ideaId} idea={ideaData} isOwner={isOwner} />
           </motion.div>
         )}
 
@@ -461,6 +549,18 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           </motion.div>
         )}
       </article>
+
+      {/* Version Selection Modal */}
+      {isOwner && (
+        <VersionSelectionModal
+          isOpen={showVersionModal}
+          onClose={() => setShowVersionModal(false)}
+          currentVersionNumber={idea.versionNumber ?? 1}
+          totalVersions={versionGroup?.totalVersions ?? 1}
+          onEditCurrent={handleEditCurrentVersion}
+          onCreateNewVersion={handleCreateNewVersion}
+        />
+      )}
     </div>
   )
 }

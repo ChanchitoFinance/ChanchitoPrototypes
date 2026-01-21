@@ -145,6 +145,5 @@ Next.js App Router structure for routing and page definitions.
 - **State Management**: Redux Toolkit
 - **Database**: Supabase
 - **Authentication**: Supabase Auth
-- **Payments**: Stripe
 - **File Storage**: AWS S3 via Supabase Storage
 - **Architecture Pattern**: Feature-Based Architecture

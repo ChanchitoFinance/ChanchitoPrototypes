@@ -617,5 +617,30 @@
     "error_creating_order": "Error creating payment order",
     "error_capturing": "Error processing payment",
     "paypal_error": "PayPal payment error"
+  },
+  "versioning": {
+    "version": "Version",
+    "version_number": "v{number}",
+    "current_version": "Current Version",
+    "active_version": "Active (Public)",
+    "inactive_version": "Inactive",
+    "create_new_version": "Create New Version",
+    "edit_current": "Edit Current Version",
+    "edit_modal_title": "Edit Options",
+    "edit_modal_description": "Choose how you want to make changes to your idea",
+    "edit_current_description": "Make changes to version {number}",
+    "create_new_description": "Create version {number} with fresh votes and comments",
+    "set_as_active": "Set as Active",
+    "set_active_confirm": "Make this the public version?",
+    "set_active_description": "Version {number} will be shown to all users in search, home, and idea listings",
+    "version_history": "Version History",
+    "versions_count": "{count} versions",
+    "created_on": "Created {date}",
+    "version_stats": "{votes} votes, {comments} comments",
+    "view_version": "View",
+    "edit_version": "Edit",
+    "new_version_created": "New version created successfully!",
+    "version_activated": "Version {number} is now the public version",
+    "no_other_versions": "This is the only version of this idea"
   }
 }

@@ -67,9 +67,7 @@ export function UserAnalytics() {
     try {
       setLoading(true)
       setError(null)
-      console.log('Loading analytics...')
       const analytics = await ideaService.getUserIdeasAnalytics()
-      console.log('Loaded analytics:', analytics)
       setData(analytics)
     } catch (err) {
       console.error('Error loading analytics:', err)

@@ -39,9 +39,7 @@ export function UserIdeasList() {
       setLoading(true)
       setError(null)
 
-      console.log('Loading user ideas...')
       const userIdeas = await ideaService.getUserIdeas()
-      console.log('Loaded user ideas:', userIdeas.length, userIdeas)
 
       // Fetch user votes for the ideas if authenticated
       if (isAuthenticated && userIdeas.length > 0) {

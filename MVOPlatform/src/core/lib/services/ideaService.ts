@@ -3,7 +3,7 @@
  * Provides a service interface that can be easily swapped for API calls
  */
 
-import { Idea } from '@/core/types/idea'
+import { Idea, IdeaVersionInfo, IdeaVersionGroup } from '@/core/types/idea'
 import { ContentBlock } from '@/core/types/content'
 import {
   supabase,
@@ -27,6 +27,9 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -45,6 +48,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
       .order('created_at', { ascending: false })
       .range(offset, limit ? offset + limit - 1 : undefined)
 
@@ -64,6 +68,9 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -105,6 +112,9 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -123,6 +133,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
       .eq('status_flag', 'trending')
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -143,6 +154,9 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -161,6 +175,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
       .neq('status_flag', 'validated')
       .order('created_at', { ascending: false })
       .limit(limit * 10) // Fetch more to filter later
@@ -192,6 +207,9 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -210,6 +228,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
       .eq('status_flag', 'new')
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -230,6 +249,9 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -248,6 +270,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
       .order('created_at', { ascending: false })
       .limit(limit)
 
@@ -267,6 +290,9 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -285,6 +311,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
       .order('created_at', { ascending: false })
       .limit(limit * 3)
 
@@ -312,6 +339,9 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -330,6 +360,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
       .eq('status_flag', statusFlag)
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -350,6 +381,9 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -368,6 +402,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
       .order('created_at', { ascending: false })
       .limit(limit * 3)
 
@@ -396,6 +431,9 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -414,6 +452,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
       .order('created_at', { ascending: false })
       .limit(limit * 3)
 
@@ -438,6 +477,9 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -456,6 +498,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
       .neq('status_flag', 'validated')
       .order('created_at', { ascending: false })
       .range(offset, limit ? offset + limit - 1 : undefined)
@@ -479,6 +522,9 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -497,6 +543,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
       .neq('status_flag', 'validated')
       .order('created_at', { ascending: false })
       .limit(fetchLimit)
@@ -889,10 +936,12 @@ class SupabaseIdeaService implements IIdeaService {
         content,
         created_at,
         anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
@@ -907,6 +956,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
       .order('created_at', { ascending: false })
       .limit(fetchLimit)
     if (error) throw error
@@ -993,9 +1043,6 @@ class SupabaseIdeaService implements IIdeaService {
     // Use optimized RPC function for batch fetch
     const votes = await getUserVotesForIdeasRPC(ideaIds)
 
-    // Debug: Log the raw RPC response
-    console.log('Raw RPC response for user votes:', votes)
-
     // Ensure the response is properly formatted
     if (!votes || typeof votes !== 'object') {
       console.warn('Invalid votes response format, returning empty object')
@@ -1025,7 +1072,6 @@ class SupabaseIdeaService implements IIdeaService {
       }
     }
 
-    console.log('Processed votes result:', result)
     return result
   }
 
@@ -1047,21 +1093,12 @@ class SupabaseIdeaService implements IIdeaService {
     }
 
     const user = session.user
-    console.log('getUserIdeas - Supabase user ID:', user.id)
-    console.log('getUserIdeas - Querying ideas for creator_id:', user.id)
-    console.log('getUserIdeas - User object:', JSON.stringify(user, null, 2))
 
     // Call getUserIdeasAnalytics to get the data, then extract just the ideas
     try {
       const analyticsData = await this.getUserIdeasAnalytics()
-      console.log(
-        'getUserIdeas - Analytics data received:',
-        analyticsData.totalIdeas,
-        'ideas'
-      )
 
       if (analyticsData.totalIdeas === 0) {
-        console.log('getUserIdeas - No ideas found via analytics method')
         return []
       }
 
@@ -1082,19 +1119,8 @@ class SupabaseIdeaService implements IIdeaService {
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )
 
-      console.log(
-        'getUserIdeas - Unique sorted ideas:',
-        uniqueIdeas.length,
-        uniqueIdeas
-      )
-
       // Apply limit if specified
       const limitedIdeas = limit ? uniqueIdeas.slice(0, limit) : uniqueIdeas
-      console.log(
-        'getUserIdeas - Final result:',
-        limitedIdeas.length,
-        limitedIdeas
-      )
 
       return limitedIdeas
     } catch (error) {
@@ -1115,8 +1141,7 @@ class SupabaseIdeaService implements IIdeaService {
           created_at,
           users!ideas_creator_id_fkey (
             username,
-            full_name,
-            email
+            full_name
           ),
           idea_votes (
             vote_type
@@ -1141,11 +1166,6 @@ class SupabaseIdeaService implements IIdeaService {
       }
 
       const mappedIdeas = data?.map(this.mapDbIdeaToIdea) || []
-      console.log(
-        'getUserIdeas - Mapped ideas from direct query:',
-        mappedIdeas.length,
-        mappedIdeas
-      )
 
       return mappedIdeas
     }
@@ -1169,15 +1189,6 @@ class SupabaseIdeaService implements IIdeaService {
     }
 
     const user = session.user
-    console.log('getUserIdeasAnalytics - Supabase user ID:', user.id)
-    console.log(
-      'getUserIdeasAnalytics - Querying analytics for creator_id:',
-      user.id
-    )
-    console.log(
-      'getUserIdeasAnalytics - User object:',
-      JSON.stringify(user, null, 2)
-    )
 
     const { data: ideas, error } = await supabase
       .from('ideas')
@@ -1209,15 +1220,8 @@ class SupabaseIdeaService implements IIdeaService {
       .eq('creator_id', user.id)
       .order('created_at', { ascending: false })
 
-    console.log('getUserIdeasAnalytics - Raw query result:', {
-      ideas,
-      error,
-      count: ideas?.length,
-    })
-
     if (error) throw error
     if (!ideas || ideas.length === 0) {
-      console.log('getUserIdeasAnalytics - No ideas found')
       return {
         totalIdeas: 0,
         totalVotes: 0,
@@ -1237,11 +1241,6 @@ class SupabaseIdeaService implements IIdeaService {
     }
 
     const mappedIdeas = ideas.map(this.mapDbIdeaToIdea)
-    console.log(
-      'getUserIdeasAnalytics - Mapped ideas:',
-      mappedIdeas.length,
-      mappedIdeas
-    )
 
     const totalIdeasCount = mappedIdeas.length
     const totalVotes = mappedIdeas.reduce((sum, idea) => sum + idea.votes, 0)
@@ -1380,24 +1379,12 @@ class SupabaseIdeaService implements IIdeaService {
 
     const tags = dbIdea.idea_tags?.map((it: any) => it.tags.name) || []
 
-    // Debug: Log the user data to investigate author display issues
-    console.log('User data for idea:', dbIdea.id, dbIdea.users)
-
     // Check if anonymous flag is set
     const isAnonymous = dbIdea.anonymous || false
 
     const author = isAnonymous
       ? 'Anonymous'
       : dbIdea.users?.username || dbIdea.users?.full_name || 'Unknown User'
-
-    // Debug: Log the final author value
-    console.log(
-      'Final author for idea:',
-      dbIdea.id,
-      author,
-      'anonymous:',
-      isAnonymous
-    )
 
     // Handle both old format (array) and new format (object with blocks)
     let contentBlocks: ContentBlock[] | undefined
@@ -1472,6 +1459,10 @@ class SupabaseIdeaService implements IIdeaService {
       status_flag: dbIdea.status_flag,
       anonymous: dbIdea.anonymous || false,
       creatorEmail, // Add creator email for ownership verification
+      // Versioning fields
+      versionNumber: dbIdea.version_number || 1,
+      ideaGroupId: dbIdea.idea_group_id || dbIdea.id,
+      isActiveVersion: dbIdea.is_active_version !== false, // Default to true if not set
     }
   }
 
@@ -1709,6 +1700,177 @@ class SupabaseIdeaService implements IIdeaService {
       if (!idea) throw new Error('Idea not found after update')
       return idea
     })
+  }
+
+  // =====================================================
+  // VERSIONING METHODS
+  // =====================================================
+
+  /**
+   * Get all versions of an idea group
+   */
+  async getIdeaVersions(ideaGroupId: string): Promise<IdeaVersionInfo[]> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        version_number,
+        is_active_version,
+        created_at,
+        idea_votes (
+          vote_type
+        ),
+        comments!left (
+          id
+        )
+      `
+      )
+      .eq('idea_group_id', ideaGroupId)
+      .order('version_number', { ascending: false })
+
+    if (error) throw error
+
+    return (
+      data?.map(v => {
+        const votes = v.idea_votes || []
+        const voteCounts = {
+          dislike: votes.filter((vote: any) => vote.vote_type === 'dislike')
+            .length,
+          use: votes.filter((vote: any) => vote.vote_type === 'use').length,
+          pay: votes.filter((vote: any) => vote.vote_type === 'pay').length,
+        }
+        const totalVotes = voteCounts.dislike + voteCounts.use + voteCounts.pay
+        const score =
+          voteCounts.pay * 3 + voteCounts.use * 2 - voteCounts.dislike
+
+        return {
+          id: v.id,
+          versionNumber: v.version_number,
+          isActiveVersion: v.is_active_version,
+          createdAt: v.created_at,
+          title: v.title,
+          votes: totalVotes,
+          commentCount: v.comments?.length || 0,
+          score,
+        }
+      }) || []
+    )
+  }
+
+  /**
+   * Create a new version of an idea
+   */
+  async createIdeaVersion(
+    sourceIdeaId: string,
+    updates?: Partial<Idea>
+  ): Promise<Idea> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    // Prepare content if provided
+    let newContent = null
+    if (updates?.content || updates?.image || updates?.video) {
+      newContent = {
+        blocks: updates?.content || [],
+        hero_image: updates?.image,
+        hero_video: updates?.video,
+        description: updates?.description,
+      }
+    }
+
+    const { data, error } = await supabase.rpc('create_idea_version', {
+      source_idea_id: sourceIdeaId,
+      new_title: updates?.title || null,
+      new_content: newContent,
+    })
+
+    if (error) throw error
+
+    // Update anonymous status if provided
+    if (updates?.anonymous !== undefined) {
+      await supabase
+        .from('ideas')
+        .update({ anonymous: updates.anonymous })
+        .eq('id', data)
+    }
+
+    // Update tags if provided
+    if (updates?.tags !== undefined) {
+      // Delete existing tags
+      await supabase.from('idea_tags').delete().eq('idea_id', data)
+
+      // Add new tags
+      if (updates.tags.length > 0) {
+        for (const tagName of updates.tags) {
+          let { data: tag } = await supabase
+            .from('tags')
+            .select('id')
+            .eq('name', tagName)
+            .maybeSingle()
+
+          if (!tag) {
+            const { data: newTag, error: tagError } = await supabase
+              .from('tags')
+              .insert({ name: tagName })
+              .select('id')
+              .single()
+
+            if (tagError) throw tagError
+            tag = newTag
+          }
+
+          await supabase.from('idea_tags').insert({
+            idea_id: data,
+            tag_id: tag.id,
+          })
+        }
+      }
+    }
+
+    // Fetch the newly created idea
+    const newIdea = await this.getIdeaById(data)
+    if (!newIdea) throw new Error('Failed to fetch new version')
+
+    return newIdea
+  }
+
+  /**
+   * Set a version as the active (public) version
+   */
+  async setActiveVersion(ideaId: string): Promise<void> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    const { error } = await supabase.rpc('set_active_version', {
+      target_idea_id: ideaId,
+    })
+
+    if (error) throw error
+  }
+
+  /**
+   * Get version group information for an idea
+   */
+  async getVersionGroup(ideaId: string): Promise<IdeaVersionGroup | null> {
+    // First get the idea to find its group
+    const idea = await this.getIdeaById(ideaId)
+    if (!idea || !idea.ideaGroupId) return null
+
+    const versions = await this.getIdeaVersions(idea.ideaGroupId)
+    const activeVersion = versions.find(v => v.isActiveVersion)
+
+    return {
+      ideaGroupId: idea.ideaGroupId,
+      totalVersions: versions.length,
+      activeVersionId: activeVersion?.id || ideaId,
+      versions,
+    }
   }
 
   async deleteIdea(ideaId: string): Promise<boolean> {

@@ -58,8 +58,8 @@ BEGIN
              (SELECT COUNT(*) FROM idea_votes WHERE idea_id = i.id AND vote_type = 'dislike')) AS score,
             (SELECT COUNT(*) FROM comments WHERE idea_id = i.id) AS comment_count,
             (SELECT jsonb_agg(t.name) FROM idea_tags it JOIN tags t ON it.tag_id = t.id WHERE it.idea_id = i.id) AS tags,
-            (SELECT jsonb_build_object('username', u.username, 'full_name', u.full_name, 'email', u.email)
-             FROM users u WHERE u.id = i.creator_id) AS creator
+            (SELECT jsonb_build_object('username', pup.username, 'full_name', pup.full_name)
+             FROM public_user_profiles pup WHERE pup.id = i.creator_id) AS creator
         FROM ideas i
         WHERE 1=1
             AND (search_query IS NULL OR search_query = '' OR (

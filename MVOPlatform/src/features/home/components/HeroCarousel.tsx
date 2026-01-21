@@ -557,7 +557,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
       </div>
 
       {/* Mobile: Simplified carousel with navigation dots */}
-      <div className="md:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-[200] flex gap-2">
+      <div className="md:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
         {ideas.map((_, index) => (
           <button
             key={index}

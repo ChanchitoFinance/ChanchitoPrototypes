@@ -1,4 +1,4 @@
-import { Idea } from '../types/idea'
+import { Idea, IdeaVersionInfo, IdeaVersionGroup } from '../types/idea'
 
 export interface IIdeaService {
   getIdeas(limit?: number, offset?: number): Promise<Idea[]>
@@ -63,6 +63,18 @@ export interface IIdeaService {
   updateIdea(ideaId: string, updates: Partial<Idea>): Promise<Idea>
 
   deleteIdea(ideaId: string): Promise<boolean>
+
+  // Versioning methods
+  getIdeaVersions(ideaGroupId: string): Promise<IdeaVersionInfo[]>
+
+  createIdeaVersion(
+    sourceIdeaId: string,
+    updates?: Partial<Idea>
+  ): Promise<Idea>
+
+  setActiveVersion(ideaId: string): Promise<void>
+
+  getVersionGroup(ideaId: string): Promise<IdeaVersionGroup | null>
 
   toggleVote(ideaId: string, voteType: 'dislike' | 'use' | 'pay'): Promise<Idea>
 

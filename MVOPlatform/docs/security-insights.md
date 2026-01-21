@@ -112,7 +112,6 @@ We rely on Supabase's query safety and Next.js rendering, but should add:
 
 - **HTTPS Enforcement**: All traffic must be secure; we configure Next.js accordingly.
 - **Authentication Flows**: OAuth via Supabase; ensure secure token handling.
-- **Third-Party Integrations**: Stripe for payments; verify webhook security.
 - **Logging and Monitoring**: Implement error tracking to detect anomalies.
 
 ## Recommendations

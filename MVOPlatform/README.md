@@ -12,7 +12,6 @@ A Next.js web application for validating business ideas with data-driven insight
 - **Validation Reports**: Detailed scorecards and recommendations
 - **Admin Panel**: Dashboard for managing ideas and reports
 - **Authentication**: Google OAuth via Supabase
-- **Payments**: Stripe checkout integration
 
 ## Tech Stack
 
@@ -23,7 +22,6 @@ A Next.js web application for validating business ideas with data-driven insight
 - Framer Motion
 - Supabase (Auth & Database)
 - Redux Toolkit
-- Stripe
 - React Hook Form + Zod
 - Feature-Based Architecture
 

@@ -81,8 +81,7 @@ export const batchFetchIdeas = async (ideaIds: string[]) => {
       creator_id,
       users!ideas_creator_id_fkey (
         username,
-        full_name,
-        email
+        full_name
       ),
       idea_votes (
         vote_type

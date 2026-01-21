@@ -82,6 +82,10 @@ CREATE TABLE ideas (
   pivot_state pivot_state NOT NULL DEFAULT 'stable',
   anonymous BOOLEAN NOT NULL DEFAULT FALSE,
   content JSONB,
+  -- Versioning fields
+  version_number INT NOT NULL DEFAULT 1,
+  idea_group_id UUID,
+  is_active_version BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -154,6 +158,11 @@ CREATE TABLE notifications (
 CREATE INDEX idx_media_assets_type ON media_assets(type);
 CREATE INDEX idx_media_assets_created_at ON media_assets(created_at);
 CREATE INDEX idx_ideas_creator_created_at ON ideas(creator_id, created_at);
+CREATE INDEX idx_ideas_idea_group_id ON ideas(idea_group_id);
+CREATE INDEX idx_ideas_active_version ON ideas(idea_group_id, is_active_version) WHERE is_active_version = true;
+CREATE INDEX idx_ideas_version_lookup ON ideas(idea_group_id, version_number);
+-- Ensure only one active version per group
+CREATE UNIQUE INDEX unique_active_version_per_group ON ideas(idea_group_id) WHERE is_active_version = true;
 CREATE INDEX idx_idea_votes_idea ON idea_votes(idea_id);
 CREATE INDEX idx_idea_votes_voter_created_at ON idea_votes(voter_id, created_at);
 CREATE INDEX idx_comments_idea_created_at ON comments(idea_id, created_at);
@@ -227,7 +236,131 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- =====================================================
+-- IDEA VERSIONING FUNCTIONS
+-- =====================================================
+
+-- Function to get the next version number for an idea group
+CREATE OR REPLACE FUNCTION get_next_version_number(group_id UUID)
+RETURNS INT AS $$
+DECLARE
+  max_version INT;
+BEGIN
+  SELECT COALESCE(MAX(version_number), 0) INTO max_version
+  FROM ideas
+  WHERE idea_group_id = group_id;
+
+  RETURN max_version + 1;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to create a new version from an existing idea
+CREATE OR REPLACE FUNCTION create_idea_version(
+  source_idea_id UUID,
+  new_title VARCHAR(255) DEFAULT NULL,
+  new_content JSONB DEFAULT NULL
+)
+RETURNS UUID AS $$
+DECLARE
+  source_idea RECORD;
+  new_idea_id UUID;
+  next_version INT;
+BEGIN
+  -- Get source idea
+  SELECT * INTO source_idea FROM ideas WHERE id = source_idea_id;
+
+  IF source_idea IS NULL THEN
+    RAISE EXCEPTION 'Source idea not found';
+  END IF;
+
+  -- Get next version number
+  next_version := get_next_version_number(source_idea.idea_group_id);
+
+  -- Create new version (inactive by default - owner must explicitly activate)
+  INSERT INTO ideas (
+    creator_id,
+    title,
+    status_flag,
+    pivot_state,
+    anonymous,
+    content,
+    idea_group_id,
+    version_number,
+    is_active_version
+  ) VALUES (
+    source_idea.creator_id,
+    COALESCE(new_title, source_idea.title),
+    'new', -- New versions start fresh
+    'stable',
+    source_idea.anonymous,
+    COALESCE(new_content, source_idea.content),
+    source_idea.idea_group_id,
+    next_version,
+    FALSE -- New versions are NOT active by default
+  )
+  RETURNING id INTO new_idea_id;
+
+  -- Copy tags to new version
+  INSERT INTO idea_tags (idea_id, tag_id)
+  SELECT new_idea_id, tag_id
+  FROM idea_tags
+  WHERE idea_id = source_idea_id;
+
+  RETURN new_idea_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to set a specific version as the active (public) version
+CREATE OR REPLACE FUNCTION set_active_version(target_idea_id UUID)
+RETURNS VOID AS $$
+DECLARE
+  target_idea RECORD;
+BEGIN
+  -- Get target idea
+  SELECT * INTO target_idea FROM ideas WHERE id = target_idea_id;
+
+  IF target_idea IS NULL THEN
+    RAISE EXCEPTION 'Target idea not found';
+  END IF;
+
+  -- Deactivate all versions in the group
+  UPDATE ideas
+  SET is_active_version = FALSE
+  WHERE idea_group_id = target_idea.idea_group_id;
+
+  -- Activate the target version
+  UPDATE ideas
+  SET is_active_version = TRUE
+  WHERE id = target_idea_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to initialize idea_group_id for new ideas (trigger)
+CREATE OR REPLACE FUNCTION initialize_idea_group()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- If idea_group_id is not set, set it to the idea's own id (first version)
+  IF NEW.idea_group_id IS NULL THEN
+    NEW.idea_group_id := NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to auto-initialize idea_group_id on insert
+DROP TRIGGER IF EXISTS trigger_initialize_idea_group ON ideas;
+CREATE TRIGGER trigger_initialize_idea_group
+  BEFORE INSERT ON ideas
+  FOR EACH ROW EXECUTE FUNCTION initialize_idea_group();
+
+-- Grant execute permissions on versioning functions
+GRANT EXECUTE ON FUNCTION get_next_version_number(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION create_idea_version(UUID, VARCHAR, JSONB) TO authenticated;
+GRANT EXECUTE ON FUNCTION set_active_version(UUID) TO authenticated;
+
+-- ============================================================================
 -- RLS Policies
+-- ============================================================================
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE media_assets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
@@ -240,34 +373,46 @@ ALTER TABLE comment_votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 
--- Basic policies (users can view their own data, admins can view all)
+-- ============================================================================
+-- Users table policies - SIMPLIFIED to avoid recursion
+-- ============================================================================
 DROP POLICY IF EXISTS "Users can view their own profile" ON users;
 CREATE POLICY "Users can view their own profile" ON users
   FOR SELECT USING (auth.uid() = id);
 
--- Allow viewing user profiles for non-anonymous idea creators
-CREATE POLICY "Public read user profiles for idea creators" ON users
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM ideas
-      WHERE ideas.creator_id = users.id
-      AND ideas.anonymous = false
-    )
-  );
+DROP POLICY IF EXISTS "Public read user profiles" ON users;
+CREATE POLICY "Public read user profiles" ON users
+  FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Users can update their own profile" ON users;
 CREATE POLICY "Users can update their own profile" ON users
   FOR UPDATE USING (auth.uid() = id);
+
+-- ============================================================================
+-- Other table policies
+-- ============================================================================
 
 -- Public read for media_assets, tags
 CREATE POLICY "Public read media_assets" ON media_assets FOR SELECT USING (true);
 CREATE POLICY "Public read tags" ON tags FOR SELECT USING (true);
 CREATE POLICY "Authenticated insert tags" ON tags FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
--- Ideas: public read, authenticated create/update
-CREATE POLICY "Public read ideas" ON ideas FOR SELECT USING (true);
+-- Ideas: public read (active versions only), authenticated create/update
+-- Public sees only active versions, owners see all their versions, admins see all
+DROP POLICY IF EXISTS "Public read ideas" ON ideas;
+CREATE POLICY "Public read ideas" ON ideas FOR SELECT USING (
+  is_active_version = true
+  OR auth.uid() = creator_id
+  OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin')
+);
+
+DROP POLICY IF EXISTS "Authenticated create ideas" ON ideas;
 CREATE POLICY "Authenticated create ideas" ON ideas FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "Creators update ideas" ON ideas;
 CREATE POLICY "Creators update ideas" ON ideas FOR UPDATE USING (auth.uid() = creator_id);
+
+DROP POLICY IF EXISTS "Admins can delete ideas" ON ideas;
 CREATE POLICY "Admins can delete ideas" ON ideas FOR DELETE USING (
   EXISTS (
     SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'
@@ -275,39 +420,72 @@ CREATE POLICY "Admins can delete ideas" ON ideas FOR DELETE USING (
 );
 
 -- Comments: public read, authenticated create
+DROP POLICY IF EXISTS "Public read comments" ON comments;
 CREATE POLICY "Public read comments" ON comments FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Authenticated create comments" ON comments;
 CREATE POLICY "Authenticated create comments" ON comments FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "Users update own comments" ON comments;
 CREATE POLICY "Users update own comments" ON comments FOR UPDATE USING (auth.uid() = user_id);
 
 -- Votes: authenticated insert, users can view their own
+DROP POLICY IF EXISTS "Authenticated insert idea_votes" ON idea_votes;
 CREATE POLICY "Authenticated insert idea_votes" ON idea_votes FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "Users delete own idea_votes" ON idea_votes;
 CREATE POLICY "Users delete own idea_votes" ON idea_votes FOR DELETE USING (auth.uid() = voter_id);
+
+DROP POLICY IF EXISTS "Users view own idea_votes" ON idea_votes;
 CREATE POLICY "Users view own idea_votes" ON idea_votes FOR SELECT USING (auth.uid() = voter_id);
+
+DROP POLICY IF EXISTS "Anyone can read votes" ON idea_votes;
 CREATE POLICY "Anyone can read votes" ON idea_votes FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Authenticated insert comment_votes" ON comment_votes;
 CREATE POLICY "Authenticated insert comment_votes" ON comment_votes FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "Users delete own comment_votes" ON comment_votes;
 CREATE POLICY "Users delete own comment_votes" ON comment_votes FOR DELETE USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users view own comment_votes" ON comment_votes;
 CREATE POLICY "Users view own comment_votes" ON comment_votes FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Anyone can read votes" ON comment_votes FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Anyone can read comment votes" ON comment_votes;
+CREATE POLICY "Anyone can read comment votes" ON comment_votes FOR SELECT USING (true);
 
 -- Notifications: users can view/update their own
+DROP POLICY IF EXISTS "Users view own notifications" ON notifications;
 CREATE POLICY "Users view own notifications" ON notifications FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users update own notifications" ON notifications;
 CREATE POLICY "Users update own notifications" ON notifications FOR UPDATE USING (auth.uid() = user_id);
 
 -- Idea tags, media: follow parent permissions
+DROP POLICY IF EXISTS "Public read idea_tags" ON idea_tags;
 CREATE POLICY "Public read idea_tags" ON idea_tags FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Authenticated insert idea_tags" ON idea_tags;
 CREATE POLICY "Authenticated insert idea_tags" ON idea_tags FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
+DROP POLICY IF EXISTS "Public read idea_media" ON idea_media;
 CREATE POLICY "Public read idea_media" ON idea_media FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Authenticated insert idea_media" ON idea_media;
 CREATE POLICY "Authenticated insert idea_media" ON idea_media FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
 -- Payments: users can view their own, admins can view all
+DROP POLICY IF EXISTS "Users view own payments" ON payments;
 CREATE POLICY "Users view own payments" ON payments FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Admins view all payments" ON payments;
 CREATE POLICY "Admins view all payments" ON payments FOR SELECT USING (
   EXISTS (
     SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'
   )
 );
+
+DROP POLICY IF EXISTS "Authenticated insert payments" ON payments;
 CREATE POLICY "Authenticated insert payments" ON payments FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
 -- Configure realtime publication (safely handle if publication doesn't exist)

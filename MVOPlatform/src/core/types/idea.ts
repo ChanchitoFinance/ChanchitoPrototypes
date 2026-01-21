@@ -50,4 +50,32 @@ export interface Idea {
   anonymous?: boolean
   // Creator email for ownership verification
   creatorEmail?: string | null
+  // Versioning fields
+  versionNumber?: number
+  ideaGroupId?: string
+  isActiveVersion?: boolean
+}
+
+/**
+ * Version info for displaying in version history
+ */
+export interface IdeaVersionInfo {
+  id: string
+  versionNumber: number
+  isActiveVersion: boolean
+  createdAt: string
+  title: string
+  votes: number
+  commentCount: number
+  score: number
+}
+
+/**
+ * Version group containing all versions of an idea
+ */
+export interface IdeaVersionGroup {
+  ideaGroupId: string
+  totalVersions: number
+  activeVersionId: string
+  versions: IdeaVersionInfo[]
 }
