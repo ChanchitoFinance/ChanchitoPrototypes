@@ -486,7 +486,7 @@ CREATE POLICY "Admins view all payments" ON payments FOR SELECT USING (
 );
 
 DROP POLICY IF EXISTS "Authenticated insert payments" ON payments;
-CREATE POLICY "Authenticated insert payments" ON payments FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Authenticated insert payments" ON payments FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Configure realtime publication (safely handle if publication doesn't exist)
 DO $$
