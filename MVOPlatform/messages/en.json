@@ -495,10 +495,10 @@
   },
   "ai_deep_research": {
     "researching": "Researching...",
-    "view_research": "View Deep Research Results",
+    "view_research": "View Captured External Signals",
     "get_research": "Capture External Signals",
-    "feature_name": "Deep Research",
-    "title": "Deep Research Results",
+    "feature_name": "Capture External Signals",
+    "title": "Capture External Signals Results",
     "clear_history_confirm": "Are you sure you want to clear all research history?",
     "try_again": "Try again",
     "version": "Version",
@@ -516,6 +516,45 @@
     "no_results": "No results found",
     "interest_over_time": "Search interest over the past year",
     "no_trends_data": "No trends data available"
+  },
+  "deep_research": {
+    "tabs": {
+      "hypotheses": "Hypotheses",
+      "early_adopters": "Early Adopters",
+      "deep_research": "Deep Research"
+    },
+    "hypotheses": {
+      "intro": "Hypotheses are testable assumptions about user behavior. They help validate ideas by analyzing quantitative data (e.g., market trends) and qualitative insights (e.g., social behaviors), ensuring relevance with the latest data.",
+      "quantitative": "Quantitative Analysis",
+      "qualitative": "Qualitative Analysis",
+      "sources": "Sources",
+      "source_web": "Web",
+      "no_data": "No data available for this segment.",
+      "no_hypotheses": "No hypotheses generated yet.",
+      "hy1": {
+        "title": "Founders delay building until external validation"
+      },
+      "hy2": {
+        "title": "Founders share ideas publicly when low-risk"
+      },
+      "hy2_1": {
+        "title": "Founders share for external signals to decide next steps"
+      },
+      "hy3": {
+        "title": "Founders iterate after feedback instead of abandoning"
+      },
+      "hy4": {
+        "title": "Founders adopt structured validation over ad-hoc methods"
+      }
+    },
+    "early_adopters": {
+      "description": "A curated list of real people on X/Twitter and Reddit who have mentioned ideas or needs related to your concept. These profiles can be useful for outreach and early feedback.",
+      "from_twitter": "From X/Twitter",
+      "from_reddit": "From Reddit",
+      "view_post": "View post",
+      "no_data": "No early adopters found",
+      "no_data_hint": "Social API credentials may not be configured, or no relevant posts were found."
+    }
   },
   "ai_risk_feedback": {
     "analyzing": "Analyzing...",

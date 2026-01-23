@@ -50,6 +50,10 @@ export function validateEnvironmentVariables() {
       PAYPAL_MERCHANT_ID: process.env.PAYPAL_MERCHANT_ID,
       PAYPAL_ENABLE_FUNDING: process.env.PAYPAL_ENABLE_FUNDING,
       PAYPAL_DISABLE_FUNDING: process.env.PAYPAL_DISABLE_FUNDING,
+      TWITTER_BEARER_TOKEN: process.env.TWITTER_BEARER_TOKEN,
+      REDDIT_CLIENT_ID: process.env.REDDIT_CLIENT_ID,
+      REDDIT_CLIENT_SECRET: process.env.REDDIT_CLIENT_SECRET,
+      REDDIT_USER_AGENT: process.env.REDDIT_USER_AGENT,
     }
 
     // Load schema from config directory

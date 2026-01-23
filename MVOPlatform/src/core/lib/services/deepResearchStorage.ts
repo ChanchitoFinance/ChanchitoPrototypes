@@ -1,7 +1,9 @@
-import { DeepResearchResult } from '@/core/types/ai'
+import { DeepResearchResult, EnhancedDeepResearchResult } from '@/core/types/ai'
+
+type AnyDeepResearchResult = DeepResearchResult | EnhancedDeepResearchResult
 
 interface StoredResearch {
-  research: DeepResearchResult
+  research: AnyDeepResearchResult
   ideaHash: string
   version: number
   timestamp: number
@@ -34,7 +36,7 @@ class DeepResearchStorage {
   }
 
   saveResearch(
-    research: DeepResearchResult,
+    research: AnyDeepResearchResult,
     title: string,
     description: string,
     contentLength: number,
@@ -104,7 +106,7 @@ class DeepResearchStorage {
     description: string,
     contentLength: number,
     tags: string[]
-  ): DeepResearchResult | null {
+  ): AnyDeepResearchResult | null {
     const history = this.getResearchHistory({
       title,
       description,

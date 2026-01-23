@@ -495,10 +495,10 @@
   },
   "ai_deep_research": {
     "researching": "Investigando...",
-    "view_research": "Ver Resultados de Investigación",
+    "view_research": "Ver Señales Externas Capturadas",
     "get_research": "Capturar Señales Externas",
-    "feature_name": "Investigación Profunda",
-    "title": "Resultados de Investigación Profunda",
+    "feature_name": "Capturar Señales Externas",
+    "title": "Resultados de Señales Externas Capturadas",
     "clear_history_confirm": "¿Estás seguro de que quieres eliminar todo el historial de investigación?",
     "try_again": "Intentar de nuevo",
     "version": "Versión",
@@ -516,6 +516,45 @@
     "no_results": "No se encontraron resultados",
     "interest_over_time": "Interés de búsqueda del último año",
     "no_trends_data": "No hay datos de tendencias disponibles"
+  },
+  "deep_research": {
+    "tabs": {
+      "hypotheses": "Hipótesis",
+      "early_adopters": "Early Adopters",
+      "deep_research": "Investigación Profunda"
+    },
+    "hypotheses": {
+      "intro": "Las hipótesis son suposiciones comprobables sobre el comportamiento del usuario. Ayudan a validar ideas analizando datos cuantitativos (ej. tendencias de mercado) e insights cualitativos (ej. comportamientos sociales), asegurando relevancia con los datos más recientes.",
+      "quantitative": "Análisis Cuantitativo",
+      "qualitative": "Análisis Cualitativo",
+      "sources": "Fuentes",
+      "source_web": "Web",
+      "no_data": "No hay datos disponibles para este segmento.",
+      "no_hypotheses": "Aún no se han generado hipótesis.",
+      "hy1": {
+        "title": "Los fundadores retrasan la construcción hasta obtener validación externa"
+      },
+      "hy2": {
+        "title": "Los fundadores comparten ideas públicamente cuando el riesgo es bajo"
+      },
+      "hy2_1": {
+        "title": "Los fundadores comparten para obtener señales externas y decidir los próximos pasos"
+      },
+      "hy3": {
+        "title": "Los fundadores iteran después del feedback en lugar de abandonar"
+      },
+      "hy4": {
+        "title": "Los fundadores adoptan validación estructurada sobre métodos ad-hoc"
+      }
+    },
+    "early_adopters": {
+      "description": "Una lista curada de personas reales en X/Twitter y Reddit que han mencionado ideas o necesidades relacionadas con tu concepto. Estos perfiles pueden ser útiles para contacto y feedback temprano.",
+      "from_twitter": "De X/Twitter",
+      "from_reddit": "De Reddit",
+      "view_post": "Ver publicación",
+      "no_data": "No se encontraron early adopters",
+      "no_data_hint": "Las credenciales de API social pueden no estar configuradas, o no se encontraron publicaciones relevantes."
+    }
   },
   "ai_risk_feedback": {
     "analyzing": "Analizando...",

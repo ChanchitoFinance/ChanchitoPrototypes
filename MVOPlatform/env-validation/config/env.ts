@@ -23,6 +23,12 @@ const rawServerEnv = {
     process.env.SUPABASE_STORAGE_SECRET_ACCESS_KEY!,
   supabaseStorageBucketName: process.env.SUPABASE_STORAGE_BUCKET_NAME!,
   serpapiApiKey: process.env.SERPAPI_API_KEY!,
+  // Twitter/X API (Free tier: 1,500 tweets/month)
+  twitterBearerToken: process.env.TWITTER_BEARER_TOKEN!,
+  // Reddit API (Free: 600 requests/hour)
+  redditClientId: process.env.REDDIT_CLIENT_ID!,
+  redditClientSecret: process.env.REDDIT_CLIENT_SECRET!,
+  redditUserAgent: process.env.REDDIT_USER_AGENT!,
 } as const
 
 // Client-side environment variables (must be prefixed with NEXT_PUBLIC_)

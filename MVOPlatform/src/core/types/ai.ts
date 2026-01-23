@@ -62,6 +62,81 @@ export interface DeepResearchResult {
   timestamp: Date
 }
 
+// Enhanced Deep Research Types
+export type HypothesisId = 'HY1' | 'HY2' | 'HY2.1' | 'HY3' | 'HY4'
+
+export interface HypothesisData {
+  id: HypothesisId
+  title: string
+  quantitativeSegment: string
+  qualitativeSegment: string
+  sources: {
+    serp: string[]
+    twitter: string[]
+    reddit: string[]
+  }
+}
+
+export interface TwitterSearchResult {
+  id: string
+  text: string
+  authorId: string
+  authorUsername: string
+  authorName: string
+  profileUrl: string
+  tweetUrl: string
+  createdAt: string
+  likeCount?: number
+  retweetCount?: number
+}
+
+export interface RedditSearchResult {
+  id: string
+  title: string
+  selftext: string
+  author: string
+  subreddit: string
+  postUrl: string
+  profileUrl: string
+  score: number
+  numComments: number
+  createdUtc: number
+}
+
+export interface EarlyAdopter {
+  id: string
+  platform: 'twitter' | 'reddit'
+  username: string
+  displayName?: string
+  profileUrl: string
+  postUrl: string
+  postContent: string
+  relevanceScore: number
+  createdAt: string
+}
+
+export type DeepResearchMainTab = 'hypotheses' | 'earlyAdopters' | 'deepResearch'
+export type DeepResearchSubTab = 'summary' | 'google' | 'trends' | 'bing'
+
+export interface EnhancedDeepResearchResult {
+  // Original data
+  googleResults: GoogleSearchResult[]
+  googleTrends: GoogleTrendsData[]
+  bingResults: BingSearchResult[]
+  aiSummary: string
+
+  // Enhanced data
+  hypotheses: HypothesisData[]
+  earlyAdopters: EarlyAdopter[]
+  twitterResults: TwitterSearchResult[]
+  redditResults: RedditSearchResult[]
+
+  // Metadata
+  timestamp: Date
+  version: number
+  enhanced: boolean
+}
+
 export const AI_PERSONAS: Record<AIPersonaType, AIPersona> = {
   technical: {
     id: 'technical',

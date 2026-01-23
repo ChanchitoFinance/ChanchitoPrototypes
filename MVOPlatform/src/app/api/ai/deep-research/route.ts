@@ -5,7 +5,27 @@ import {
   GoogleTrendsData,
   BingSearchResult,
   DeepResearchResult,
+  EnhancedDeepResearchResult,
+  HypothesisId,
+  EarlyAdopter,
 } from '@/core/types/ai'
+import {
+  searchTwitter,
+  searchTwitterEarlyAdopters,
+  searchTwitterForHypothesis,
+  isTwitterConfigured,
+} from './services/twitterService'
+import {
+  searchReddit,
+  searchRedditEarlyAdopters,
+  searchRedditForHypothesis,
+  isRedditConfigured,
+} from './services/redditService'
+import {
+  generateAllHypotheses,
+  getHypothesisSearchTerms,
+  getHypothesisIds,
+} from './services/hypothesisService'
 
 const SERPAPI_API_KEY = serverEnv.serpapiApiKey
 const GEMINI_API_KEY = clientEnv.geminiApiKey
@@ -235,16 +255,73 @@ Keep your response concise but insightful. Focus on practical advice for the ent
   return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
 }
 
+// Extract early adopters from social results
+function extractEarlyAdopters(
+  twitterResults: Awaited<ReturnType<typeof searchTwitter>>,
+  redditResults: Awaited<ReturnType<typeof searchReddit>>
+): EarlyAdopter[] {
+  const earlyAdopters: EarlyAdopter[] = []
+
+  // Add Twitter users as early adopters
+  for (const tweet of twitterResults.slice(0, 10)) {
+    earlyAdopters.push({
+      id: `twitter_${tweet.id}`,
+      platform: 'twitter',
+      username: tweet.authorUsername,
+      displayName: tweet.authorName,
+      profileUrl: tweet.profileUrl,
+      postUrl: tweet.tweetUrl,
+      postContent: tweet.text,
+      relevanceScore: calculateRelevanceScore(tweet.likeCount || 0, tweet.retweetCount || 0),
+      createdAt: tweet.createdAt,
+    })
+  }
+
+  // Add Reddit users as early adopters
+  for (const post of redditResults.slice(0, 10)) {
+    earlyAdopters.push({
+      id: `reddit_${post.id}`,
+      platform: 'reddit',
+      username: post.author,
+      profileUrl: post.profileUrl,
+      postUrl: post.postUrl,
+      postContent: `${post.title}: ${post.selftext.slice(0, 200)}`,
+      relevanceScore: calculateRelevanceScore(post.score, post.numComments),
+      createdAt: new Date(post.createdUtc * 1000).toISOString(),
+    })
+  }
+
+  // Sort by relevance score
+  return earlyAdopters.sort((a, b) => b.relevanceScore - a.relevanceScore)
+}
+
+// Calculate relevance score based on engagement metrics
+function calculateRelevanceScore(primaryMetric: number, secondaryMetric: number): number {
+  const score = Math.min(1, (primaryMetric * 0.7 + secondaryMetric * 0.3) / 100)
+  return Math.round(score * 100) / 100
+}
+
+// Fetch hypothesis-related SERP results
+async function fetchHypothesisSerpResults(
+  hypothesisId: HypothesisId
+): Promise<GoogleSearchResult[]> {
+  const searchTerms = getHypothesisSearchTerms(hypothesisId)
+  const query = searchTerms.quantitative[0]
+  return fetchGoogleSearchResults(query)
+}
+
 export async function POST(request: NextRequest) {
   try {
     const {
       title,
       tags,
       language,
+      enhanced = false,
     }: {
       title: string
       tags: string[]
       language: 'en' | 'es'
+      enhanced?: boolean
     } = await request.json()
 
     if (!title || title.length < 10) {
@@ -283,15 +360,89 @@ export async function POST(request: NextRequest) {
       )
     )
 
-    const result: DeepResearchResult = {
+    // If not enhanced mode, return basic result
+    if (!enhanced) {
+      const result: DeepResearchResult = {
+        googleResults,
+        googleTrends,
+        bingResults,
+        aiSummary,
+        timestamp: new Date(),
+      }
+
+      return NextResponse.json(result)
+    }
+
+    // Enhanced mode: fetch social data and generate hypotheses
+    const twitterConfigured = isTwitterConfigured()
+    const redditConfigured = isRedditConfigured()
+
+    // Fetch social data for early adopters
+    const [twitterEarlyAdopters, redditEarlyAdopters] = await Promise.all([
+      twitterConfigured ? searchTwitterEarlyAdopters(title, tags) : Promise.resolve([]),
+      redditConfigured ? searchRedditEarlyAdopters(title, tags) : Promise.resolve([]),
+    ])
+
+    // Extract early adopters
+    const earlyAdopters = extractEarlyAdopters(twitterEarlyAdopters, redditEarlyAdopters)
+
+    // Fetch hypothesis data
+    const hypothesisIds = getHypothesisIds()
+
+    // Create maps for hypothesis data
+    const serpResultsMap = new Map<HypothesisId, GoogleSearchResult[]>()
+    const twitterResultsMap = new Map<HypothesisId, Awaited<ReturnType<typeof searchTwitter>>>()
+    const redditResultsMap = new Map<HypothesisId, Awaited<ReturnType<typeof searchReddit>>>()
+
+    // Fetch data for each hypothesis in parallel
+    await Promise.all(
+      hypothesisIds.map(async (id) => {
+        const searchTerms = getHypothesisSearchTerms(id)
+
+        const [serpResults, twitterResults, redditResults] = await Promise.all([
+          fetchHypothesisSerpResults(id).catch(() => []),
+          twitterConfigured
+            ? searchTwitterForHypothesis(searchTerms.qualitative).catch(() => [])
+            : Promise.resolve([]),
+          redditConfigured
+            ? searchRedditForHypothesis(searchTerms.qualitative).catch(() => [])
+            : Promise.resolve([]),
+        ])
+
+        serpResultsMap.set(id, serpResults)
+        twitterResultsMap.set(id, twitterResults)
+        redditResultsMap.set(id, redditResults)
+      })
+    )
+
+    // Generate hypotheses with AI
+    const hypotheses = await generateAllHypotheses(
+      serpResultsMap,
+      twitterResultsMap,
+      redditResultsMap,
+      language
+    )
+
+    const enhancedResult: EnhancedDeepResearchResult = {
+      // Original data
       googleResults,
       googleTrends,
       bingResults,
       aiSummary,
+
+      // Enhanced data
+      hypotheses,
+      earlyAdopters,
+      twitterResults: twitterEarlyAdopters,
+      redditResults: redditEarlyAdopters,
+
+      // Metadata
       timestamp: new Date(),
+      version: 1,
+      enhanced: true,
     }
 
-    return NextResponse.json(result)
+    return NextResponse.json(enhancedResult)
   } catch (error) {
     console.error('Deep research error:', error)
 
