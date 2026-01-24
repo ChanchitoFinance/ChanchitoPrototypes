@@ -31,7 +31,8 @@ export function IdeaEdit({ ideaId }: IdeaEditProps) {
   const [isAuthorized, setIsAuthorized] = useState(false)
 
   // Get edit mode from URL params
-  const mode: EditMode = searchParams.get('mode') === 'new-version' ? 'new-version' : 'edit'
+  const mode: EditMode =
+    searchParams.get('mode') === 'new-version' ? 'new-version' : 'edit'
 
   // Load idea and check ownership
   useEffect(() => {
@@ -93,5 +94,11 @@ export function IdeaEdit({ ideaId }: IdeaEditProps) {
     )
   }
 
-  return <IdeaForm ideaId={ideaId} isNewVersion={mode === 'new-version'} />
+  return (
+    <IdeaForm
+      ideaId={ideaId}
+      isNewVersion={mode === 'new-version'}
+      initialIdea={idea}
+    />
+  )
 }

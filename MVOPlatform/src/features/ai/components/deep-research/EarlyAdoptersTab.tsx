@@ -1,6 +1,6 @@
 'use client'
 
-import { ExternalLink, Users, Twitter, MessageCircle } from 'lucide-react'
+import { ExternalLink, Users, Youtube, Facebook } from 'lucide-react'
 import { EarlyAdopter } from '@/core/types/ai'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
 
@@ -11,8 +11,8 @@ interface EarlyAdoptersTabProps {
 export function EarlyAdoptersTab({ earlyAdopters }: EarlyAdoptersTabProps) {
   const t = useTranslations()
 
-  const twitterAdopters = earlyAdopters.filter(a => a.platform === 'twitter')
-  const redditAdopters = earlyAdopters.filter(a => a.platform === 'reddit')
+  const youtubeAdopters = earlyAdopters.filter(a => a.platform === 'youtube')
+  const facebookAdopters = earlyAdopters.filter(a => a.platform === 'facebook')
 
   const renderAdopterCard = (adopter: EarlyAdopter) => (
     <div
@@ -22,13 +22,13 @@ export function EarlyAdoptersTab({ earlyAdopters }: EarlyAdoptersTabProps) {
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            {adopter.platform === 'twitter' ? (
-              <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                <Twitter className="w-3.5 h-3.5 text-blue-500" />
+            {adopter.platform === 'youtube' ? (
+              <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <Youtube className="w-3.5 h-3.5 text-red-500" />
               </div>
             ) : (
-              <div className="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                <MessageCircle className="w-3.5 h-3.5 text-orange-500" />
+              <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <Facebook className="w-3.5 h-3.5 text-blue-600" />
               </div>
             )}
             <a
@@ -37,10 +37,9 @@ export function EarlyAdoptersTab({ earlyAdopters }: EarlyAdoptersTabProps) {
               rel="noopener noreferrer"
               className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline truncate"
             >
-              {adopter.platform === 'twitter' ? '@' : 'u/'}
               {adopter.username}
             </a>
-            {adopter.displayName && (
+            {adopter.displayName && adopter.displayName !== adopter.username && (
               <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 ({adopter.displayName})
               </span>
@@ -57,7 +56,9 @@ export function EarlyAdoptersTab({ earlyAdopters }: EarlyAdoptersTabProps) {
               className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
             >
               <ExternalLink className="w-3 h-3" />
-              {t('deep_research.early_adopters.view_post')}
+              {adopter.platform === 'youtube'
+                ? t('deep_research.early_adopters.view_video')
+                : t('deep_research.early_adopters.view_page')}
             </a>
             <span className="text-xs text-gray-400 dark:text-gray-500">
               {new Date(adopter.createdAt).toLocaleDateString()}
@@ -81,7 +82,7 @@ export function EarlyAdoptersTab({ earlyAdopters }: EarlyAdoptersTabProps) {
     </div>
   )
 
-  const noDataAvailable = twitterAdopters.length === 0 && redditAdopters.length === 0
+  const noDataAvailable = youtubeAdopters.length === 0 && facebookAdopters.length === 0
 
   return (
     <div className="space-y-6">
@@ -103,42 +104,42 @@ export function EarlyAdoptersTab({ earlyAdopters }: EarlyAdoptersTabProps) {
         </div>
       ) : (
         <>
-          {/* Twitter/X Section */}
-          {twitterAdopters.length > 0 && (
+          {/* YouTube Section */}
+          {youtubeAdopters.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                  <Twitter className="w-4 h-4 text-blue-500" />
+                <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                  <Youtube className="w-4 h-4 text-red-500" />
                 </div>
                 <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {t('deep_research.early_adopters.from_twitter')}
+                  {t('deep_research.early_adopters.from_youtube')}
                 </h4>
                 <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
-                  {twitterAdopters.length}
+                  {youtubeAdopters.length}
                 </span>
               </div>
               <div className="space-y-2">
-                {twitterAdopters.map(renderAdopterCard)}
+                {youtubeAdopters.map(renderAdopterCard)}
               </div>
             </div>
           )}
 
-          {/* Reddit Section */}
-          {redditAdopters.length > 0 && (
+          {/* Facebook Section */}
+          {facebookAdopters.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                  <MessageCircle className="w-4 h-4 text-orange-500" />
+                <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <Facebook className="w-4 h-4 text-blue-600" />
                 </div>
                 <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {t('deep_research.early_adopters.from_reddit')}
+                  {t('deep_research.early_adopters.from_facebook')}
                 </h4>
                 <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
-                  {redditAdopters.length}
+                  {facebookAdopters.length}
                 </span>
               </div>
               <div className="space-y-2">
-                {redditAdopters.map(renderAdopterCard)}
+                {facebookAdopters.map(renderAdopterCard)}
               </div>
             </div>
           )}

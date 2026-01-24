@@ -524,7 +524,7 @@
       "deep_research": "Deep Research"
     },
     "hypotheses": {
-      "intro": "Hypotheses are testable assumptions about user behavior. They help validate ideas by analyzing quantitative data (e.g., market trends) and qualitative insights (e.g., social behaviors), ensuring relevance with the latest data.",
+      "intro": "These hypotheses are tested assumptions about your specific idea, validated by analyzing quantitative data (market research, statistics) and qualitative insights (social content, community sentiment) from real search results.",
       "quantitative": "Quantitative Analysis",
       "qualitative": "Qualitative Analysis",
       "sources": "Sources",
@@ -532,28 +532,29 @@
       "no_data": "No data available for this segment.",
       "no_hypotheses": "No hypotheses generated yet.",
       "hy1": {
-        "title": "Founders delay building until external validation"
+        "title": "There is market demand for this solution"
       },
       "hy2": {
-        "title": "Founders share ideas publicly when low-risk"
-      },
-      "hy2_1": {
-        "title": "Founders share for external signals to decide next steps"
+        "title": "The target audience is actively seeking solutions"
       },
       "hy3": {
-        "title": "Founders iterate after feedback instead of abandoning"
+        "title": "Existing solutions leave gaps that this idea can fill"
       },
       "hy4": {
-        "title": "Founders adopt structured validation over ad-hoc methods"
+        "title": "The business model is viable in this market"
+      },
+      "hy5": {
+        "title": "Early adopters can be identified and reached"
       }
     },
     "early_adopters": {
-      "description": "A curated list of real people on X/Twitter and Reddit who have mentioned ideas or needs related to your concept. These profiles can be useful for outreach and early feedback.",
-      "from_twitter": "From X/Twitter",
-      "from_reddit": "From Reddit",
-      "view_post": "View post",
+      "description": "A curated list of YouTube creators and Facebook pages related to your concept. These profiles can be useful for outreach, partnerships, and understanding your target audience.",
+      "from_youtube": "From YouTube",
+      "from_facebook": "From Facebook",
+      "view_video": "View video",
+      "view_page": "View page",
       "no_data": "No early adopters found",
-      "no_data_hint": "Social API credentials may not be configured, or no relevant posts were found."
+      "no_data_hint": "No relevant YouTube videos or Facebook pages were found for your idea."
     }
   },
   "ai_risk_feedback": {

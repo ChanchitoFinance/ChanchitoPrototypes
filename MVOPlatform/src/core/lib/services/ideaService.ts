@@ -1664,35 +1664,70 @@ class SupabaseIdeaService implements IIdeaService {
     if (error) throw error
 
     // Update tags if provided
-    if (updates.tags && updates.tags.length >= 0) {
-      // Delete existing tags
-      await supabase.from('idea_tags').delete().eq('idea_id', ideaId)
+    if (updates.tags !== undefined) {
+      // Get the idea to determine the correct idea_id for tags (use group_id if exists)
+      const currentIdea = await this.getIdeaById(ideaId)
+      const tagIdeaId = currentIdea?.ideaGroupId || ideaId
+
+      // Get current tags
+      const { data: currentIdeaTags } = await supabase
+        .from('idea_tags')
+        .select('tags(name)')
+        .eq('idea_id', tagIdeaId)
+
+      const currentTagNames =
+        (currentIdeaTags as any)?.map((it: any) => it.tags.name) || []
+
+      // Tags to remove
+      const tagsToRemove = currentTagNames.filter(
+        name => !updates.tags!.includes(name)
+      )
+
+      // Tags to add
+      const tagsToAdd = updates.tags.filter(
+        name => !currentTagNames.includes(name)
+      )
+
+      // Remove old tags
+      for (const tagName of tagsToRemove) {
+        const { data: tag } = await supabase
+          .from('tags')
+          .select('id')
+          .eq('name', tagName)
+          .single()
+
+        if (tag) {
+          await supabase
+            .from('idea_tags')
+            .delete()
+            .eq('idea_id', tagIdeaId)
+            .eq('tag_id', tag.id)
+        }
+      }
 
       // Add new tags
-      if (updates.tags.length > 0) {
-        for (const tagName of updates.tags) {
-          let { data: tag } = await supabase
+      for (const tagName of tagsToAdd) {
+        let { data: tag } = await supabase
+          .from('tags')
+          .select('id')
+          .eq('name', tagName)
+          .maybeSingle()
+
+        if (!tag) {
+          const { data: newTag, error: tagError } = await supabase
             .from('tags')
+            .insert({ name: tagName })
             .select('id')
-            .eq('name', tagName)
-            .maybeSingle()
+            .single()
 
-          if (!tag) {
-            const { data: newTag, error: tagError } = await supabase
-              .from('tags')
-              .insert({ name: tagName })
-              .select('id')
-              .single()
-
-            if (tagError) throw tagError
-            tag = newTag
-          }
-
-          await supabase.from('idea_tags').insert({
-            idea_id: ideaId,
-            tag_id: tag.id,
-          })
+          if (tagError) throw tagError
+          tag = newTag
         }
+
+        await supabase.from('idea_tags').insert({
+          idea_id: tagIdeaId,
+          tag_id: tag.id,
+        })
       }
     }
 

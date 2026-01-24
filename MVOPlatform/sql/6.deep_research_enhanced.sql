@@ -2,11 +2,11 @@
 -- Migration for storing hypothesis research, early adopters, and deep research results
 
 -- Early Adopters Table
--- Stores curated list of potential early adopters from Twitter/X and Reddit
+-- Stores curated list of potential early adopters from YouTube and Facebook
 CREATE TABLE IF NOT EXISTS early_adopters (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     idea_id UUID NOT NULL REFERENCES ideas(id) ON DELETE CASCADE,
-    platform VARCHAR(20) NOT NULL CHECK (platform IN ('twitter', 'reddit')),
+    platform VARCHAR(20) NOT NULL CHECK (platform IN ('youtube', 'facebook')),
     username VARCHAR(255) NOT NULL,
     display_name VARCHAR(255),
     profile_url TEXT NOT NULL,
@@ -22,13 +22,13 @@ CREATE TABLE IF NOT EXISTS early_adopters (
 CREATE TABLE IF NOT EXISTS hypothesis_research (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     idea_id UUID NOT NULL REFERENCES ideas(id) ON DELETE CASCADE,
-    hypothesis_id VARCHAR(10) NOT NULL CHECK (hypothesis_id IN ('HY1', 'HY2', 'HY2.1', 'HY3', 'HY4')),
+    hypothesis_id VARCHAR(10) NOT NULL CHECK (hypothesis_id IN ('HY1', 'HY2', 'HY3', 'HY4', 'HY5')),
     title TEXT NOT NULL,
     quantitative_segment TEXT,
     qualitative_segment TEXT,
     serp_sources JSONB DEFAULT '[]'::jsonb,
-    twitter_sources JSONB DEFAULT '[]'::jsonb,
-    reddit_sources JSONB DEFAULT '[]'::jsonb,
+    youtube_sources JSONB DEFAULT '[]'::jsonb,
+    facebook_sources JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(idea_id, hypothesis_id)
@@ -46,8 +46,8 @@ CREATE TABLE IF NOT EXISTS deep_research_results (
     bing_results JSONB DEFAULT '[]'::jsonb,
     ai_summary TEXT,
     hypotheses JSONB DEFAULT '[]'::jsonb,
-    twitter_results JSONB DEFAULT '[]'::jsonb,
-    reddit_results JSONB DEFAULT '[]'::jsonb,
+    youtube_results JSONB DEFAULT '[]'::jsonb,
+    facebook_results JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(idea_id, version)

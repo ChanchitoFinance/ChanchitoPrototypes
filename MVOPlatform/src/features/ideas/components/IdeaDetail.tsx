@@ -34,7 +34,7 @@ import { IdeaAnalytics } from './IdeaAnalytics'
 import { toast } from 'sonner'
 import { AIPersonasEvaluation } from '@/features/ai/components/AIPersonasEvaluation'
 import { AIDeepResearch } from '@/features/ai/components/AIDeepResearch'
-import { deductCredits } from '@/core/lib/slices/creditsSlice'
+import { deductCredits, loadUserCredits } from '@/core/lib/slices/creditsSlice'
 
 interface IdeaDetailProps {
   ideaId: string
@@ -101,6 +101,10 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           // Fetch user votes if authenticated
           if (isAuthenticated) {
             dispatch(fetchUserVotes(ideaId))
+            // Load user credits to ensure they are up to date for AI features
+            if (user?.id) {
+              dispatch(loadUserCredits(user.id))
+            }
           }
         }
       } catch (error) {
@@ -111,7 +115,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     }
 
     loadIdea()
-  }, [ideaId, isAuthenticated])
+  }, [ideaId, isAuthenticated, user?.id])
 
   // Fetch comments when idea is loaded
   useEffect(() => {
@@ -515,12 +519,12 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
               onRequestResearch={async () => {
                 if (!user) return
 
-                // Check credits (Deep Research costs 5 credits)
+                // Check credits (Deep Research costs 8 credits)
                 const hasEnoughCredits =
-                  plan === 'innovator' || dailyCredits - usedCredits >= 5
+                  plan === 'innovator' || dailyCredits - usedCredits >= 8
                 if (!hasEnoughCredits) {
                   toast.error(
-                    'Insufficient credits. Deep Research requires 5 credits.'
+                    'Insufficient credits. Deep Research requires 8 credits.'
                   )
                   return
                 }
@@ -528,7 +532,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
                 // Deduct credits
                 try {
                   await dispatch(
-                    deductCredits({ userId: user.id, amount: 5 })
+                    deductCredits({ userId: user.id, amount: 8 })
                   ).unwrap()
                 } catch (error) {
                   console.error('Error deducting credits:', error)

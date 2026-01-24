@@ -56,6 +56,7 @@ interface IdeaFormProps {
   onCancel?: () => void
   onCustomSubmit?: (data: IdeaFormData) => void
   isNewVersion?: boolean // When true, creates a new version instead of updating
+  initialIdea?: Idea | null // Initial idea data for new versions
 }
 
 export function IdeaForm({
@@ -64,6 +65,7 @@ export function IdeaForm({
   onCancel,
   onCustomSubmit,
   isNewVersion = false,
+  initialIdea = null,
 }: IdeaFormProps = {}) {
   const router = useRouter()
   const t = useTranslations()
@@ -132,26 +134,33 @@ export function IdeaForm({
 
   const titleValue = watch('title')
 
-  // Load idea data when editing
+  // Load idea data when editing or creating a new version
   useEffect(() => {
-    if (!ideaId) return
+    if (!ideaId && !initialIdea) return
 
     const loadIdea = async () => {
       try {
-        // Fetch idea from database
-        const { data: dbData, error: dbError } = await supabase
-          .from('ideas')
-          .select('id, title, content, anonymous, status_flag')
-          .eq('id', ideaId)
-          .single()
+        let idea: Idea | null = null
 
-        if (dbError || !dbData) {
-          console.error('Error loading idea from database:', dbError)
-          return
+        // If initialIdea is provided (for new versions), use it
+        if (initialIdea) {
+          idea = initialIdea
+        } else if (ideaId) {
+          // Fetch idea from database
+          const { data: dbData, error: dbError } = await supabase
+            .from('ideas')
+            .select('id, title, content, anonymous, status_flag, image, video')
+            .eq('id', ideaId)
+            .single()
+
+          if (dbError || !dbData) {
+            console.error('Error loading idea from database:', dbError)
+            return
+          }
+
+          idea = await ideaService.getIdeaById(ideaId)
+          if (!idea) return
         }
-
-        const idea = await ideaService.getIdeaById(ideaId)
-        if (!idea) return
 
         // Set title
         setValue('title', idea.title, { shouldValidate: false })
@@ -165,7 +174,7 @@ export function IdeaForm({
         // Set anonymous flag
         setIsAnonymous(idea.anonymous || false)
 
-        // Set content blocks
+        // Set content blocks and media
         if (idea.content && idea.content.length > 0) {
           // Extract hero media from first block if it's image/video
           const firstBlock = idea.content[0]
@@ -187,14 +196,15 @@ export function IdeaForm({
               ? idea.content.slice(1)
               : idea.content
           setContentBlocks(remainingBlocks)
-        } else {
-          // Fallback to image/video from idea root
-          if (idea.image) {
-            setHeroImage(idea.image)
-          }
-          if (idea.video) {
-            setHeroVideo(idea.video)
-          }
+        }
+
+        // Always check for root-level image/video, even if content exists
+        // This ensures media is properly loaded for new versions
+        if (!heroImage && idea.image) {
+          setHeroImage(idea.image)
+        }
+        if (!heroVideo && idea.video) {
+          setHeroVideo(idea.video)
         }
       } catch (error) {
         console.error('Error loading idea:', error)
@@ -202,7 +212,7 @@ export function IdeaForm({
     }
 
     loadIdea()
-  }, [ideaId])
+  }, [ideaId, initialIdea])
 
   // Load saved form data from localStorage on mount (only if not editing)
   useEffect(() => {

@@ -524,7 +524,7 @@
       "deep_research": "Investigación Profunda"
     },
     "hypotheses": {
-      "intro": "Las hipótesis son suposiciones comprobables sobre el comportamiento del usuario. Ayudan a validar ideas analizando datos cuantitativos (ej. tendencias de mercado) e insights cualitativos (ej. comportamientos sociales), asegurando relevancia con los datos más recientes.",
+      "intro": "Estas hipótesis son suposiciones probadas sobre tu idea específica, validadas mediante el análisis de datos cuantitativos (investigación de mercado, estadísticas) e insights cualitativos (contenido social, sentimiento de la comunidad) de resultados de búsqueda reales.",
       "quantitative": "Análisis Cuantitativo",
       "qualitative": "Análisis Cualitativo",
       "sources": "Fuentes",
@@ -532,28 +532,29 @@
       "no_data": "No hay datos disponibles para este segmento.",
       "no_hypotheses": "Aún no se han generado hipótesis.",
       "hy1": {
-        "title": "Los fundadores retrasan la construcción hasta obtener validación externa"
+        "title": "Existe demanda de mercado para esta solución"
       },
       "hy2": {
-        "title": "Los fundadores comparten ideas públicamente cuando el riesgo es bajo"
-      },
-      "hy2_1": {
-        "title": "Los fundadores comparten para obtener señales externas y decidir los próximos pasos"
+        "title": "La audiencia objetivo busca activamente soluciones"
       },
       "hy3": {
-        "title": "Los fundadores iteran después del feedback en lugar de abandonar"
+        "title": "Las soluciones existentes dejan vacíos que esta idea puede llenar"
       },
       "hy4": {
-        "title": "Los fundadores adoptan validación estructurada sobre métodos ad-hoc"
+        "title": "El modelo de negocio es viable en este mercado"
+      },
+      "hy5": {
+        "title": "Los early adopters pueden ser identificados y alcanzados"
       }
     },
     "early_adopters": {
-      "description": "Una lista curada de personas reales en X/Twitter y Reddit que han mencionado ideas o necesidades relacionadas con tu concepto. Estos perfiles pueden ser útiles para contacto y feedback temprano.",
-      "from_twitter": "De X/Twitter",
-      "from_reddit": "De Reddit",
-      "view_post": "Ver publicación",
+      "description": "Una lista curada de creadores de YouTube y páginas de Facebook relacionadas con tu concepto. Estos perfiles pueden ser útiles para contacto, alianzas y entender a tu audiencia objetivo.",
+      "from_youtube": "De YouTube",
+      "from_facebook": "De Facebook",
+      "view_video": "Ver video",
+      "view_page": "Ver página",
       "no_data": "No se encontraron early adopters",
-      "no_data_hint": "Las credenciales de API social pueden no estar configuradas, o no se encontraron publicaciones relevantes."
+      "no_data_hint": "No se encontraron videos de YouTube ni páginas de Facebook relevantes para tu idea."
     }
   },
   "ai_risk_feedback": {

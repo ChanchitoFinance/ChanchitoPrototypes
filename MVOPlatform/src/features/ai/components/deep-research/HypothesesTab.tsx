@@ -31,9 +31,9 @@ export function HypothesesTab({ hypotheses }: HypothesesTabProps) {
     const titles: Record<string, string> = {
       HY1: t('deep_research.hypotheses.hy1.title'),
       HY2: t('deep_research.hypotheses.hy2.title'),
-      'HY2.1': t('deep_research.hypotheses.hy2_1.title'),
       HY3: t('deep_research.hypotheses.hy3.title'),
       HY4: t('deep_research.hypotheses.hy4.title'),
+      HY5: t('deep_research.hypotheses.hy5.title'),
     }
     return titles[id] || id
   }
@@ -141,8 +141,8 @@ export function HypothesesTab({ hypotheses }: HypothesesTabProps) {
 
                     {/* Sources */}
                     {(hypothesis.sources.serp.length > 0 ||
-                      hypothesis.sources.twitter.length > 0 ||
-                      hypothesis.sources.reddit.length > 0) && (
+                      hypothesis.sources.youtube.length > 0 ||
+                      hypothesis.sources.facebook.length > 0) && (
                       <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
                         <h5 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">
                           {t('deep_research.hypotheses.sources')}
@@ -160,28 +160,28 @@ export function HypothesesTab({ hypotheses }: HypothesesTabProps) {
                               {t('deep_research.hypotheses.source_web')}
                             </a>
                           ))}
-                          {hypothesis.sources.twitter.slice(0, 2).map((url, i) => (
+                          {hypothesis.sources.youtube.slice(0, 2).map((url, i) => (
                             <a
-                              key={`twitter-${i}`}
+                              key={`youtube-${i}`}
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              YouTube
+                            </a>
+                          ))}
+                          {hypothesis.sources.facebook.slice(0, 2).map((url, i) => (
+                            <a
+                              key={`facebook-${i}`}
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
                             >
                               <ExternalLink className="w-3 h-3" />
-                              X/Twitter
-                            </a>
-                          ))}
-                          {hypothesis.sources.reddit.slice(0, 2).map((url, i) => (
-                            <a
-                              key={`reddit-${i}`}
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                              Reddit
+                              Facebook
                             </a>
                           ))}
                         </div>

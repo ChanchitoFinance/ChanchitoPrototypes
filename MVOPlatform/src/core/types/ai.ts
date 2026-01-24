@@ -63,7 +63,7 @@ export interface DeepResearchResult {
 }
 
 // Enhanced Deep Research Types
-export type HypothesisId = 'HY1' | 'HY2' | 'HY2.1' | 'HY3' | 'HY4'
+export type HypothesisId = 'HY1' | 'HY2' | 'HY3' | 'HY4' | 'HY5'
 
 export interface HypothesisData {
   id: HypothesisId
@@ -72,40 +72,42 @@ export interface HypothesisData {
   qualitativeSegment: string
   sources: {
     serp: string[]
-    twitter: string[]
-    reddit: string[]
+    youtube: string[]
+    facebook: string[]
   }
 }
 
-export interface TwitterSearchResult {
-  id: string
-  text: string
-  authorId: string
-  authorUsername: string
-  authorName: string
-  profileUrl: string
-  tweetUrl: string
-  createdAt: string
-  likeCount?: number
-  retweetCount?: number
-}
-
-export interface RedditSearchResult {
+export interface YouTubeSearchResult {
   id: string
   title: string
-  selftext: string
-  author: string
-  subreddit: string
-  postUrl: string
+  link: string
+  channelName: string
+  channelLink: string
+  description: string
+  publishedDate?: string
+  views?: number
+  length?: string
+  thumbnail?: string
+}
+
+export interface FacebookSearchResult {
+  id: string
+  name: string
   profileUrl: string
-  score: number
-  numComments: number
-  createdUtc: number
+  category?: string
+  likes?: number
+  followers?: number
+  about?: string
+  posts?: Array<{
+    text: string
+    url: string
+    date?: string
+  }>
 }
 
 export interface EarlyAdopter {
   id: string
-  platform: 'twitter' | 'reddit'
+  platform: 'youtube' | 'facebook'
   username: string
   displayName?: string
   profileUrl: string
@@ -128,8 +130,8 @@ export interface EnhancedDeepResearchResult {
   // Enhanced data
   hypotheses: HypothesisData[]
   earlyAdopters: EarlyAdopter[]
-  twitterResults: TwitterSearchResult[]
-  redditResults: RedditSearchResult[]
+  youtubeResults: YouTubeSearchResult[]
+  facebookResults: FacebookSearchResult[]
 
   // Metadata
   timestamp: Date

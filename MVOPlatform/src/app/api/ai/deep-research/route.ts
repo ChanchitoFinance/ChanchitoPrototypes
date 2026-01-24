@@ -6,25 +6,20 @@ import {
   BingSearchResult,
   DeepResearchResult,
   EnhancedDeepResearchResult,
-  HypothesisId,
   EarlyAdopter,
 } from '@/core/types/ai'
 import {
-  searchTwitter,
-  searchTwitterEarlyAdopters,
-  searchTwitterForHypothesis,
-  isTwitterConfigured,
-} from './services/twitterService'
+  searchYouTube,
+  isYouTubeConfigured,
+} from './services/youtubeService'
 import {
-  searchReddit,
-  searchRedditEarlyAdopters,
-  searchRedditForHypothesis,
-  isRedditConfigured,
-} from './services/redditService'
+  searchFacebook,
+  isFacebookConfigured,
+} from './services/facebookService'
 import {
   generateAllHypotheses,
-  getHypothesisSearchTerms,
-  getHypothesisIds,
+  generateIdeaSearchQueries,
+  type IdeaContext,
 } from './services/hypothesisService'
 
 const SERPAPI_API_KEY = serverEnv.serpapiApiKey
@@ -55,15 +50,16 @@ async function retryWithBackoff<T>(
   throw lastError
 }
 
-// Fetch Google Search Results (top 5)
+// Fetch Google Search Results
 async function fetchGoogleSearchResults(
-  query: string
+  query: string,
+  num: number = 5
 ): Promise<GoogleSearchResult[]> {
   const params = new URLSearchParams({
     engine: 'google',
     q: query,
     api_key: SERPAPI_API_KEY,
-    num: '5',
+    num: num.toString(),
   })
 
   const response = await fetch(`${SERPAPI_BASE_URL}?${params.toString()}`)
@@ -81,7 +77,7 @@ async function fetchGoogleSearchResults(
   const data = await response.json()
   const organicResults = data.organic_results || []
 
-  return organicResults.slice(0, 5).map((result: any, index: number) => ({
+  return organicResults.slice(0, num).map((result: any, index: number) => ({
     position: index + 1,
     title: result.title || '',
     link: result.link || '',
@@ -91,7 +87,7 @@ async function fetchGoogleSearchResults(
   }))
 }
 
-// Fetch Google Trends Data (top 5 timeline points)
+// Fetch Google Trends Data
 async function fetchGoogleTrends(query: string): Promise<GoogleTrendsData[]> {
   const params = new URLSearchParams({
     engine: 'google_trends',
@@ -127,7 +123,7 @@ async function fetchGoogleTrends(query: string): Promise<GoogleTrendsData[]> {
   }))
 }
 
-// Fetch Bing Search Results (top 5)
+// Fetch Bing Search Results
 async function fetchBingSearchResults(
   query: string
 ): Promise<BingSearchResult[]> {
@@ -162,7 +158,7 @@ async function fetchBingSearchResults(
   }))
 }
 
-// Call Gemini for AI Summary
+// Call Gemini for AI Summary (1 API call)
 async function generateAISummary(
   title: string,
   tags: string[],
@@ -257,37 +253,38 @@ Keep your response concise but insightful. Focus on practical advice for the ent
 
 // Extract early adopters from social results
 function extractEarlyAdopters(
-  twitterResults: Awaited<ReturnType<typeof searchTwitter>>,
-  redditResults: Awaited<ReturnType<typeof searchReddit>>
+  youtubeResults: Awaited<ReturnType<typeof searchYouTube>>,
+  facebookResults: Awaited<ReturnType<typeof searchFacebook>>
 ): EarlyAdopter[] {
   const earlyAdopters: EarlyAdopter[] = []
 
-  // Add Twitter users as early adopters
-  for (const tweet of twitterResults.slice(0, 10)) {
+  // Add YouTube creators as early adopters
+  for (const video of youtubeResults.slice(0, 10)) {
     earlyAdopters.push({
-      id: `twitter_${tweet.id}`,
-      platform: 'twitter',
-      username: tweet.authorUsername,
-      displayName: tweet.authorName,
-      profileUrl: tweet.profileUrl,
-      postUrl: tweet.tweetUrl,
-      postContent: tweet.text,
-      relevanceScore: calculateRelevanceScore(tweet.likeCount || 0, tweet.retweetCount || 0),
-      createdAt: tweet.createdAt,
+      id: `youtube_${video.id}`,
+      platform: 'youtube',
+      username: video.channelName,
+      displayName: video.channelName,
+      profileUrl: video.channelLink,
+      postUrl: video.link,
+      postContent: `${video.title}: ${video.description?.slice(0, 200) || ''}`,
+      relevanceScore: calculateRelevanceScore(video.views || 0, 0),
+      createdAt: video.publishedDate || new Date().toISOString(),
     })
   }
 
-  // Add Reddit users as early adopters
-  for (const post of redditResults.slice(0, 10)) {
+  // Add Facebook pages as early adopters
+  for (const page of facebookResults.slice(0, 10)) {
     earlyAdopters.push({
-      id: `reddit_${post.id}`,
-      platform: 'reddit',
-      username: post.author,
-      profileUrl: post.profileUrl,
-      postUrl: post.postUrl,
-      postContent: `${post.title}: ${post.selftext.slice(0, 200)}`,
-      relevanceScore: calculateRelevanceScore(post.score, post.numComments),
-      createdAt: new Date(post.createdUtc * 1000).toISOString(),
+      id: `facebook_${page.id}`,
+      platform: 'facebook',
+      username: page.name,
+      displayName: page.name,
+      profileUrl: page.profileUrl,
+      postUrl: page.profileUrl,
+      postContent: page.about?.slice(0, 200) || page.category || '',
+      relevanceScore: calculateRelevanceScore(page.followers || 0, page.likes || 0),
+      createdAt: new Date().toISOString(),
     })
   }
 
@@ -301,24 +298,17 @@ function calculateRelevanceScore(primaryMetric: number, secondaryMetric: number)
   return Math.round(score * 100) / 100
 }
 
-// Fetch hypothesis-related SERP results
-async function fetchHypothesisSerpResults(
-  hypothesisId: HypothesisId
-): Promise<GoogleSearchResult[]> {
-  const searchTerms = getHypothesisSearchTerms(hypothesisId)
-  const query = searchTerms.quantitative[0]
-  return fetchGoogleSearchResults(query)
-}
-
 export async function POST(request: NextRequest) {
   try {
     const {
       title,
+      description,
       tags,
       language,
       enhanced = false,
     }: {
       title: string
+      description?: string
       tags: string[]
       language: 'en' | 'es'
       enhanced?: boolean
@@ -338,17 +328,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Build search query from title and tags
+    // Build search query from title and tags (idea-specific)
     const searchQuery = `${title} ${tags.slice(0, 3).join(' ')}`.trim()
 
     // Fetch all search results in parallel with retry logic
+    // These results are used for both basic Deep Research and Hypotheses
     const [googleResults, googleTrends, bingResults] = await Promise.all([
-      retryWithBackoff(() => fetchGoogleSearchResults(searchQuery)),
+      retryWithBackoff(() => fetchGoogleSearchResults(searchQuery, enhanced ? 10 : 5)),
       retryWithBackoff(() => fetchGoogleTrends(title)),
       retryWithBackoff(() => fetchBingSearchResults(searchQuery)),
     ])
 
-    // Generate AI summary
+    // Generate AI summary (1st Gemini API call)
     const aiSummary = await retryWithBackoff(() =>
       generateAISummary(
         title,
@@ -363,7 +354,7 @@ export async function POST(request: NextRequest) {
     // If not enhanced mode, return basic result
     if (!enhanced) {
       const result: DeepResearchResult = {
-        googleResults,
+        googleResults: googleResults.slice(0, 5),
         googleTrends,
         bingResults,
         aiSummary,
@@ -373,59 +364,53 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(result)
     }
 
-    // Enhanced mode: fetch social data and generate hypotheses
-    const twitterConfigured = isTwitterConfigured()
-    const redditConfigured = isRedditConfigured()
+    // ============================================
+    // ENHANCED MODE
+    // Uses only 2 Gemini API calls total:
+    // 1. AI Summary (above)
+    // 2. All hypotheses in one call (below)
+    // ============================================
 
-    // Fetch social data for early adopters
-    const [twitterEarlyAdopters, redditEarlyAdopters] = await Promise.all([
-      twitterConfigured ? searchTwitterEarlyAdopters(title, tags) : Promise.resolve([]),
-      redditConfigured ? searchRedditEarlyAdopters(title, tags) : Promise.resolve([]),
+    const youtubeConfigured = isYouTubeConfigured()
+    const facebookConfigured = isFacebookConfigured()
+
+    // Create idea context for idea-specific searches
+    const ideaContext: IdeaContext = {
+      title,
+      description,
+      tags,
+    }
+
+    // Generate idea-specific search queries
+    const ideaQueries = generateIdeaSearchQueries(ideaContext)
+
+    // Fetch social data for early adopters AND hypothesis analysis
+    // Uses idea-specific queries instead of generic ones
+    const [youtubeResults, facebookResults] = await Promise.all([
+      youtubeConfigured
+        ? searchYouTube(ideaQueries.youtubeQueries[0], 15)
+        : Promise.resolve([]),
+      facebookConfigured
+        ? searchFacebook(ideaQueries.facebookQueries[0], 10)
+        : Promise.resolve([]),
     ])
 
-    // Extract early adopters
-    const earlyAdopters = extractEarlyAdopters(twitterEarlyAdopters, redditEarlyAdopters)
+    // Extract early adopters from social results
+    const earlyAdopters = extractEarlyAdopters(youtubeResults, facebookResults)
 
-    // Fetch hypothesis data
-    const hypothesisIds = getHypothesisIds()
-
-    // Create maps for hypothesis data
-    const serpResultsMap = new Map<HypothesisId, GoogleSearchResult[]>()
-    const twitterResultsMap = new Map<HypothesisId, Awaited<ReturnType<typeof searchTwitter>>>()
-    const redditResultsMap = new Map<HypothesisId, Awaited<ReturnType<typeof searchReddit>>>()
-
-    // Fetch data for each hypothesis in parallel
-    await Promise.all(
-      hypothesisIds.map(async (id) => {
-        const searchTerms = getHypothesisSearchTerms(id)
-
-        const [serpResults, twitterResults, redditResults] = await Promise.all([
-          fetchHypothesisSerpResults(id).catch(() => []),
-          twitterConfigured
-            ? searchTwitterForHypothesis(searchTerms.qualitative).catch(() => [])
-            : Promise.resolve([]),
-          redditConfigured
-            ? searchRedditForHypothesis(searchTerms.qualitative).catch(() => [])
-            : Promise.resolve([]),
-        ])
-
-        serpResultsMap.set(id, serpResults)
-        twitterResultsMap.set(id, twitterResults)
-        redditResultsMap.set(id, redditResults)
-      })
-    )
-
-    // Generate hypotheses with AI
+    // Generate ALL hypotheses with a SINGLE Gemini API call (2nd call)
+    // Passes the idea context and all collected data
     const hypotheses = await generateAllHypotheses(
-      serpResultsMap,
-      twitterResultsMap,
-      redditResultsMap,
+      ideaContext,
+      googleResults, // Reuse the google results we already have
+      youtubeResults,
+      facebookResults,
       language
     )
 
     const enhancedResult: EnhancedDeepResearchResult = {
-      // Original data
-      googleResults,
+      // Original data (for Deep Research subtabs)
+      googleResults: googleResults.slice(0, 5),
       googleTrends,
       bingResults,
       aiSummary,
@@ -433,8 +418,8 @@ export async function POST(request: NextRequest) {
       // Enhanced data
       hypotheses,
       earlyAdopters,
-      twitterResults: twitterEarlyAdopters,
-      redditResults: redditEarlyAdopters,
+      youtubeResults,
+      facebookResults,
 
       // Metadata
       timestamp: new Date(),
