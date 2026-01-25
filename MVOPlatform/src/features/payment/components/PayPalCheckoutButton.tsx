@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { clientEnv } from '@/env-validation/config/env'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import { toast } from 'sonner'
+import { supabase } from '@/core/lib/supabase'
 
 // Extend window type for PayPal
 declare global {
@@ -79,11 +80,20 @@ export function PayPalCheckoutButton({
             try {
               const order = await actions.order.capture()
 
+              // Get the current session
+              const {
+                data: { session },
+              } = await supabase.auth.getSession()
+              if (!session) {
+                throw new Error('No authentication session')
+              }
+
               // Now update the database with the successful payment
               const response = await fetch('/api/paypal/capture-order', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
+                  Authorization: `Bearer ${session.access_token}`,
                 },
                 body: JSON.stringify({
                   orderId: data.orderID,

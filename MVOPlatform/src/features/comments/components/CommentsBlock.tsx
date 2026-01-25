@@ -671,7 +671,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
   }
 
   return (
-    <div className="mt-12">
+    <div className="mt-12 pb-8">
       <h2 className="text-heading-2 mb-6">{t('comments.title')}</h2>
 
       {/* Comment Form */}

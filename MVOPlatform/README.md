@@ -12,7 +12,6 @@ A Next.js web application for validating business ideas with data-driven insight
 - **Validation Reports**: Detailed scorecards and recommendations
 - **Admin Panel**: Dashboard for managing ideas and reports
 - **Authentication**: Google OAuth via Supabase
-- **Payments**: Stripe checkout integration
 
 ## Tech Stack
 
@@ -23,7 +22,6 @@ A Next.js web application for validating business ideas with data-driven insight
 - Framer Motion
 - Supabase (Auth & Database)
 - Redux Toolkit
-- Stripe
 - React Hook Form + Zod
 - Feature-Based Architecture
 
@@ -67,14 +65,7 @@ npm install
 
 Go to your Supabase project → SQL Editor and run the SQL from `init.sql` to create the complete database schema with all tables, enums, and policies. Then run `insert.sql` to populate with sample data.
 
-4. Set up environment variables (`.env.local`):
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-STRIPE_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-```
+4. Set up environment variables (`.env.local`).
 
 5. Run the development server:
 

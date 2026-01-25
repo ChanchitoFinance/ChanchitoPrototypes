@@ -217,8 +217,8 @@ export function Sidebar({
       className={`flex-shrink-0 ${
         isMobile
           ? isMobileOpen
-            ? 'w-64 transition-all duration-300'
-            : 'w-0'
+            ? 'fixed left-0 top-16 w-64 z-[200] transition-all duration-300'
+            : 'w-0 overflow-hidden'
           : 'w-[13.5rem]'
       } shadow-lg md:shadow-none h-full`}
       style={{

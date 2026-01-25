@@ -9,6 +9,8 @@ import {
   MessageSquare,
   Share2,
   DollarSign,
+  Pencil,
+  GitBranch,
 } from 'lucide-react'
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
 import { toast } from 'sonner'
@@ -27,6 +29,10 @@ interface IdeaActionsProps {
   onLike: () => void
   onCommentsClick?: () => void
   isVoting?: boolean
+  isOwner?: boolean
+  onEdit?: () => void
+  versionNumber?: number
+  showVersionBadge?: boolean
 }
 
 export function IdeaActions({
@@ -43,6 +49,10 @@ export function IdeaActions({
   onLike,
   onCommentsClick,
   isVoting = false,
+  isOwner = false,
+  onEdit,
+  versionNumber,
+  showVersionBadge = false,
 }: IdeaActionsProps) {
   const t = useTranslations()
 
@@ -153,16 +163,31 @@ export function IdeaActions({
         </button>
       </div>
 
-      {/* Share button on mobile - separate row */}
-      <div className="mt-2 sm:hidden">
+      {/* Share and Edit buttons on mobile - separate row */}
+      <div className="mt-2 sm:hidden flex gap-2">
         <motion.button
           onClick={handleShare}
           whileTap={{ scale: 0.95 }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-100 text-text-secondary hover:bg-gray-200 transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-100 text-text-secondary hover:bg-gray-200 transition-colors"
         >
           <Share2 className="w-5 h-5" />
           <span className="font-medium">{t('actions.share')}</span>
         </motion.button>
+        {isOwner && onEdit && (
+          <motion.button
+            onClick={onEdit}
+            whileTap={{ scale: 0.95 }}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
+          >
+            <Pencil className="w-5 h-5" />
+            <span className="font-medium">{t('actions.edit')}</span>
+            {showVersionBadge && versionNumber && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                <GitBranch className="w-3 h-3" />v{versionNumber}
+              </span>
+            )}
+          </motion.button>
+        )}
       </div>
 
       {/* Desktop: Original horizontal layout */}
@@ -262,6 +287,25 @@ export function IdeaActions({
           <Share2 className="w-5 h-5" />
           <span className="text-sm hidden md:inline">{t('actions.share')}</span>
         </motion.button>
+
+        {/* Edit Button - Only shown to owner */}
+        {isOwner && onEdit && (
+          <motion.button
+            onClick={onEdit}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
+          >
+            <Pencil className="w-5 h-5" />
+            <span className="text-sm hidden md:inline">
+              {t('actions.edit')}
+            </span>
+            {showVersionBadge && versionNumber && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                <GitBranch className="w-3 h-3" />v{versionNumber}
+              </span>
+            )}
+          </motion.button>
+        )}
       </div>
     </div>
   )

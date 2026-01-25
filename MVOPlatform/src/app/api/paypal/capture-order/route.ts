@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/core/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+import { clientEnv } from '@/env-validation/config/env'
 
 const planPrices = {
   pro: 5,
@@ -18,6 +19,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Get the access token from headers
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const token = authHeader.substring(7)
+
+    // Create supabase client with auth
+    const supabaseWithAuth = createClient(
+      clientEnv.supabaseUrl,
+      clientEnv.supabaseAnonKey,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      }
+    )
+
+    // Verify the user is authenticated and matches the userId
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseWithAuth.auth.getUser()
+    if (authError || !user || user.id !== userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     if (!planPrices[plan as keyof typeof planPrices]) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
     }
@@ -33,7 +63,7 @@ export async function POST(request: NextRequest) {
     const amount = planPrices[plan as keyof typeof planPrices]
 
     // Update user plan and reset credits
-    const { error: userError } = await supabase
+    const { error: userError } = await supabaseWithAuth
       .from('users')
       .update({
         plan,
@@ -51,15 +81,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Record the payment
-    const { error: paymentError } = await supabase.from('payments').insert({
-      user_id: userId,
-      plan_type: plan,
-      amount,
-      currency: 'USD',
-      payment_method: 'paypal',
-      transaction_id: orderId,
-      status: 'completed',
-    })
+    const { error: paymentError } = await supabaseWithAuth
+      .from('payments')
+      .insert({
+        user_id: userId,
+        plan_type: plan,
+        amount,
+        currency: 'USD',
+        payment_method: 'paypal',
+        transaction_id: orderId,
+        status: 'completed',
+      })
 
     if (paymentError) {
       console.error('Error recording payment:', paymentError)

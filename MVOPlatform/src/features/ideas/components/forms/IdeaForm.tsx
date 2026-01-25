@@ -30,7 +30,7 @@ import {
 } from '@/shared/components/providers/I18nProvider'
 import { AIRiskFeedback } from '../../../ai/components/AIRiskFeedback'
 import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
-import { deductCredits } from '@/core/lib/slices/creditsSlice'
+import { deductCredits, loadUserCredits } from '@/core/lib/slices/creditsSlice'
 import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import { supabase } from '@/core/lib/supabase'
 import { ideaService } from '@/core/lib/services/ideaService'
@@ -55,6 +55,8 @@ interface IdeaFormProps {
   onSuccess?: () => void
   onCancel?: () => void
   onCustomSubmit?: (data: IdeaFormData) => void
+  isNewVersion?: boolean // When true, creates a new version instead of updating
+  initialIdea?: Idea | null // Initial idea data for new versions
 }
 
 export function IdeaForm({
@@ -62,6 +64,8 @@ export function IdeaForm({
   onSuccess,
   onCancel,
   onCustomSubmit,
+  isNewVersion = false,
+  initialIdea = null,
 }: IdeaFormProps = {}) {
   const router = useRouter()
   const t = useTranslations()
@@ -130,40 +134,47 @@ export function IdeaForm({
 
   const titleValue = watch('title')
 
-  // Load idea data when editing
+  // Load idea data when editing or creating a new version
   useEffect(() => {
-    if (!ideaId) return
+    if (!ideaId && !initialIdea) return
 
     const loadIdea = async () => {
       try {
-        // Fetch idea from database
-        const { data: dbData, error: dbError } = await supabase
-          .from('ideas')
-          .select('id, title, content, anonymous, status_flag')
-          .eq('id', ideaId)
-          .single()
+        let idea: Idea | null = null
 
-        if (dbError || !dbData) {
-          console.error('Error loading idea from database:', dbError)
-          return
+        // If initialIdea is provided (for new versions), use it
+        if (initialIdea) {
+          idea = initialIdea
+        } else if (ideaId) {
+          // Fetch idea from database
+          const { data: dbData, error: dbError } = await supabase
+            .from('ideas')
+            .select('id, title, content, anonymous, status_flag, image, video')
+            .eq('id', ideaId)
+            .single()
+
+          if (dbError || !dbData) {
+            console.error('Error loading idea from database:', dbError)
+            return
+          }
+
+          idea = await ideaService.getIdeaById(ideaId)
+          if (!idea) return
         }
 
-        const idea = await ideaService.getIdeaById(ideaId)
-        if (!idea) return
-
         // Set title
-        setValue('title', idea.title)
+        setValue('title', idea.title, { shouldValidate: false })
 
         // Set tags
         if (idea.tags && idea.tags.length > 0) {
           setSelectedTags(idea.tags)
-          setValue('tags', idea.tags.join(','))
+          setValue('tags', idea.tags.join(','), { shouldValidate: false })
         }
 
         // Set anonymous flag
         setIsAnonymous(idea.anonymous || false)
 
-        // Set content blocks
+        // Set content blocks and media
         if (idea.content && idea.content.length > 0) {
           // Extract hero media from first block if it's image/video
           const firstBlock = idea.content[0]
@@ -185,14 +196,15 @@ export function IdeaForm({
               ? idea.content.slice(1)
               : idea.content
           setContentBlocks(remainingBlocks)
-        } else {
-          // Fallback to image/video from idea root
-          if (idea.image) {
-            setHeroImage(idea.image)
-          }
-          if (idea.video) {
-            setHeroVideo(idea.video)
-          }
+        }
+
+        // Always check for root-level image/video, even if content exists
+        // This ensures media is properly loaded for new versions
+        if (!heroImage && idea.image) {
+          setHeroImage(idea.image)
+        }
+        if (!heroVideo && idea.video) {
+          setHeroVideo(idea.video)
         }
       } catch (error) {
         console.error('Error loading idea:', error)
@@ -200,7 +212,7 @@ export function IdeaForm({
     }
 
     loadIdea()
-  }, [ideaId, setValue])
+  }, [ideaId, initialIdea])
 
   // Load saved form data from localStorage on mount (only if not editing)
   useEffect(() => {
@@ -282,7 +294,7 @@ export function IdeaForm({
     } catch (error) {
       console.error('Error loading saved form data:', error)
     }
-  }, [setValue, ideaId])
+  }, [ideaId])
 
   // Save form data to localStorage whenever it changes
   useEffect(() => {
@@ -535,8 +547,8 @@ export function IdeaForm({
       return
     }
 
-    // For new ideas, show AI comments dialog
-    if (!ideaId) {
+    // For new ideas or new versions, show AI comments dialog
+    if (!ideaId || isNewVersion) {
       setShowAICommentsDialog(true)
       return
     }
@@ -588,6 +600,8 @@ export function IdeaForm({
 
       try {
         await dispatch(deductCredits({ userId: user.id, amount: 1 })).unwrap()
+        // Reload credits to ensure UI is updated
+        await dispatch(loadUserCredits(user.id))
       } catch (error) {
         console.error('Error deducting credits:', error)
         toast.error('Failed to process credits')
@@ -690,7 +704,18 @@ export function IdeaForm({
 
       let resultIdea: Idea
 
-      if (ideaId) {
+      if (ideaId && isNewVersion) {
+        // Create a new version from the existing idea
+        resultIdea = await ideaService.createIdeaVersion(ideaId, {
+          title: newIdea.title,
+          description: newIdea.description,
+          content: newIdea.content,
+          image: newIdea.image,
+          video: newIdea.video,
+          tags: newIdea.tags,
+          anonymous: newIdea.anonymous,
+        })
+      } else if (ideaId) {
         // Update existing idea
         resultIdea = await ideaService.updateIdea(ideaId, {
           title: newIdea.title,
@@ -737,7 +762,7 @@ export function IdeaForm({
         setShowHeroCrop(false)
       }
 
-      if (!ideaId && user && wantAIComments) {
+      if (wantAIComments && user) {
         await aiCommentService.createInitialAIComments(
           resultIdea,
           user.id,
@@ -878,7 +903,11 @@ export function IdeaForm({
       {/* Edit Mode Header */}
       <div className="sticky top-0 z-50 bg-background border-b border-border-color px-4 py-3 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-text-primary truncate flex-1 min-w-0 mr-4">
-          {ideaId ? t('form.edit_idea') : t('form.create_idea')}
+          {isNewVersion
+            ? t('versioning.create_new_version')
+            : ideaId
+              ? t('form.edit_idea')
+              : t('form.create_idea')}
         </h2>
         <button
           type="button"

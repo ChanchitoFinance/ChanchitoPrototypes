@@ -1,81 +1,93 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Loader2,
   ChevronDown,
-  ChevronUp,
   Trash2,
   History,
   RefreshCw,
-  FileWarning,
-  Coins,
+  Search,
+  Lightbulb,
+  Users,
+  FileSearch,
 } from 'lucide-react'
-import { AIFeedback } from '@/core/types/ai'
-import { aiFeedbackStorage } from '@/core/lib/services/aiFeedbackStorage'
+import {
+  DeepResearchResult,
+  EnhancedDeepResearchResult,
+  DeepResearchMainTab,
+} from '@/core/types/ai'
+import { deepResearchStorage } from '@/core/lib/services/deepResearchStorage'
 import { ContentBlock } from '@/core/types/content'
 import {
   useTranslations,
   useLocale,
 } from '@/shared/components/providers/I18nProvider'
-import { MarkdownRenderer } from '@/shared/components/ui/MarkdownRenderer'
 import { useAppSelector } from '@/core/lib/hooks'
 import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
-import Image from 'next/image'
+import {
+  HypothesesTab,
+  EarlyAdoptersTab,
+  DeepResearchSubTabs,
+} from './deep-research'
 
-interface AIRiskFeedbackProps {
+interface AIDeepResearchProps {
   title: string
   description: string
   content: ContentBlock[]
   tags: string[]
-  isAnonymous: boolean
-  onRequestFeedback?: () => Promise<void>
+  onRequestResearch?: () => Promise<void>
 }
 
-export function AIRiskFeedback({
+// Type guard to check if result is enhanced
+function isEnhancedResult(
+  result: DeepResearchResult | EnhancedDeepResearchResult
+): result is EnhancedDeepResearchResult {
+  return 'enhanced' in result && result.enhanced === true
+}
+
+export function AIDeepResearch({
   title,
   description,
   content,
   tags,
-  isAnonymous,
-  onRequestFeedback,
-}: AIRiskFeedbackProps) {
+  onRequestResearch,
+}: AIDeepResearchProps) {
   const t = useTranslations()
   const { locale } = useLocale()
-  const router = useRouter()
-  const [feedback, setFeedback] = useState<AIFeedback | null>(null)
+  const [research, setResearch] = useState<
+    DeepResearchResult | EnhancedDeepResearchResult | null
+  >(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
   const [currentVersion, setCurrentVersion] = useState(1)
   const [totalVersions, setTotalVersions] = useState(0)
   const [showCreditConfirm, setShowCreditConfirm] = useState(false)
+  const [mainTab, setMainTab] = useState<DeepResearchMainTab>('hypotheses')
 
   const { plan, dailyCredits, usedCredits } = useAppSelector(
     state => state.credits
   )
   const remainingCredits =
     plan === 'innovator' ? Infinity : dailyCredits - usedCredits
-  const hasCredits = remainingCredits > 0
-  const isLastCredit = remainingCredits === 1
-
-  const shouldShow = title.length >= 10 && content.length > 0
+  // Enhanced research costs 8 credits
+  const creditCost = 8
+  const hasCredits = remainingCredits >= creditCost
+  const isLastCredits = remainingCredits >= creditCost && remainingCredits < creditCost + 5
 
   useEffect(() => {
-    if (!shouldShow) return
-
-    const cachedFeedback = aiFeedbackStorage.getLatestFeedback(
+    const cachedResearch = deepResearchStorage.getLatestResearch(
       title,
       description || '',
       content.length,
       tags
     )
 
-    if (cachedFeedback) {
-      setFeedback(cachedFeedback)
-      const history = aiFeedbackStorage.getFeedbackHistory({
+    if (cachedResearch) {
+      setResearch(cachedResearch)
+      const history = deepResearchStorage.getResearchHistory({
         title,
         description: description || '',
         contentLength: content.length,
@@ -84,27 +96,23 @@ export function AIRiskFeedback({
       setTotalVersions(history.versions.length)
       setCurrentVersion(history.currentVersion)
     }
-  }, [title, description, content.length, tags, shouldShow])
+  }, [title, description, content.length, tags])
 
-  const requestFeedback = async () => {
-    if (!shouldShow) return
-
+  const requestResearch = async () => {
     setLoading(true)
     setError(null)
 
     try {
-      const response = await fetch('/api/ai/analyze-risks', {
+      const response = await fetch('/api/ai/deep-research', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           title,
-          description: description || '',
-          content,
           tags,
-          isAnonymous,
           language: locale as 'en' | 'es',
+          enhanced: true, // Always request enhanced mode
         }),
       })
 
@@ -116,12 +124,12 @@ export function AIRiskFeedback({
         ) {
           throw new Error('AI_DAILY_LIMIT_EXCEEDED')
         }
-        throw new Error('Failed to analyze')
+        throw new Error(errorData.error || 'Failed to perform research')
       }
 
       const result = await response.json()
 
-      aiFeedbackStorage.saveFeedback(
+      deepResearchStorage.saveResearch(
         result,
         title,
         description || '',
@@ -129,10 +137,11 @@ export function AIRiskFeedback({
         tags
       )
 
-      setFeedback(result)
+      setResearch(result)
       setIsExpanded(true)
+      setMainTab('hypotheses')
 
-      const history = aiFeedbackStorage.getFeedbackHistory({
+      const history = deepResearchStorage.getResearchHistory({
         title,
         description: description || '',
         contentLength: content.length,
@@ -141,15 +150,17 @@ export function AIRiskFeedback({
       setTotalVersions(history.versions.length)
       setCurrentVersion(history.currentVersion)
     } catch (err) {
-      console.error('AI feedback error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to analyze')
+      console.error('Deep research error:', err)
+      setError(
+        err instanceof Error ? err.message : 'Failed to perform research'
+      )
     } finally {
       setLoading(false)
     }
   }
 
   const changeVersion = (newVersion: number) => {
-    const history = aiFeedbackStorage.getFeedbackHistory({
+    const history = deepResearchStorage.getResearchHistory({
       title,
       description: description || '',
       contentLength: content.length,
@@ -158,25 +169,23 @@ export function AIRiskFeedback({
 
     const versionData = history.versions.find(v => v.version === newVersion)
     if (versionData) {
-      setFeedback(versionData.feedback)
+      setResearch(versionData.research)
       setCurrentVersion(newVersion)
-      aiFeedbackStorage.setCurrentVersion(versionData.ideaHash, newVersion)
+      deepResearchStorage.setCurrentVersion(versionData.ideaHash, newVersion)
     }
   }
 
-  const clearAllFeedback = () => {
-    if (confirm(t('ai_risk_feedback.clear_history_confirm'))) {
-      aiFeedbackStorage.clearAllFeedback()
-      setFeedback(null)
+  const clearAllResearch = () => {
+    if (confirm(t('ai_deep_research.clear_history_confirm'))) {
+      deepResearchStorage.clearAllResearch()
+      setResearch(null)
       setTotalVersions(0)
       setCurrentVersion(1)
       setIsExpanded(false)
     }
   }
 
-  if (!shouldShow) {
-    return null
-  }
+  const isEnhanced = research && isEnhancedResult(research)
 
   return (
     <div className="mb-6">
@@ -184,32 +193,32 @@ export function AIRiskFeedback({
         <button
           type="button"
           onClick={() => {
-            if (!feedback) {
+            if (!research) {
               setShowCreditConfirm(true)
             } else {
               setIsExpanded(!isExpanded)
             }
           }}
           disabled={loading}
-          className="w-full h-16 relative bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-gray-900 font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed overflow-visible"
+          className="w-full h-16 relative bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed overflow-visible"
         >
           <div className="flex items-center justify-center gap-3 px-6">
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>{t('ai_risk_feedback.analyzing')}</span>
+                <span>{t('ai_deep_research.researching')}</span>
               </>
             ) : (
               <>
-                <span className="text-2xl">⚠️</span>
+                <Search className="w-6 h-6" />
                 <div className="flex flex-col items-center">
                   <span>
-                    {feedback
-                      ? t('ai_risk_feedback.view_analysis')
-                      : t('ai_risk_feedback.receive_feedback')}
+                    {research
+                      ? t('ai_deep_research.view_research')
+                      : t('ai_deep_research.get_research')}
                   </span>
                 </div>
-                {feedback && (
+                {research && (
                   <motion.div
                     animate={{ rotate: isExpanded ? 180 : 0 }}
                     transition={{ duration: 0.3 }}
@@ -220,13 +229,6 @@ export function AIRiskFeedback({
               </>
             )}
           </div>
-          <Image
-            src="/ai-personas/risk-highlighter.png"
-            alt="Risk Highlighter AI"
-            width={80}
-            height={80}
-            className="absolute -top-5 right-4 w-25 h-25"
-          />
         </button>
       </div>
 
@@ -236,17 +238,17 @@ export function AIRiskFeedback({
         onClose={() => setShowCreditConfirm(false)}
         onConfirm={async () => {
           setShowCreditConfirm(false)
-          if (onRequestFeedback) {
-            await onRequestFeedback()
-            requestFeedback()
+          if (onRequestResearch) {
+            await onRequestResearch()
+            requestResearch()
           } else {
-            requestFeedback()
+            requestResearch()
           }
         }}
-        creditCost={1}
-        featureName={t('ai_risk_feedback.risk_analysis')}
+        creditCost={creditCost}
+        featureName={t('ai_deep_research.feature_name')}
         hasCredits={hasCredits}
-        isLastCredit={isLastCredit}
+        isLastCredit={isLastCredits}
         showNoButton={false}
       />
 
@@ -262,46 +264,103 @@ export function AIRiskFeedback({
             <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
             <button
               type="button"
-              onClick={requestFeedback}
+              onClick={requestResearch}
               className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline font-medium"
             >
-              {t('ai_risk_feedback.try_again')}
+              {t('ai_deep_research.try_again')}
             </button>
           </motion.div>
         )}
 
-        {feedback && isExpanded && (
+        {research && isExpanded && (
           <motion.div
-            key="feedback"
+            key="research"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="mt-4 space-y-4 p-6 bg-white dark:bg-gray-800 rounded-lg border-2 border-yellow-400 shadow-lg"
+            className="mt-4 space-y-4 p-6 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-400 shadow-lg"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">🛡️</span>
+                <span className="text-2xl">🔬</span>
                 <h4 className="font-semibold text-gray-900 dark:text-white">
-                  {t('ai_risk_feedback.risk_analysis')}
+                  {t('ai_deep_research.title')}
                 </h4>
               </div>
               {totalVersions > 1 && (
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <History className="w-4 h-4" />
                   <span>
-                    {t('ai_risk_feedback.version')} {currentVersion}{' '}
-                    {t('ai_risk_feedback.of')} {totalVersions}
+                    {t('ai_deep_research.version')} {currentVersion}{' '}
+                    {t('ai_deep_research.of')} {totalVersions}
                   </span>
                 </div>
               )}
             </div>
 
-            <div className="p-4 bg-yellow-50 dark:bg-gray-900 rounded-lg border border-yellow-200 dark:border-gray-700">
-              <MarkdownRenderer
-                content={feedback.feedback}
-                className="text-gray-800 dark:text-gray-200"
-              />
+            {/* Main Tab Navigation - 3 tabs */}
+            <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+              <button
+                type="button"
+                onClick={() => setMainTab('hypotheses')}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                  mainTab === 'hypotheses'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+              >
+                <Lightbulb className="w-4 h-4" />
+                {t('deep_research.tabs.hypotheses')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMainTab('earlyAdopters')}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                  mainTab === 'earlyAdopters'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                {t('deep_research.tabs.early_adopters')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMainTab('deepResearch')}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                  mainTab === 'deepResearch'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+              >
+                <FileSearch className="w-4 h-4" />
+                {t('deep_research.tabs.deep_research')}
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            <div className="min-h-[300px]">
+              {mainTab === 'hypotheses' && (
+                <HypothesesTab
+                  hypotheses={isEnhanced ? research.hypotheses : []}
+                />
+              )}
+
+              {mainTab === 'earlyAdopters' && (
+                <EarlyAdoptersTab
+                  earlyAdopters={isEnhanced ? research.earlyAdopters : []}
+                />
+              )}
+
+              {mainTab === 'deepResearch' && (
+                <DeepResearchSubTabs
+                  googleResults={research.googleResults}
+                  googleTrends={research.googleTrends}
+                  bingResults={research.bingResults}
+                  aiSummary={research.aiSummary}
+                />
+              )}
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -315,7 +374,7 @@ export function AIRiskFeedback({
                     disabled={currentVersion === 1}
                     className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
-                    {t('ai_risk_feedback.previous')}
+                    {t('ai_deep_research.previous')}
                   </button>
                   <button
                     type="button"
@@ -325,7 +384,7 @@ export function AIRiskFeedback({
                     disabled={currentVersion === totalVersions}
                     className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
-                    {t('ai_risk_feedback.next')}
+                    {t('ai_deep_research.next')}
                   </button>
                 </div>
               )}
@@ -335,28 +394,28 @@ export function AIRiskFeedback({
                   type="button"
                   onClick={() => setShowCreditConfirm(true)}
                   disabled={loading}
-                  className="px-4 py-2 text-sm bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
+                  className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <RefreshCw className="w-4 h-4" />
                   )}
-                  {t('ai_risk_feedback.re_analyze')}
+                  {t('ai_deep_research.regenerate')}
                 </button>
                 <button
                   type="button"
-                  onClick={clearAllFeedback}
+                  onClick={clearAllResearch}
                   className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
-                  {t('ai_risk_feedback.clear_all')}
+                  {t('ai_deep_research.clear_all')}
                 </button>
               </div>
             </div>
 
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              {t('ai_risk_feedback.advisory_note')}
+              {t('ai_deep_research.advisory_note')}
             </p>
           </motion.div>
         )}

@@ -69,21 +69,19 @@ export async function isUrlValid(
         setTimeout(() => resolve(false), 5000)
       })
     } else {
-      // Permissive validation for display - try to load but with shorter timeout
+      // Permissive validation for display - be more lenient for videos
+      if (isVideoUrl) {
+        // For videos in display context, just check if URL is well-formed and looks like video
+        // Don't try to load metadata as it can be slow and cause intermittent failures
+        return Promise.resolve(true)
+      }
+
+      // For images, still try to load but with shorter timeout
       return new Promise(resolve => {
-        if (isImageUrl) {
-          const img = new Image()
-          img.onload = () => resolve(true)
-          img.onerror = () => resolve(false)
-          img.src = url
-        } else {
-          const video = document.createElement('video')
-          video.preload = 'metadata'
-          video.onloadedmetadata = () => resolve(true)
-          video.onerror = () => resolve(false)
-          video.onabort = () => resolve(false)
-          video.src = url
-        }
+        const img = new Image()
+        img.onload = () => resolve(true)
+        img.onerror = () => resolve(false)
+        img.src = url
 
         // Shorter timeout for display components (2 seconds)
         setTimeout(() => resolve(false), 2000)

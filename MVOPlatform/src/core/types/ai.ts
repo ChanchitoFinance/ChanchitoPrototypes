@@ -28,6 +28,117 @@ export interface AIPersonaFeedback {
   timestamp: Date
 }
 
+// Deep Research Types
+export interface GoogleSearchResult {
+  position: number
+  title: string
+  link: string
+  snippet: string
+  displayedLink?: string
+  date?: string
+}
+
+export interface GoogleTrendsData {
+  query: string
+  date: string
+  value: number
+  extractedValue: number
+}
+
+export interface BingSearchResult {
+  position: number
+  title: string
+  link: string
+  snippet: string
+  displayedLink?: string
+  date?: string
+}
+
+export interface DeepResearchResult {
+  googleResults: GoogleSearchResult[]
+  googleTrends: GoogleTrendsData[]
+  bingResults: BingSearchResult[]
+  aiSummary: string
+  timestamp: Date
+}
+
+// Enhanced Deep Research Types
+export type HypothesisId = 'HY1' | 'HY2' | 'HY3' | 'HY4' | 'HY5'
+
+export interface HypothesisData {
+  id: HypothesisId
+  title: string
+  quantitativeSegment: string
+  qualitativeSegment: string
+  sources: {
+    serp: string[]
+    youtube: string[]
+    facebook: string[]
+  }
+}
+
+export interface YouTubeSearchResult {
+  id: string
+  title: string
+  link: string
+  channelName: string
+  channelLink: string
+  description: string
+  publishedDate?: string
+  views?: number
+  length?: string
+  thumbnail?: string
+}
+
+export interface FacebookSearchResult {
+  id: string
+  name: string
+  profileUrl: string
+  category?: string
+  likes?: number
+  followers?: number
+  about?: string
+  posts?: Array<{
+    text: string
+    url: string
+    date?: string
+  }>
+}
+
+export interface EarlyAdopter {
+  id: string
+  platform: 'youtube' | 'facebook'
+  username: string
+  displayName?: string
+  profileUrl: string
+  postUrl: string
+  postContent: string
+  relevanceScore: number
+  createdAt: string
+}
+
+export type DeepResearchMainTab = 'hypotheses' | 'earlyAdopters' | 'deepResearch'
+export type DeepResearchSubTab = 'summary' | 'google' | 'trends' | 'bing'
+
+export interface EnhancedDeepResearchResult {
+  // Original data
+  googleResults: GoogleSearchResult[]
+  googleTrends: GoogleTrendsData[]
+  bingResults: BingSearchResult[]
+  aiSummary: string
+
+  // Enhanced data
+  hypotheses: HypothesisData[]
+  earlyAdopters: EarlyAdopter[]
+  youtubeResults: YouTubeSearchResult[]
+  facebookResults: FacebookSearchResult[]
+
+  // Metadata
+  timestamp: Date
+  version: number
+  enhanced: boolean
+}
+
 export const AI_PERSONAS: Record<AIPersonaType, AIPersona> = {
   technical: {
     id: 'technical',

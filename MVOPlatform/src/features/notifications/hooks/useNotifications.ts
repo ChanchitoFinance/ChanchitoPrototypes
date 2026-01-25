@@ -125,23 +125,17 @@ export const useNotifications = () => {
           table: 'idea_votes',
         },
         async payload => {
-          console.log('useNotifications: Vote event received:', payload.new)
-
           if (!payload.new?.voter_id || !payload.new?.idea_id) {
             return
           }
 
           if (payload.new.voter_id === userId) {
-            console.log('useNotifications: Self-vote, skipping')
             return
           }
 
           if (!userIdeasSetRef.current.has(payload.new.idea_id)) {
-            console.log('useNotifications: Vote not for user idea, skipping')
             return
           }
-
-          console.log('useNotifications: Vote IS for user idea!')
 
           const { data: idea } = await supabase
             .from('ideas')
@@ -180,11 +174,6 @@ export const useNotifications = () => {
             ideaTitle: idea.title,
             userId: payload.new.voter_id,
           }
-
-          console.log(
-            'useNotifications: Dispatching vote notification:',
-            newNotification
-          )
           dispatch(addNotificationAction(newNotification))
         }
       )

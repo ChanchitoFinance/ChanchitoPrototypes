@@ -493,6 +493,70 @@
     "save_settings": "Guardar Configuración",
     "auto_save_message": "Tus configuraciones se guardan automáticamente cuando realizas cambios"
   },
+  "ai_deep_research": {
+    "researching": "Investigando...",
+    "view_research": "Ver Señales Externas Capturadas",
+    "get_research": "Capturar Señales Externas",
+    "feature_name": "Capturar Señales Externas",
+    "title": "Resultados de Señales Externas Capturadas",
+    "clear_history_confirm": "¿Estás seguro de que quieres eliminar todo el historial de investigación?",
+    "try_again": "Intentar de nuevo",
+    "version": "Versión",
+    "of": "de",
+    "previous": "← Anterior",
+    "next": "Siguiente →",
+    "regenerate": "Regenerar",
+    "clear_all": "Limpiar Todo",
+    "advisory_note": "Esta investigación es solo informativa. Úsala para validar el potencial de mercado de tu idea.",
+    "google_search": "Búsqueda Google",
+    "google_trends": "Tendencias Google",
+    "bing_search": "Búsqueda Bing",
+    "ai_summary": "Resumen IA",
+    "top_5_results": "Los 5 resultados más relevantes",
+    "no_results": "No se encontraron resultados",
+    "interest_over_time": "Interés de búsqueda del último año",
+    "no_trends_data": "No hay datos de tendencias disponibles"
+  },
+  "deep_research": {
+    "tabs": {
+      "hypotheses": "Hipótesis",
+      "early_adopters": "Early Adopters",
+      "deep_research": "Investigación Profunda"
+    },
+    "hypotheses": {
+      "intro": "Estas hipótesis son suposiciones probadas sobre tu idea específica, validadas mediante el análisis de datos cuantitativos (investigación de mercado, estadísticas) e insights cualitativos (contenido social, sentimiento de la comunidad) de resultados de búsqueda reales.",
+      "quantitative": "Análisis Cuantitativo",
+      "qualitative": "Análisis Cualitativo",
+      "sources": "Fuentes",
+      "source_web": "Web",
+      "no_data": "No hay datos disponibles para este segmento.",
+      "no_hypotheses": "Aún no se han generado hipótesis.",
+      "hy1": {
+        "title": "Existe demanda de mercado para esta solución"
+      },
+      "hy2": {
+        "title": "La audiencia objetivo busca activamente soluciones"
+      },
+      "hy3": {
+        "title": "Las soluciones existentes dejan vacíos que esta idea puede llenar"
+      },
+      "hy4": {
+        "title": "El modelo de negocio es viable en este mercado"
+      },
+      "hy5": {
+        "title": "Los early adopters pueden ser identificados y alcanzados"
+      }
+    },
+    "early_adopters": {
+      "description": "Una lista curada de creadores de YouTube y páginas de Facebook relacionadas con tu concepto. Estos perfiles pueden ser útiles para contacto, alianzas y entender a tu audiencia objetivo.",
+      "from_youtube": "De YouTube",
+      "from_facebook": "De Facebook",
+      "view_video": "Ver video",
+      "view_page": "Ver página",
+      "no_data": "No se encontraron early adopters",
+      "no_data_hint": "No se encontraron videos de YouTube ni páginas de Facebook relevantes para tu idea."
+    }
+  },
   "ai_risk_feedback": {
     "analyzing": "Analizando...",
     "view_analysis": "Ver Análisis de Riesgos IA",
@@ -593,5 +657,30 @@
     "error_creating_order": "Error al crear orden de pago",
     "error_capturing": "Error al procesar pago",
     "paypal_error": "Error de pago PayPal"
+  },
+  "versioning": {
+    "version": "Versión",
+    "version_number": "v{number}",
+    "current_version": "Versión Actual",
+    "active_version": "Activa (Pública)",
+    "inactive_version": "Inactiva",
+    "create_new_version": "Crear Nueva Versión",
+    "edit_current": "Editar Versión Actual",
+    "edit_modal_title": "Opciones de Edición",
+    "edit_modal_description": "Elige cómo quieres hacer cambios a tu idea",
+    "edit_current_description": "Hacer cambios a la versión {number}",
+    "create_new_description": "Crear versión {number} con votos y comentarios nuevos",
+    "set_as_active": "Establecer como Activa",
+    "set_active_confirm": "¿Hacer esta la versión pública?",
+    "set_active_description": "La versión {number} se mostrará a todos los usuarios en búsqueda, inicio y listados de ideas",
+    "version_history": "Historial de Versiones",
+    "versions_count": "{count} versiones",
+    "created_on": "Creado {date}",
+    "version_stats": "{votes} votos, {comments} comentarios",
+    "view_version": "Ver",
+    "edit_version": "Editar",
+    "new_version_created": "¡Nueva versión creada exitosamente!",
+    "version_activated": "La versión {number} es ahora la versión pública",
+    "no_other_versions": "Esta es la única versión de esta idea"
   }
 }

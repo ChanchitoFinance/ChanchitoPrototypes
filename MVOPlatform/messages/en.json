@@ -493,6 +493,70 @@
     "save_settings": "Save Settings",
     "auto_save_message": "Your settings are automatically saved when you make changes"
   },
+  "ai_deep_research": {
+    "researching": "Researching...",
+    "view_research": "View Captured External Signals",
+    "get_research": "Capture External Signals",
+    "feature_name": "Capture External Signals",
+    "title": "Capture External Signals Results",
+    "clear_history_confirm": "Are you sure you want to clear all research history?",
+    "try_again": "Try again",
+    "version": "Version",
+    "of": "of",
+    "previous": "← Previous",
+    "next": "Next →",
+    "regenerate": "Regenerate",
+    "clear_all": "Clear All",
+    "advisory_note": "This research is for informational purposes. Use it to validate your idea's market potential.",
+    "google_search": "Google Search",
+    "google_trends": "Google Trends",
+    "bing_search": "Bing Search",
+    "ai_summary": "AI Summary",
+    "top_5_results": "Top 5 most relevant results",
+    "no_results": "No results found",
+    "interest_over_time": "Search interest over the past year",
+    "no_trends_data": "No trends data available"
+  },
+  "deep_research": {
+    "tabs": {
+      "hypotheses": "Hypotheses",
+      "early_adopters": "Early Adopters",
+      "deep_research": "Deep Research"
+    },
+    "hypotheses": {
+      "intro": "These hypotheses are tested assumptions about your specific idea, validated by analyzing quantitative data (market research, statistics) and qualitative insights (social content, community sentiment) from real search results.",
+      "quantitative": "Quantitative Analysis",
+      "qualitative": "Qualitative Analysis",
+      "sources": "Sources",
+      "source_web": "Web",
+      "no_data": "No data available for this segment.",
+      "no_hypotheses": "No hypotheses generated yet.",
+      "hy1": {
+        "title": "There is market demand for this solution"
+      },
+      "hy2": {
+        "title": "The target audience is actively seeking solutions"
+      },
+      "hy3": {
+        "title": "Existing solutions leave gaps that this idea can fill"
+      },
+      "hy4": {
+        "title": "The business model is viable in this market"
+      },
+      "hy5": {
+        "title": "Early adopters can be identified and reached"
+      }
+    },
+    "early_adopters": {
+      "description": "A curated list of YouTube creators and Facebook pages related to your concept. These profiles can be useful for outreach, partnerships, and understanding your target audience.",
+      "from_youtube": "From YouTube",
+      "from_facebook": "From Facebook",
+      "view_video": "View video",
+      "view_page": "View page",
+      "no_data": "No early adopters found",
+      "no_data_hint": "No relevant YouTube videos or Facebook pages were found for your idea."
+    }
+  },
   "ai_risk_feedback": {
     "analyzing": "Analyzing...",
     "view_analysis": "View AI Risk Analysis",
@@ -593,5 +657,30 @@
     "error_creating_order": "Error creating payment order",
     "error_capturing": "Error processing payment",
     "paypal_error": "PayPal payment error"
+  },
+  "versioning": {
+    "version": "Version",
+    "version_number": "v{number}",
+    "current_version": "Current Version",
+    "active_version": "Active (Public)",
+    "inactive_version": "Inactive",
+    "create_new_version": "Create New Version",
+    "edit_current": "Edit Current Version",
+    "edit_modal_title": "Edit Options",
+    "edit_modal_description": "Choose how you want to make changes to your idea",
+    "edit_current_description": "Make changes to version {number}",
+    "create_new_description": "Create version {number} with fresh votes and comments",
+    "set_as_active": "Set as Active",
+    "set_active_confirm": "Make this the public version?",
+    "set_active_description": "Version {number} will be shown to all users in search, home, and idea listings",
+    "version_history": "Version History",
+    "versions_count": "{count} versions",
+    "created_on": "Created {date}",
+    "version_stats": "{votes} votes, {comments} comments",
+    "view_version": "View",
+    "edit_version": "Edit",
+    "new_version_created": "New version created successfully!",
+    "version_activated": "Version {number} is now the public version",
+    "no_other_versions": "This is the only version of this idea"
   }
 }
