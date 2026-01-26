@@ -40,6 +40,7 @@ export function validateEnvironmentVariables() {
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
       NEXT_PUBLIC_GEMINI_MODEL: process.env.NEXT_PUBLIC_GEMINI_MODEL,
       SERPAPI_API_KEY: process.env.SERPAPI_API_KEY,
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY,
       NEXT_PUBLIC_PAYPAL_CLIENT_ID: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
       NEXT_PUBLIC_PAYPAL_ENVIRONMENT:
         process.env.NEXT_PUBLIC_PAYPAL_ENVIRONMENT,

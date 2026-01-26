@@ -689,5 +689,138 @@
     "new_version_created": "¡Nueva versión creada exitosamente!",
     "version_activated": "La versión {number} es ahora la versión pública",
     "no_other_versions": "Esta es la única versión de esta idea"
+  },
+  "market_validation": {
+    "feature_name": "Validación de Mercado IA",
+    "title": "Validación y Análisis de Mercado IA",
+    "researching": "Analizando mercado...",
+    "get_validation": "Obtener Validación de Mercado",
+    "view_validation": "Ver Validación de Mercado",
+    "disclaimer": "Estas señales reducen la incertidumbre pero no predicen el éxito. Los resultados de mercado dependen de la ejecución, el tiempo y factores externos.",
+    "tabs": {
+      "market_snapshot": "Resumen de Mercado",
+      "behavioral_hypotheses": "Hipótesis Conductuales",
+      "market_signals": "Señales de Mercado",
+      "conflicts_gaps": "Conflictos y Brechas",
+      "synthesis": "Síntesis y Próximos Pasos"
+    },
+    "confidence": {
+      "low": "Confianza Baja",
+      "medium": "Confianza Media",
+      "high": "Confianza Alta"
+    },
+    "strength": {
+      "low": "Señal Débil",
+      "medium": "Señal Moderada",
+      "high": "Señal Fuerte"
+    },
+    "evidence_type": {
+      "behavioral": "Conductual",
+      "stated": "Declarado",
+      "quantitative": "Cuantitativo"
+    },
+    "snapshot": {
+      "intro": "Este resumen enmarca el segmento de clientes y el contexto de mercado para esta idea, anclando todas las señales de validación posteriores.",
+      "customer_segment": "Segmento de Clientes",
+      "primary_user": "Usuario Principal",
+      "buyer": "Comprador",
+      "context_of_use": "Contexto de Uso",
+      "environment": "Entorno",
+      "market_context": "Contexto de Mercado",
+      "geography": "Alcance Geográfico",
+      "timing_context": "Momento y Preparación del Mercado",
+      "horizontal": "Mercado Horizontal",
+      "vertical": "Mercado Vertical",
+      "new_category": "Nueva Categoría",
+      "existing_category": "Categoría Existente"
+    },
+    "hypotheses": {
+      "intro": "Estas hipótesis validan tu idea a través de 5 capas conductuales, desde la existencia del problema hasta la disposición a pagar. Cada una está respaldada por evidencia de investigación web.",
+      "layer": "Capa",
+      "hypothesis": "Hipótesis",
+      "evidence_summary": "Resumen de Evidencia",
+      "sources": "Fuentes de Respaldo",
+      "contradicting_signals": "Señales Contradictorias",
+      "no_hypotheses": "No hay hipótesis disponibles",
+      "existence": {
+        "title": "Existencia del Problema",
+        "description": "El problema ocurre realmente para el segmento identificado"
+      },
+      "awareness": {
+        "title": "Conciencia del Problema",
+        "description": "Los usuarios reconocen y articulan el problema"
+      },
+      "consideration": {
+        "title": "Consideración de Solución",
+        "description": "Los usuarios buscan activamente soluciones o alternativas"
+      },
+      "intent": {
+        "title": "Intención de Adopción",
+        "description": "Los usuarios muestran intención de adoptar una solución"
+      },
+      "pay_intention": {
+        "title": "Disposición a Pagar",
+        "description": "Los usuarios demuestran disposición a pagar por una solución"
+      }
+    },
+    "signals": {
+      "intro": "Estas señales a nivel de mercado validan la fuerza de la demanda, el momento y el ajuste competitivo más allá de las hipótesis individuales.",
+      "evidence": "Evidencia",
+      "sources": "Fuentes",
+      "no_signals": "No hay señales de mercado disponibles",
+      "demand_intensity": {
+        "title": "Intensidad y Momentum de la Demanda",
+        "description": "Si la demanda está emergiendo, creciendo, estable o declinando"
+      },
+      "problem_salience": {
+        "title": "Prominencia y Urgencia del Problema",
+        "description": "Qué tan doloroso y urgente es el problema"
+      },
+      "existing_spend": {
+        "title": "Gasto Existente y Señales de Presupuesto",
+        "description": "Si ya hay dinero fluyendo en este espacio"
+      },
+      "competitive_landscape": {
+        "title": "Panorama Competitivo",
+        "description": "Saturación del mercado sin juzgar ganadores"
+      },
+      "switching_friction": {
+        "title": "Fricción de Cambio y Adopción",
+        "description": "Facilidad de adopción y costos de cambio"
+      },
+      "distribution": {
+        "title": "Distribución y Alcanzabilidad",
+        "description": "Si los clientes son alcanzables"
+      },
+      "geographic_fit": {
+        "title": "Ajuste Geográfico y Cultural",
+        "description": "Alcance de mercado y factores regionales"
+      },
+      "timing": {
+        "title": "Momento y Preparación del Mercado",
+        "description": "Por qué esta oportunidad existe ahora"
+      },
+      "economic_plausibility": {
+        "title": "Plausibilidad Económica",
+        "description": "Validación del tamaño de mercado en orden de magnitud"
+      }
+    },
+    "conflicts_gaps": {
+      "intro": "Esta sección destaca contradicciones, datos faltantes y señales de riesgo que requieren atención.",
+      "contradictions": "Contradicciones",
+      "missing_signals": "Señales Faltantes",
+      "risk_flags": "Señales de Riesgo",
+      "no_major_issues": "No se Identificaron Problemas Mayores",
+      "no_major_issues_description": "El análisis no identificó contradicciones mayores ni señales faltantes críticas. Esto no garantiza el éxito, pero sugiere consistencia en los datos disponibles."
+    },
+    "synthesis": {
+      "intro": "Esta síntesis combina todas las señales para resaltar lo que se ve fuerte, lo que es preocupante y qué probar a continuación.",
+      "strong_points": "Puntos Fuertes de Validación",
+      "weak_points": "Puntos Débiles o Preocupantes",
+      "key_unknowns": "Incógnitas Clave que Requieren Validación",
+      "suggested_next_steps": "Próximos Pasos Sugeridos",
+      "pivot_guidance": "Guía de Pivote",
+      "disclaimer": "Esta es una guía consultiva. El éxito depende de la ejecución, el tiempo y factores más allá de este análisis."
+    }
   }
 }

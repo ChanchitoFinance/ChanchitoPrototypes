@@ -1,11 +1,6 @@
 import { MediaAsset } from '../types/mediaAsset'
-import { Tag } from '../types/tag'
 
 export interface IAdminService {
-  createTag(name: string): Promise<Tag>
-  getTags(): Promise<Tag[]>
-  deleteTag(id: string): Promise<void>
-
   uploadMedia(
     type: MediaAsset['type'],
     url: string,

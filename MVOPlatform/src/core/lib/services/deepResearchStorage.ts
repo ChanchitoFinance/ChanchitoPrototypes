@@ -1,6 +1,14 @@
-import { DeepResearchResult, EnhancedDeepResearchResult } from '@/core/types/ai'
+import {
+  DeepResearchResult,
+  EnhancedDeepResearchResult,
+  MarketValidationResult,
+} from '@/core/types/ai'
 
-type AnyDeepResearchResult = DeepResearchResult | EnhancedDeepResearchResult
+// Support both legacy and new market validation types
+type AnyDeepResearchResult =
+  | DeepResearchResult
+  | EnhancedDeepResearchResult
+  | MarketValidationResult
 
 interface StoredResearch {
   research: AnyDeepResearchResult
