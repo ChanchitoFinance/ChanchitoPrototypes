@@ -14,7 +14,7 @@ export function Footer() {
               {t('brand.full_name')}
             </h3>
             <p className="text-sm text-text-secondary">
-              {t('footer.description')}
+              Waiting for signal is rational. We help you decide when to commit.
             </p>
           </div>
 

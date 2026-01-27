@@ -6,14 +6,16 @@
 
 export const designTokens = {
   colors: {
-    background: '#FDFDFD',
-    textPrimary: '#111111',
-    textSecondary: '#6A6A6A',
-    accent: '#66D3FF',
-    accentAlt: '#CFF56A',
+    background: '#000000',
+    textPrimary: '#FFFFFF',
+    textSecondary: '#A0A0A0',
+    premiumCta: '#992BFF',
+    primaryAccent: '#A07BCF',
+    hoverAccent: '#B0A7B8',
+    error: '#FF944C',
     white: '#FFFFFF',
     black: '#000000',
-    borderColor: '#F3F4F6',
+    borderColor: '#1F1F1F',
   },
   typography: {
     fontFamily: {

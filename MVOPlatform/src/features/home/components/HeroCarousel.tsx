@@ -261,6 +261,7 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
 
   return (
     <div
+      id="ideas-carousel"
       className="relative w-full h-[500px] md:h-[622px] bg-black flex"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

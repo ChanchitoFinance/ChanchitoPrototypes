@@ -1,7 +1,16 @@
 'use client'
 
-import { LandingPage } from '@/features/pages/components/LandingPage'
+import { useRouter, useParams } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function Home() {
-  return <LandingPage />
+  const router = useRouter()
+  const params = useParams()
+  const locale = params.locale as string
+
+  useEffect(() => {
+    router.push(`/${locale}/home`)
+  }, [router, locale])
+
+  return null
 }
