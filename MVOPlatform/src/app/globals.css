@@ -9,8 +9,10 @@
   --background: #000000;
   --text-primary: #ffffff;
   --text-secondary: #a0a0a0;
-  --accent: #66d3ff;
-  --accent-alt: #a78bfa;
+  --premium-cta: #992BFF;
+  --primary-accent: #A07BCF;
+  --hover-accent: #B0A7B8;
+  --error: #FF944C;
   --border-color: #1f1f1f;
   --white: #ffffff;
   --black: #000000;

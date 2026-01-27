@@ -13,7 +13,8 @@
     "profile": "Perfil",
     "more": "Más",
     "admin": "Admin",
-    "notifications": "Notificaciones"
+    "notifications": "Notificaciones",
+    "pricing": "Precios"
   },
   "actions": {
     "sign_in": "Iniciar Sesión",
@@ -120,7 +121,13 @@
     "status_new": "Nuevas",
     "status_active_discussion": "Discusión Activa",
     "status_trending": "En Tendencia",
-    "status_validated": "Validadas"
+    "status_validated": "Validadas",
+    "landing": {
+      "headline": "No tienes que construir ",
+      "accent_word": "todavía",
+      "subheadline": "Esperar la señal es racional. Te ayudamos a decidir cuándo comprometerte.",
+      "cta": "Decide antes de construir"
+    }
   },
   "browse": {
     "dashboard": {

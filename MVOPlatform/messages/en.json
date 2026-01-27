@@ -13,7 +13,8 @@
     "profile": "Profile",
     "more": "More",
     "admin": "Admin",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "pricing": "Pricing"
   },
   "actions": {
     "sign_in": "Sign In",
@@ -120,7 +121,13 @@
     "status_new": "New",
     "status_active_discussion": "Active Discussion",
     "status_trending": "Trending",
-    "status_validated": "Validated"
+    "status_validated": "Validated",
+    "landing": {
+      "headline": "You don't have to build ",
+      "accent_word": "yet",
+      "subheadline": "Waiting for signal is rational. We help you decide when to commit.",
+      "cta": "Decide before building"
+    }
   },
   "browse": {
     "dashboard": {

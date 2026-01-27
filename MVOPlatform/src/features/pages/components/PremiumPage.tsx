@@ -7,6 +7,7 @@ import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
 import { loadUserCredits } from '@/core/lib/slices/creditsSlice'
 import { supabase } from '@/core/lib/supabase'
 import { Crown, Check, Zap, Star, Users } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 const plans = [
   {
@@ -85,11 +86,10 @@ export function PremiumPage() {
   }, [user, dispatch])
 
   return (
-    <div className="bg-background min-h-screen">
-      <main className="max-w-6xl mx-auto px-4 md:px-6 py-12">
+      <main className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 py-12">
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
-            <Crown className="w-16 h-16 text-accent" />
+            <Crown className="w-16 h-16 text-premium-cta" />
           </div>
           <h1 className="text-4xl font-bold text-text-primary mb-4">
             Choose Your Plan
@@ -116,27 +116,27 @@ export function PremiumPage() {
                 key={plan.id}
                 className={`p-6 border rounded-lg transition-all ${
                   isCurrentPlan
-                    ? 'border-accent bg-accent/10'
+                    ? 'border-premium-cta bg-premium-cta/10'
                     : plan.id === 'free'
                       ? 'border-border-color'
                       : canSelect
-                        ? 'border-accent/30 bg-accent/5 hover:bg-accent/10'
+                        ? 'border-primary-accent/30 bg-primary-accent/5 hover:bg-primary-accent/10'
                         : 'border-gray-300 bg-gray-50 opacity-60'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-4">
-                  <Icon className="w-6 h-6 text-accent" />
+                  <Icon className="w-6 h-6 text-primary-accent" />
                   <h3 className="text-xl font-semibold text-text-primary">
                     {plan.name}
                   </h3>
                   {isCurrentPlan && (
-                    <span className="text-xs bg-accent text-white px-2 py-1 rounded-full">
+                    <span className="text-xs bg-premium-cta text-white px-2 py-1 rounded-full">
                       Current
                     </span>
                   )}
                 </div>
                 <div className="mb-4">
-                  <div className="text-3xl font-bold text-accent mb-1">
+                  <div className="text-3xl font-bold text-premium-cta mb-1">
                     ${plan.price}
                     {plan.price > 0 && (
                       <span className="text-lg text-text-secondary">/mo</span>
@@ -151,7 +151,7 @@ export function PremiumPage() {
                 <ul className="space-y-2 mb-6">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-primary-accent flex-shrink-0 mt-0.5" />
                       <span className="text-sm text-text-secondary">
                         {feature}
                       </span>
@@ -159,7 +159,7 @@ export function PremiumPage() {
                   ))}
                 </ul>
                 {isCurrentPlan ? (
-                  <div className="text-sm text-accent font-medium">
+                  <div className="text-sm text-premium-cta font-medium">
                     ✓ Current plan
                   </div>
                 ) : !canSelect ? (
@@ -171,7 +171,7 @@ export function PremiumPage() {
                     onClick={() => {
                       router.push(`/en/checkout?plan=${plan.id}`)
                     }}
-                    className="w-full px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-4 py-2 bg-premium-cta text-white rounded-lg hover:bg-premium-cta/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={!canSelect}
                   >
                     Select {plan.name}
@@ -190,6 +190,5 @@ export function PremiumPage() {
           <p>Plans renew monthly on the same day of payment. Cancel anytime.</p>
         </div>
       </main>
-    </div>
   )
 }

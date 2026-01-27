@@ -70,7 +70,7 @@ export function Pricing() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               className={`card-white padding-card-large flex flex-col h-full ${
-                plan.popular ? 'border-accent shadow-lg' : ''
+                plan.popular ? 'border-premium-cta shadow-lg' : ''
               }`}
             >
               <div className="flex justify-between items-center mb-4">
@@ -78,7 +78,7 @@ export function Pricing() {
                   {plan.name}
                 </h3>
                 {plan.popular && (
-                  <div className="text-xs font-medium text-accent bg-accent/10 px-2 py-1 rounded-full">
+                  <div className="text-xs font-medium text-premium-cta bg-premium-cta/10 px-2 py-1 rounded-full">
                     MOST POPULAR
                   </div>
                 )}
@@ -95,7 +95,7 @@ export function Pricing() {
               <ul className="space-y-3 mb-8 flex-grow">
                 {plan.features.map(feature => (
                   <li key={feature} className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                    <Check className="w-5 h-5 text-primary-accent flex-shrink-0 mt-0.5" />
                     <span className="text-sm text-text-secondary">
                       {feature}
                     </span>

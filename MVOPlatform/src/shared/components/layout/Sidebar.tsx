@@ -19,6 +19,7 @@ import {
   LogIn,
   Shield,
   Compass,
+  DollarSign,
 } from 'lucide-react'
 import { UserMenu } from '@/shared/components/ui/UserMenu'
 
@@ -198,7 +199,15 @@ export function Sidebar({
     //   : []),
   ]
 
-  const bottomItems = []
+  const bottomItems = [
+    {
+      id: 'pricing',
+      label: t('navigation.pricing'),
+      icon: DollarSign,
+      href: `/${currentLocale}/premium`,
+      active: pathname === `/${currentLocale}/premium`,
+    },
+  ]
 
   const handleItemClick = (item: (typeof navItems)[0]) => {
     if (item.onClick) {
@@ -233,7 +242,7 @@ export function Sidebar({
             {isDetailPage ? (
               <button
                 onClick={handleBack}
-                className="text-xl font-semibold text-text-primary hover:text-accent transition-colors cursor-pointer truncate flex-1 min-w-0"
+                className="text-xl font-semibold text-text-primary hover:text-primary-accent transition-colors cursor-pointer truncate flex-1 min-w-0"
               >
                 {t('brand.name')}
               </button>
@@ -274,7 +283,7 @@ export function Sidebar({
                       onClick={handleBack}
                       className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
                         isActive
-                          ? 'bg-accent/10 text-accent'
+                          ? 'bg-primary-accent/10 text-primary-accent'
                           : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
                       }`}
                     >
@@ -290,7 +299,7 @@ export function Sidebar({
                       onClick={() => onTabChange('home')}
                       className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
                         isActive
-                          ? 'bg-accent/10 text-accent'
+                          ? 'bg-primary-accent/10 text-primary-accent'
                           : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
                       }`}
                     >
@@ -309,7 +318,7 @@ export function Sidebar({
                   onClick={() => setIsMobileOpen(false)}
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
                     isActive
-                      ? 'bg-accent/10 text-accent'
+                      ? 'bg-primary-accent/10 text-primary-accent'
                       : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
                   }`}
                 >
@@ -332,7 +341,7 @@ export function Sidebar({
                 onClick={() => setIsMobileOpen(false)}
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
                   item.active
-                    ? 'bg-accent/10 text-accent'
+                    ? 'bg-primary-accent/10 text-primary-accent'
                     : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
                 }`}
               >
