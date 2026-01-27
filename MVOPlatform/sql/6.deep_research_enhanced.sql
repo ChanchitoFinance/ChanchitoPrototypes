@@ -48,7 +48,7 @@ CREATE POLICY deep_research_results_owner_select ON deep_research_results
     FOR SELECT
     USING (
         idea_id IN (
-            SELECT id FROM ideas WHERE user_id = auth.uid()
+            SELECT id FROM ideas WHERE creator_id = auth.uid()
         )
     );
 
@@ -56,7 +56,7 @@ CREATE POLICY deep_research_results_owner_insert ON deep_research_results
     FOR INSERT
     WITH CHECK (
         idea_id IN (
-            SELECT id FROM ideas WHERE user_id = auth.uid()
+            SELECT id FROM ideas WHERE creator_id = auth.uid()
         )
     );
 
@@ -64,7 +64,7 @@ CREATE POLICY deep_research_results_owner_update ON deep_research_results
     FOR UPDATE
     USING (
         idea_id IN (
-            SELECT id FROM ideas WHERE user_id = auth.uid()
+            SELECT id FROM ideas WHERE creator_id = auth.uid()
         )
     );
 
@@ -72,7 +72,7 @@ CREATE POLICY deep_research_results_owner_delete ON deep_research_results
     FOR DELETE
     USING (
         idea_id IN (
-            SELECT id FROM ideas WHERE user_id = auth.uid()
+            SELECT id FROM ideas WHERE creator_id = auth.uid()
         )
     );
 

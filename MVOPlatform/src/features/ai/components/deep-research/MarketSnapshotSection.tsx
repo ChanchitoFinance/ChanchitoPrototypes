@@ -17,14 +17,16 @@ interface MarketSnapshotSectionProps {
   snapshot: MarketSnapshot
 }
 
-export function MarketSnapshotSection({ snapshot }: MarketSnapshotSectionProps) {
+export function MarketSnapshotSection({
+  snapshot,
+}: MarketSnapshotSectionProps) {
   const t = useTranslations()
 
   const getMarketTypeLabel = (type: string): string => {
     const labels: Record<string, string> = {
-      'B2C': 'B2C (Business to Consumer)',
-      'B2B': 'B2B (Business to Business)',
-      'B2B2C': 'B2B2C (Business to Business to Consumer)',
+      B2C: 'B2C (Business to Consumer)',
+      B2B: 'B2B (Business to Business)',
+      B2B2C: 'B2B2C (Business to Business to Consumer)',
     }
     return labels[type] || type
   }
@@ -69,7 +71,7 @@ export function MarketSnapshotSection({ snapshot }: MarketSnapshotSectionProps) 
               <Target className="w-3.5 h-3.5" />
               {t('market_validation.snapshot.primary_user')}
             </div>
-            <p className="text-sm text-gray-800 dark:text-gray-200">
+            <p className="text-sm text-gray-800 dark:text-gray-300">
               {snapshot.customerSegment.primaryUser}
             </p>
           </div>
@@ -80,7 +82,7 @@ export function MarketSnapshotSection({ snapshot }: MarketSnapshotSectionProps) 
                 <Briefcase className="w-3.5 h-3.5" />
                 {t('market_validation.snapshot.buyer')}
               </div>
-              <p className="text-sm text-gray-800 dark:text-gray-200">
+              <p className="text-sm text-gray-800 dark:text-gray-300">
                 {snapshot.customerSegment.buyer}
               </p>
             </div>
@@ -91,7 +93,7 @@ export function MarketSnapshotSection({ snapshot }: MarketSnapshotSectionProps) 
               <Clock className="w-3.5 h-3.5" />
               {t('market_validation.snapshot.context_of_use')}
             </div>
-            <p className="text-sm text-gray-800 dark:text-gray-200">
+            <p className="text-sm text-gray-800 dark:text-gray-300">
               {snapshot.customerSegment.contextOfUse}
             </p>
           </div>
@@ -101,7 +103,7 @@ export function MarketSnapshotSection({ snapshot }: MarketSnapshotSectionProps) 
               <Building2 className="w-3.5 h-3.5" />
               {t('market_validation.snapshot.environment')}
             </div>
-            <p className="text-sm text-gray-800 dark:text-gray-200 capitalize">
+            <p className="text-sm text-gray-800 dark:text-gray-300 capitalize">
               {snapshot.customerSegment.environment}
             </p>
           </div>

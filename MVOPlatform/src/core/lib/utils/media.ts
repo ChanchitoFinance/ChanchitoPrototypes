@@ -131,7 +131,7 @@ export function getIdeaMedia(content?: ContentBlock[]): IdeaMedia {
 
 /**
  * Gets the best media for an idea card display
- * Priority: video from content > image from content > hero video > hero image
+ * Priority: hero video > hero image > video from content > image from content
  */
 export function getCardMedia(idea: {
   video?: string
@@ -140,9 +140,9 @@ export function getCardMedia(idea: {
 }): IdeaMedia {
   const contentMedia = getIdeaMedia(idea.content)
 
-  // Prioritize content media, fallback to hero media
+  // Prioritize hero media, fallback to content media
   return {
-    video: contentMedia.video || idea.video,
-    image: contentMedia.image || idea.image,
+    video: idea.video || contentMedia.video,
+    image: idea.image || contentMedia.image,
   }
 }

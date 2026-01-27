@@ -295,7 +295,7 @@ BEGIN
     (SELECT COUNT(*) FROM idea_votes WHERE idea_id = i.id AND vote_type = 'dislike'::idea_vote_type) as dislike_votes,
     (SELECT COUNT(*) FROM idea_votes WHERE idea_id = i.id AND vote_type = 'pay'::idea_vote_type) as pay_votes,
     (SELECT COUNT(*) FROM comments WHERE idea_id = i.id AND deleted_at IS NULL) as comment_count,
-    (SELECT array_agg(t.name) FROM idea_tags JOIN tags t ON idea_tags.tag_id = t.id WHERE idea_tags.idea_id = i.id) as tags,
+    i.tags,
     (SELECT COUNT(*) FROM idea_votes WHERE idea_id = i.id) as total_votes,
     ((SELECT COUNT(*) FROM idea_votes WHERE idea_id = i.id AND vote_type = 'pay'::idea_vote_type) * 3 +
      (SELECT COUNT(*) FROM idea_votes WHERE idea_id = i.id AND vote_type = 'use'::idea_vote_type) * 2 -

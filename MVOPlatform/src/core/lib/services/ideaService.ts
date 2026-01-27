@@ -38,12 +38,7 @@ class SupabaseIdeaService implements IIdeaService {
         idea_votes (
           vote_type
         ),
-
         tags,
-          tags (
-            name
-          )
-        ),
         comments!left (
           id
         )
@@ -80,12 +75,7 @@ class SupabaseIdeaService implements IIdeaService {
         idea_votes (
           vote_type
         ),
-
         tags,
-          tags (
-            name
-          )
-        ),
         comments!left (
           id
         )
@@ -119,18 +109,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-
         tags,
-          tags (
-            name
-          )
-        ),
         comments!left (
           id
         )
@@ -162,18 +146,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-
         tags,
-          tags (
-            name
-          )
-        ),
         comments!left (
           id
         )
@@ -216,18 +194,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-
         tags,
-          tags (
-            name
-          )
-        ),
         comments!left (
           id
         )
@@ -259,18 +231,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-
         tags,
-          tags (
-            name
-          )
-        ),
         comments!left (
           id
         )
@@ -301,18 +267,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-
         tags,
-          tags (
-            name
-          )
-        ),
         comments!left (
           id
         )
@@ -351,18 +311,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-
         tags,
-          tags (
-            name
-          )
-        ),
         comments!left (
           id
         )
@@ -394,18 +348,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-
         tags,
-          tags (
-            name
-          )
-        ),
         comments!left (
           id
         )
@@ -445,18 +393,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-
         tags,
-          tags (
-            name
-          )
-        ),
         comments!left (
           id
         )
@@ -492,18 +434,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-
         tags,
-          tags (
-            name
-          )
-        ),
         comments!left (
           id
         )
@@ -621,10 +557,11 @@ class SupabaseIdeaService implements IIdeaService {
         users!ideas_creator_id_fkey (
           username,
           full_name,
-          email
+          ,
         ),
         idea_votes (
           vote_type
+        ),
         ),
         tags,
         comments!left (
@@ -672,12 +609,13 @@ class SupabaseIdeaService implements IIdeaService {
           users!ideas_creator_id_fkey (
             username,
             full_name,
-            email
+            ,
           ),
           idea_votes (
             vote_type
+        ),
           ),
-          tags,
+          ,
           comments!left (
             id
           )
@@ -926,7 +864,6 @@ class SupabaseIdeaService implements IIdeaService {
         users!ideas_creator_id_fkey (
           username,
           full_name
-        ),
         idea_votes (
           vote_type
         ),
@@ -1125,8 +1062,9 @@ class SupabaseIdeaService implements IIdeaService {
           ),
           idea_votes (
             vote_type
+        ),
           ),
-          tags,
+          ,
           comments!left (
             id
           )
@@ -1178,10 +1116,11 @@ class SupabaseIdeaService implements IIdeaService {
         users!ideas_creator_id_fkey (
           username,
           full_name,
-          email
+          ,
         ),
         idea_votes (
           vote_type
+        ),
         ),
         tags,
         comments!left (

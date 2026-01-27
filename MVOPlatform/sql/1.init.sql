@@ -364,7 +364,7 @@ CREATE POLICY "Users can update their own profile" ON users
 -- Other table policies
 -- ============================================================================
 
--- Public read for media_assets, tags
+-- Public read for media_assets
 CREATE POLICY "Public read media_assets" ON media_assets FOR SELECT USING (true);
 
 -- Ideas: public read (active versions only), authenticated create/update

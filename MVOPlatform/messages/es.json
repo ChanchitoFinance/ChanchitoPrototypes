@@ -524,46 +524,6 @@
     "interest_over_time": "Interés de búsqueda del último año",
     "no_trends_data": "No hay datos de tendencias disponibles"
   },
-  "deep_research": {
-    "tabs": {
-      "hypotheses": "Hipótesis",
-      "early_adopters": "Early Adopters",
-      "deep_research": "Investigación Profunda"
-    },
-    "hypotheses": {
-      "intro": "Estas hipótesis son suposiciones probadas sobre tu idea específica, validadas mediante el análisis de datos cuantitativos (investigación de mercado, estadísticas) e insights cualitativos (contenido social, sentimiento de la comunidad) de resultados de búsqueda reales.",
-      "quantitative": "Análisis Cuantitativo",
-      "qualitative": "Análisis Cualitativo",
-      "sources": "Fuentes",
-      "source_web": "Web",
-      "no_data": "No hay datos disponibles para este segmento.",
-      "no_hypotheses": "Aún no se han generado hipótesis.",
-      "hy1": {
-        "title": "Existe demanda de mercado para esta solución"
-      },
-      "hy2": {
-        "title": "La audiencia objetivo busca activamente soluciones"
-      },
-      "hy3": {
-        "title": "Las soluciones existentes dejan vacíos que esta idea puede llenar"
-      },
-      "hy4": {
-        "title": "El modelo de negocio es viable en este mercado"
-      },
-      "hy5": {
-        "title": "Los early adopters pueden ser identificados y alcanzados"
-      }
-    },
-    "early_adopters": {
-      "description": "Una lista curada de creadores de YouTube y páginas de Facebook relacionadas con tu concepto. Estos perfiles pueden ser útiles para contacto, alianzas y entender a tu audiencia objetivo.",
-      "from_youtube": "De YouTube",
-      "from_facebook": "De Facebook",
-      "view_video": "Ver video",
-      "view_page": "Ver página",
-      "no_data": "No se encontraron early adopters",
-      "no_data_hint": "No se encontraron videos de YouTube ni páginas de Facebook relevantes para tu idea."
-    }
-  },
   "ai_risk_feedback": {
     "analyzing": "Analizando...",
     "view_analysis": "Ver Análisis de Riesgos IA",
