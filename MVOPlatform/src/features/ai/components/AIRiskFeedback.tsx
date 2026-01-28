@@ -237,7 +237,7 @@ export function AIRiskFeedback({
             )}
           </div>
           <Image
-            src="/ai-personas/risk-highlighter.png"
+            src="/ai-personas/v2/risk-highlighter.png"
             alt="Risk Highlighter AI"
             width={80}
             height={80}

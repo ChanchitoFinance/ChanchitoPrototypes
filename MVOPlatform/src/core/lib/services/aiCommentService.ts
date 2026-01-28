@@ -18,6 +18,14 @@ export const AI_PERSONA_HANDLES: Record<string, string> = {
   investor: '@ai_the_capital_lens',
 }
 
+export const AI_PERSONA_IMAGES: Record<string, string> = {
+  technical: 'architect',
+  founder: 'deliverylead',
+  market: 'challenger',
+  gtm: 'strategist',
+  investor: 'capitallens',
+}
+
 class AICommentService {
   async createInitialAIComments(
     idea: Idea,
@@ -67,7 +75,7 @@ class AICommentService {
           idea.id,
           content,
           personaName,
-          `/ai-personas/${aiComment.personaKey}.png`,
+          `/ai-personas/v2/${AI_PERSONA_IMAGES[aiComment.personaKey]}.png`,
           parentId
         )
 
@@ -136,7 +144,7 @@ class AICommentService {
           idea.id,
           content,
           personaName,
-          `/ai-personas/${aiResponse.personaKey}.png`,
+          `/ai-personas/v2/${AI_PERSONA_IMAGES[aiResponse.personaKey]}.png`,
           parentId
         )
 

@@ -19,6 +19,7 @@ import {
   aiCommentService,
   AI_PERSONA_NAMES,
   AI_PERSONA_HANDLES,
+  AI_PERSONA_IMAGES,
 } from '@/core/lib/services/aiCommentService'
 
 const MAX_COMMENT_LENGTH = 3000
@@ -209,8 +210,8 @@ export function CommentTree({
     const displayAuthor = isAIComment
       ? AI_PERSONA_NAMES[aiPersonaData.personaKey!]
       : comment.author
-    const displayAvatar = isAIComment
-      ? `/ai-personas/v2/${aiPersonaData.personaKey}.png`
+      const displayAvatar = isAIComment
+      ? `/ai-personas/v2/${AI_PERSONA_IMAGES[aiPersonaData.personaKey!]}.png`
       : comment.authorImage
 
     const hasReplies = comment.replies && comment.replies.length > 0
