@@ -1,14 +1,6 @@
-/**
- * OpenAI Service
- * Two-stage pipeline for market validation analysis
- * Stage 1: gpt-4o-mini for partial analysis
- * Stage 2: gpt-4o for final synthesis
- */
-
 import { serverEnv } from '@/env-validation/config/env'
 import {
   ChunkedContent,
-  PartialAnalysis,
   MarketValidationResult,
   MarketSnapshot,
   BehavioralHypothesis,
@@ -16,27 +8,32 @@ import {
   ConflictsAndGaps,
   SynthesisAndNextSteps,
   GoogleTrendsData,
-  EvidenceType,
   IdeaContext,
 } from '@/core/types/ai'
-import { formatChunksForPrompt } from './ingestionService'
 
 const OPENAI_API_KEY = serverEnv.openaiApiKey
-const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
+
+// Use Responses API (recommended for newer models + tools)
+const OPENAI_API_URL = 'https://api.openai.com/v1/responses'
 
 // Models
-const MINI_MODEL = 'gpt-4o-mini'
-const MAIN_MODEL = 'gpt-4o'
+const SYNTH_MODEL = 'gpt-4o'
 
-/**
- * Make OpenAI API request
- */
-async function callOpenAI(
+// -------------------------------
+// Helpers
+// -------------------------------
+
+function getLanguageInstruction(language: 'en' | 'es'): string {
+  return language === 'es'
+    ? 'IMPORTANT: You MUST respond in Spanish (Espanol). All analysis, titles, descriptions, and content must be in Spanish.'
+    : 'IMPORTANT: You MUST respond in English. All analysis, titles, descriptions, and content must be in English.'
+}
+
+async function callOpenAIResponses(
   model: string,
-  systemPrompt: string,
-  userPrompt: string,
-  maxTokens: number = 4096,
-  temperature: number = 0.7
+  input: Array<{ role: 'system' | 'user'; content: string }>,
+  maxOutputTokens: number = 6000,
+  temperature: number = 0.4
 ): Promise<string> {
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key not configured')
@@ -46,17 +43,15 @@ async function callOpenAI(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
       model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      max_tokens: maxTokens,
+      input,
+      max_output_tokens: maxOutputTokens,
       temperature,
-      response_format: { type: 'json_object' },
+      // Keep JSON stability
+      text: { format: { type: 'json_object' } }
     }),
   })
 
@@ -66,149 +61,109 @@ async function callOpenAI(
       throw new Error('OPENAI_RATE_LIMIT')
     }
     throw new Error(
-      `OpenAI API error: ${response.status} - ${errorData.error?.message || response.statusText}`
+      `OpenAI API error: ${response.status} - ${
+        errorData.error?.message || response.statusText
+      }`
     )
   }
 
   const data = await response.json()
-  return data.choices?.[0]?.message?.content || ''
-}
 
-/**
- * Get language instruction for prompts
- */
-function getLanguageInstruction(language: 'en' | 'es'): string {
-  return language === 'es'
-    ? 'IMPORTANT: You MUST respond in Spanish (Espanol). All analysis, titles, descriptions, and content must be in Spanish.'
-    : 'IMPORTANT: You MUST respond in English. All analysis, titles, descriptions, and content must be in English.'
-}
-
-/**
- * Stage 1: Process chunks with gpt-4o-mini
- * Generates partial summaries and extracts key information
- */
-export async function processWithMiniModel(
-  chunks: ChunkedContent[],
-  ideaContext: IdeaContext,
-  language: 'en' | 'es'
-): Promise<PartialAnalysis[]> {
-  const systemPrompt = `You are a market research analyst specializing in startup validation.
-Your task is to analyze search results and extract evidence relevant to validating a business idea.
-${getLanguageInstruction(language)}
-
-For each source, identify:
-1. Key summary of relevant information
-2. Important keywords
-3. Relevant quotes that provide evidence
-4. Evidence type: "behavioral" (what people do), "stated" (what people say), or "quantitative" (numbers, statistics)
-
-Return a JSON object with an "analyses" array.`
-
-  const userPrompt = `Analyze these search results for the business idea:
-
-IDEA: ${ideaContext.title}
-DESCRIPTION: ${ideaContext.description || 'Not provided'}
-TAGS: ${ideaContext.tags.join(', ')}
-
-SEARCH RESULTS:
-${formatChunksForPrompt(chunks)}
-
-Return JSON with this structure:
-{
-  "analyses": [
-    {
-      "sourceUrl": "url",
-      "title": "source title",
-      "summary": "key findings relevant to the idea",
-      "keywords": ["keyword1", "keyword2"],
-      "relevantQuotes": ["quote that provides evidence"],
-      "evidenceType": "behavioral|stated|quantitative|directional"
-    }
-  ]
-}
-
-Analyze each source and determine its relevance to validating this specific business idea.`
-
-  try {
-    const result = await callOpenAI(MINI_MODEL, systemPrompt, userPrompt, 4096, 0.5)
-    const parsed = JSON.parse(result)
-    return parsed.analyses || []
-  } catch (error) {
-    console.error('Error in mini model processing:', error)
-    // Return empty array on error - synthesis can still work with trends data
-    return []
+  // Prefer parsed if available, else fall back to output_text
+  if (data.output_parsed) {
+    return JSON.stringify(data.output_parsed)
   }
+  if (typeof data.output_text === 'string' && data.output_text.trim()) {
+    return data.output_text
+  }
+
+  // Fallback: attempt to locate text from output array
+  const fallback =
+    data.output?.[0]?.content?.find?.((c: any) => c.type === 'output_text')?.text ||
+    ''
+  return fallback
 }
 
+function formatEvidenceForPrompt(evidence: ChunkedContent[]): string {
+  // Keep it readable + source-indexed so the model can cite [N]
+  return (evidence || [])
+    .slice(0, 120) // safety cap; deep research can be large
+    .map((e, i) => {
+      const evidenceType =
+        (e as any).evidenceType || e.source || 'unknown'
+      const sourceType = (e as any).sourceType || 'unknown'
+      return `[${i + 1}] ${e.title || 'Untitled'}
+URL: ${e.url || 'N/A'}
+Evidence Type: ${evidenceType}
+Source Type: ${sourceType}
+Notes: ${e.cleanedText || ''}`
+    })
+    .join('\n\n')
+}
+
+// -------------------------------
+// Main synthesis API
+// -------------------------------
+
 /**
- * Stage 2: Synthesize with gpt-4o
- * Creates the complete market validation result
+ * Synthesize evidence (from deep research) into a MarketValidationResult.
+ * trendsData is optional/legacy: can be passed as [] if unused.
  */
 export async function synthesizeWithMainModel(
-  partialAnalyses: PartialAnalysis[],
+  evidence: ChunkedContent[],
   trendsData: GoogleTrendsData[],
   ideaContext: IdeaContext,
-  chunks: ChunkedContent[],
   language: 'en' | 'es'
 ): Promise<MarketValidationResult> {
-  const systemPrompt = `You are a market research analyst specializing in startup validation.
-    Your task is to analyze search results and extract evidence relevant to validating a business idea.
-    ${getLanguageInstruction(language)}
+  const systemPrompt = `
+You are the Market Validation Analyst for Decision Clarity.
 
-    IMPORTANT CONTEXT:
-    - This analysis supports early-stage decision-making, not proof.
-    - The goal is to surface signals that help founders decide what to test next.
-    - Not all evidence will be strong. Directional signals are allowed if clearly labeled.
+MISSION CONTEXT (Decision Clarity):
+- This platform exists to help founders decide before they build.
+- Ideas are early and unproven. The goal is to collect signals, reduce regret, and kill weak assumptions.
+- Your job is not to “grade” the idea. Your job is to identify what is supported, what is unclear, and what to test next.
 
-    For each source, identify:
-    1. A concise summary of information relevant to validating the idea
-    2. Important keywords that indicate demand, discussion, behavior, or market presence
-    3. Relevant quotes that support the summary
-    4. Evidence type, chosen from:
-      - "behavioral" → what people demonstrably do (usage, spending, adoption)
-      - "quantitative" → numbers, statistics, measured data
-      - "stated" → what people explicitly say (opinions, claims, surveys)
-      - "directional" → weaker but useful signals such as:
-        • blog discussions
-        • forum threads
-        • thought pieces
-        • early commentary
-        • indirect indicators of interest or problem awareness
+EVIDENCE PRINCIPLES:
+- Behavioral evidence is strongest (actions, usage, spending, adoption).
+- Quantitative evidence is strong when sourced.
+- Stated evidence is weaker (opinions, claims).
+- Directional evidence is allowed to increase coverage but must be treated as low confidence.
 
-    RULES:
-    - Include strong evidence whenever available.
-    - If strong evidence is scarce, you MAY include directional sources that indicate:
-      interest, discussion, unmet needs, or early market presence.
-    - Directional evidence must be clearly labeled as such.
-    - Do NOT inflate confidence. Directional ≠ proof.
-    - Exclude irrelevant, generic, or purely promotional sources.
+CRITICAL RULES:
+1) Be evidence-based — only claim what the evidence supports.
+2) Acknowledge uncertainty — use confidence levels appropriately.
+3) No scores, no “this will work” verdicts — advisory only.
+4) Use citations using [N] referencing the evidence list item numbers.
+5) Be balanced — highlight both opportunity and risk.
+6) If evidence is sparse for a required section, still output the section with low confidence and explicit gaps.
 
-    Return a JSON object with an "analyses" array.`;
+${getLanguageInstruction(language)}
+`
 
-  // Format partial analyses for the prompt
-  const analysisContext = partialAnalyses.length > 0
-    ? partialAnalyses.map((a, i) =>
-        `[${i + 1}] ${a.title}\nURL: ${a.sourceUrl}\nSummary: ${a.summary}\nEvidence Type: ${a.evidenceType}\nKeywords: ${a.keywords.join(', ')}\nQuotes: ${a.relevantQuotes.join(' | ')}`
-      ).join('\n\n')
-    : 'Limited source data available. Base analysis on trends and idea description.'
+  const evidenceContext =
+    evidence && evidence.length > 0
+      ? `EVIDENCE LIST:\n${formatEvidenceForPrompt(evidence)}`
+      : 'EVIDENCE LIST: No evidence was provided.'
 
-  // Format trends data
-  const trendsContext = trendsData.length > 0
-    ? `Search Interest Trends:\n${trendsData.map(t => `${t.date}: ${t.value}/100`).join('\n')}`
-    : 'No trends data available.'
+  const trendsContext =
+    trendsData && trendsData.length > 0
+      ? `\n\nSEARCH INTEREST TRENDS (optional):\n${trendsData
+          .slice(-8)
+          .map((t) => `${t.date}: ${t.value}/100`)
+          .join('\n')}`
+      : ''
 
-  const userPrompt = `Create a comprehensive market validation analysis for this business idea.
+  const userPrompt = `
+Create a comprehensive market validation analysis for this business idea.
 
 IDEA TITLE: ${ideaContext.title}
 DESCRIPTION: ${ideaContext.description || 'Not provided'}
 TAGS: ${ideaContext.tags.join(', ')}
 
-RESEARCH DATA:
-${analysisContext}
-
+${evidenceContext}
 ${trendsContext}
 
-Return a JSON object with this EXACT structure:
+Return a JSON object with this EXACT structure (no extra keys):
 {
   "marketSnapshot": {
     "customerSegment": {
@@ -236,40 +191,40 @@ Return a JSON object with this EXACT structure:
         {
           "title": "source title",
           "url": "source url",
-          "evidenceType": "behavioral|stated|quantitative",
-          "snippet": "relevant quote"
+          "evidenceType": "behavioral|stated|quantitative|directional",
+          "snippet": "short quote/paraphrase, cite with [N]"
         }
       ],
-      "contradictingSignals": ["any contradicting evidence"]
+      "contradictingSignals": ["any contradicting evidence, cite with [N]"]
     }
   ],
   "marketSignals": [
     {
       "type": "demand_intensity|problem_salience|existing_spend|competitive_landscape|switching_friction|distribution|geographic_fit|timing|economic_plausibility",
       "title": "Signal Title",
-      "summary": "signal analysis",
+      "summary": "signal analysis, cite with [N]",
       "classification": "type-specific classification (e.g., emerging, crowded, etc.)",
-      "evidenceSnippets": ["supporting evidence"],
-      "sources": [{"title": "", "url": "", "evidenceType": "behavioral|stated|quantitative"}],
+      "evidenceSnippets": ["supporting evidence snippets, cite with [N]"],
+      "sources": [{"title": "", "url": "", "evidenceType": "behavioral|stated|quantitative|directional"}],
       "strength": "low|medium|high"
     }
   ],
   "conflictsAndGaps": {
     "contradictions": [
-      {"type": "contradiction", "description": "description", "relatedSignals": ["signal names"]}
+      {"type": "contradiction", "description": "description, cite with [N]", "relatedSignals": ["signal names"]}
     ],
     "missingSignals": [
       {"type": "missing_signal", "description": "what data is missing"}
     ],
     "riskFlags": [
-      {"type": "risk_flag", "description": "identified risk"}
+      {"type": "risk_flag", "description": "identified risk, cite with [N] where possible"}
     ]
   },
   "synthesisAndNextSteps": {
-    "strongPoints": ["strongest validating signals"],
-    "weakPoints": ["weakest or concerning signals"],
+    "strongPoints": ["strongest validating signals, cite with [N]"],
+    "weakPoints": ["weakest or concerning signals, cite with [N]"],
     "keyUnknowns": ["unknowns requiring direct validation"],
-    "suggestedNextSteps": ["specific validation tests/experiments"],
+    "suggestedNextSteps": ["specific validation tests/experiments (48–72h focused)"],
     "pivotGuidance": ["optional suggestions for reframing"]
   }
 }
@@ -277,31 +232,55 @@ Return a JSON object with this EXACT structure:
 IMPORTANT:
 - Include ALL 5 hypothesis layers: existence, awareness, consideration, intent, pay_intention
 - Include ALL 9 market signal types
-- Reference sources using the provided URLs
-- If evidence is limited for a section, still provide the section with appropriate low confidence
-- All text content must be in ${language === 'es' ? 'Spanish' : 'English'}`
+- Use evidence citations [N] frequently and correctly
+- If a section is mostly directional, keep confidence low and say why
+- All text content must be in ${language === 'es' ? 'Spanish' : 'English'}
+`
 
-  try {
-    const result = await callOpenAI(MAIN_MODEL, systemPrompt, userPrompt, 8192, 0.7)
-    const parsed = JSON.parse(result)
+  const raw = await callOpenAIResponses(
+    SYNTH_MODEL,
+    [
+      { role: 'system', content: systemPrompt.trim() },
+      { role: 'user', content: userPrompt.trim() },
+    ],
+    6500,
+    0.5
+  )
 
-    // Validate and fill in missing structure
-    return validateAndCompleteResult(parsed, chunks, trendsData)
-  } catch (error) {
-    console.error('Error in main model synthesis:', error)
-    throw error
-  }
+  const parsed = JSON.parse(raw)
+  return validateAndCompleteResult(parsed, evidence, trendsData)
 }
 
+// -------------------------------
+// Compatibility wrapper
+// -------------------------------
+
 /**
- * Validate and complete the result structure
+ * Backwards-compatible wrapper for existing callers.
+ * - Previously: chunks = google/bing/trends ingestion
+ * - Now: chunks = deep research evidence chunks
  */
+export async function runMarketValidationPipeline(
+  chunks: ChunkedContent[],
+  trendsData: GoogleTrendsData[],
+  ideaContext: IdeaContext,
+  language: 'en' | 'es'
+): Promise<MarketValidationResult> {
+  return synthesizeWithMainModel(chunks, trendsData, ideaContext, language)
+}
+
+// -------------------------------
+// Result completion (kept from legacy)
+// -------------------------------
+
 function validateAndCompleteResult(
   parsed: Partial<MarketValidationResult>,
   chunks: ChunkedContent[],
   trendsData: GoogleTrendsData[]
-): Omit<MarketValidationResult, 'timestamp' | 'version'> & { timestamp: Date; version: number } {
-  // Ensure all required fields exist with defaults
+): Omit<MarketValidationResult, 'timestamp' | 'version'> & {
+  timestamp: Date
+  version: number
+} {
   const marketSnapshot: MarketSnapshot = parsed.marketSnapshot || {
     customerSegment: {
       primaryUser: 'Not determined',
@@ -317,44 +296,67 @@ function validateAndCompleteResult(
     timingContext: 'Not determined',
   }
 
-  // Ensure all 5 hypothesis layers exist
-  const hypothesisLayers: Array<'existence' | 'awareness' | 'consideration' | 'intent' | 'pay_intention'> = [
-    'existence', 'awareness', 'consideration', 'intent', 'pay_intention'
+  const hypothesisLayers: Array<
+    'existence' | 'awareness' | 'consideration' | 'intent' | 'pay_intention'
+  > = ['existence', 'awareness', 'consideration', 'intent', 'pay_intention']
+
+  const behavioralHypotheses: BehavioralHypothesis[] = hypothesisLayers.map(
+    (layer) => {
+      const existing = parsed.behavioralHypotheses?.find((h) => h.layer === layer)
+      return (
+        existing || {
+          layer,
+          title: getDefaultHypothesisTitle(layer),
+          description: 'Insufficient data to validate this hypothesis',
+          evidenceSummary: 'No direct evidence found',
+          confidence: 'low' as const,
+          supportingSources: [],
+        }
+      )
+    }
+  )
+
+  const signalTypes: Array<
+    | 'demand_intensity'
+    | 'problem_salience'
+    | 'existing_spend'
+    | 'competitive_landscape'
+    | 'switching_friction'
+    | 'distribution'
+    | 'geographic_fit'
+    | 'timing'
+    | 'economic_plausibility'
+  > = [
+    'demand_intensity',
+    'problem_salience',
+    'existing_spend',
+    'competitive_landscape',
+    'switching_friction',
+    'distribution',
+    'geographic_fit',
+    'timing',
+    'economic_plausibility',
   ]
 
-  const behavioralHypotheses: BehavioralHypothesis[] = hypothesisLayers.map(layer => {
-    const existing = parsed.behavioralHypotheses?.find(h => h.layer === layer)
-    return existing || {
-      layer,
-      title: getDefaultHypothesisTitle(layer),
-      description: 'Insufficient data to validate this hypothesis',
-      evidenceSummary: 'No direct evidence found',
-      confidence: 'low' as const,
-      supportingSources: [],
-    }
-  })
-
-  // Ensure all 9 market signal types exist
-  const signalTypes: Array<'demand_intensity' | 'problem_salience' | 'existing_spend' | 'competitive_landscape' | 'switching_friction' | 'distribution' | 'geographic_fit' | 'timing' | 'economic_plausibility'> = [
-    'demand_intensity', 'problem_salience', 'existing_spend', 'competitive_landscape',
-    'switching_friction', 'distribution', 'geographic_fit', 'timing', 'economic_plausibility'
-  ]
-
-  const marketSignals: MarketSignal[] = signalTypes.map(type => {
-    const existing = parsed.marketSignals?.find(s => s.type === type)
-    return existing || {
-      type,
-      title: getDefaultSignalTitle(type),
-      summary: 'Insufficient data to analyze this signal',
-      evidenceSnippets: [],
-      sources: [],
-      strength: 'low' as const,
-    }
+  const marketSignals: MarketSignal[] = signalTypes.map((type) => {
+    const existing = parsed.marketSignals?.find((s) => s.type === type)
+    return (
+      existing || {
+        type,
+        title: getDefaultSignalTitle(type),
+        summary: 'Insufficient data to analyze this signal',
+        evidenceSnippets: [],
+        sources: [],
+        strength: 'low' as const,
+      }
+    )
   })
 
   const conflictsAndGaps: ConflictsAndGaps = parsed.conflictsAndGaps || {
     contradictions: [],
-    missingSignals: [{ type: 'missing_signal', description: 'Limited web research data available' }],
+    missingSignals: [
+      { type: 'missing_signal', description: 'Limited research evidence available' },
+    ],
     riskFlags: [],
   }
 
@@ -363,11 +365,12 @@ function validateAndCompleteResult(
     weakPoints: ['Insufficient data for comprehensive validation'],
     keyUnknowns: ['Requires direct customer research'],
     suggestedNextSteps: ['Conduct customer interviews', 'Perform deeper market research'],
+    pivotGuidance: [],
   }
 
-  // Build search data from chunks
+  // Legacy searchData fields: we now populate them from chunks where possible.
   const googleResults = chunks
-    .filter(c => c.source === 'google')
+    .filter((c) => c.source === 'google')
     .map((c, i) => ({
       position: i + 1,
       title: c.title,
@@ -376,7 +379,7 @@ function validateAndCompleteResult(
     }))
 
   const bingResults = chunks
-    .filter(c => c.source === 'bing')
+    .filter((c) => c.source === 'bing')
     .map((c, i) => ({
       position: i + 1,
       title: c.title,
@@ -396,13 +399,10 @@ function validateAndCompleteResult(
       bingResults,
     },
     timestamp: new Date(),
-    version: 1,
+    version: 2,
   }
 }
 
-/**
- * Get default hypothesis title for a layer
- */
 function getDefaultHypothesisTitle(layer: string): string {
   const titles: Record<string, string> = {
     existence: 'Problem Existence',
@@ -414,9 +414,6 @@ function getDefaultHypothesisTitle(layer: string): string {
   return titles[layer] || layer
 }
 
-/**
- * Get default signal title for a type
- */
 function getDefaultSignalTitle(type: string): string {
   const titles: Record<string, string> = {
     demand_intensity: 'Demand Intensity & Momentum',
@@ -430,28 +427,4 @@ function getDefaultSignalTitle(type: string): string {
     economic_plausibility: 'Economic Plausibility',
   }
   return titles[type] || type
-}
-
-/**
- * Main pipeline function - runs both stages
- */
-export async function runMarketValidationPipeline(
-  chunks: ChunkedContent[],
-  trendsData: GoogleTrendsData[],
-  ideaContext: IdeaContext,
-  language: 'en' | 'es'
-): Promise<MarketValidationResult> {
-  // Stage 1: Process chunks with mini model
-  const partialAnalyses = await processWithMiniModel(chunks, ideaContext, language)
-
-  // Stage 2: Synthesize with main model
-  const result = await synthesizeWithMainModel(
-    partialAnalyses,
-    trendsData,
-    ideaContext,
-    chunks,
-    language
-  )
-
-  return result
 }
