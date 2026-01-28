@@ -87,11 +87,11 @@ export async function POST(request: NextRequest) {
     } = await request.json()
 
     const personaNames: Record<string, string> = {
-      technical: 'AI · Technical Feasibility',
-      founder: 'AI · Founder Reality Check',
-      market: 'AI · Market Skeptic',
-      gtm: 'AI · GTM & Distribution',
-      investor: 'AI · Investor Lens',
+      technical: 'AI · The Architect',
+      founder: 'AI · The Delivery Lead',
+      market: 'AI · The Challenger',
+      gtm: 'AI · The Strategist',
+      investor: 'AI · The Capital Lens'
     }
 
     const systemPrompt = `You are responding to a user who mentioned you in a comment thread. Provide helpful, contextual responses.
@@ -109,7 +109,7 @@ RESPONSE FORMAT (JSON):
 {
   "responses": [
     {
-      "persona": "AI · Technical Feasibility",
+      "persona": "AI · The Architect",
       "content": "Your response here...",
       "references": null
     }
@@ -145,11 +145,11 @@ Provide responses from the mentioned personas: ${mentionedPersonas.map(p => pers
       const parsed = JSON.parse(cleanedResponse)
 
       const personaKeyMap: Record<string, string> = {
-        'AI · Technical Feasibility': 'technical',
-        'AI · Founder Reality Check': 'founder',
-        'AI · Market Skeptic': 'market',
-        'AI · GTM & Distribution': 'gtm',
-        'AI · Investor Lens': 'investor',
+        'AI · The Architect': 'technical',
+        'AI · The Delivery Lead': 'founder',
+        'AI · The Challenger': 'market',
+        'AI · The Strategist': 'gtm',
+        'AI · The Capital Lens': 'investor',
       }
 
       const result = {

@@ -3,19 +3,27 @@ import { Idea } from '@/core/types/idea'
 import { Comment } from '@/core/types/comment'
 
 export const AI_PERSONA_NAMES: Record<string, string> = {
-  technical: 'AI · Technical Feasibility',
-  founder: 'AI · Founder Reality Check',
-  market: 'AI · Market Skeptic',
-  gtm: 'AI · GTM & Distribution',
-  investor: 'AI · Investor Lens',
+  technical: 'AI · The Architect',
+  founder: 'AI · The Delivery Lead',
+  market: 'AI · The Challenger',
+  gtm: 'AI · The Strategist',
+  investor: 'AI · The Capital Lens',
 }
 
 export const AI_PERSONA_HANDLES: Record<string, string> = {
-  technical: '@ai_technical_feasibility',
-  founder: '@ai_founder_reality_check',
-  market: '@ai_market_skeptic',
-  gtm: '@ai_gtm_distribution',
-  investor: '@ai_investor_lens',
+  technical: '@ai_the_architect',
+  founder: '@ai_the_delivery_lead',
+  market: '@ai_the_challenger',
+  gtm: '@ai_the_strategist',
+  investor: '@ai_the_capital_lens',
+}
+
+export const AI_PERSONA_IMAGES: Record<string, string> = {
+  technical: 'architect',
+  founder: 'deliverylead',
+  market: 'challenger',
+  gtm: 'strategist',
+  investor: 'capitallens',
 }
 
 class AICommentService {
@@ -67,7 +75,7 @@ class AICommentService {
           idea.id,
           content,
           personaName,
-          `/ai-personas/${aiComment.personaKey}.png`,
+          `/ai-personas/v2/${AI_PERSONA_IMAGES[aiComment.personaKey]}.png`,
           parentId
         )
 
@@ -136,7 +144,7 @@ class AICommentService {
           idea.id,
           content,
           personaName,
-          `/ai-personas/${aiResponse.personaKey}.png`,
+          `/ai-personas/v2/${AI_PERSONA_IMAGES[aiResponse.personaKey]}.png`,
           parentId
         )
 
