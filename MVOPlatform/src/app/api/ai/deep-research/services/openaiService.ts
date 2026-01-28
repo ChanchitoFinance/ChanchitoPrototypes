@@ -122,7 +122,7 @@ Return JSON with this structure:
       "summary": "key findings relevant to the idea",
       "keywords": ["keyword1", "keyword2"],
       "relevantQuotes": ["quote that provides evidence"],
-      "evidenceType": "behavioral|stated|quantitative"
+      "evidenceType": "behavioral|stated|quantitative|directional"
     }
   ]
 }
@@ -151,23 +151,39 @@ export async function synthesizeWithMainModel(
   chunks: ChunkedContent[],
   language: 'en' | 'es'
 ): Promise<MarketValidationResult> {
-  const systemPrompt = `You are an expert market validation analyst for startups. Your role is to synthesize research data into a comprehensive market validation report.
+  const systemPrompt = `You are a market research analyst specializing in startup validation.
+    Your task is to analyze search results and extract evidence relevant to validating a business idea.
+    ${getLanguageInstruction(language)}
 
-${getLanguageInstruction(language)}
+    IMPORTANT CONTEXT:
+    - This analysis supports early-stage decision-making, not proof.
+    - The goal is to surface signals that help founders decide what to test next.
+    - Not all evidence will be strong. Directional signals are allowed if clearly labeled.
 
-CRITICAL RULES:
-1. Be evidence-based - only claim what the data supports
-2. Acknowledge uncertainty - use confidence levels appropriately
-3. NO scores or success/failure verdicts - this is advisory only
-4. Include source citations using [N] format referencing the source numbers provided
-5. Be balanced - highlight both opportunities and risks
+    For each source, identify:
+    1. A concise summary of information relevant to validating the idea
+    2. Important keywords that indicate demand, discussion, behavior, or market presence
+    3. Relevant quotes that support the summary
+    4. Evidence type, chosen from:
+      - "behavioral" → what people demonstrably do (usage, spending, adoption)
+      - "quantitative" → numbers, statistics, measured data
+      - "stated" → what people explicitly say (opinions, claims, surveys)
+      - "directional" → weaker but useful signals such as:
+        • blog discussions
+        • forum threads
+        • thought pieces
+        • early commentary
+        • indirect indicators of interest or problem awareness
 
-You will produce a complete market validation analysis with 5 sections:
-1. Market Snapshot - Customer segment and market context
-2. Behavioral Hypotheses - 5 layers of validation hypotheses
-3. Market Signals - 9 types of market-level signals
-4. Conflicts & Gaps - Contradictions, missing data, risks
-5. Synthesis & Next Steps - Summary and recommendations`
+    RULES:
+    - Include strong evidence whenever available.
+    - If strong evidence is scarce, you MAY include directional sources that indicate:
+      interest, discussion, unmet needs, or early market presence.
+    - Directional evidence must be clearly labeled as such.
+    - Do NOT inflate confidence. Directional ≠ proof.
+    - Exclude irrelevant, generic, or purely promotional sources.
+
+    Return a JSON object with an "analyses" array.`;
 
   // Format partial analyses for the prompt
   const analysisContext = partialAnalyses.length > 0
