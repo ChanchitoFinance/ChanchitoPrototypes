@@ -167,21 +167,3 @@ CREATE TRIGGER update_ai_personas_evaluation_results_updated_at
     BEFORE UPDATE ON ai_personas_evaluation_results
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
-
--- Drop old table that is no longer needed
-DROP TABLE IF EXISTS ai_features_results CASCADE;
-DROP TABLE IF EXISTS deep_research_results CASCADE;
-DROP TABLE IF EXISTS early_adopters CASCADE;
-DROP TABLE IF EXISTS hypothesis_research CASCADE;
-
--- Comments for documentation
-COMMENT ON TABLE market_validation_results IS 'Stores AI Market Validation & Analysis results with 5 sections: Market Snapshot, Behavioral Hypotheses, Market Signals, Conflicts & Gaps, and Synthesis & Next Steps per idea version';
-COMMENT ON COLUMN market_validation_results.market_snapshot IS 'Market Snapshot section: customer segment, market context, geography, timing';
-COMMENT ON COLUMN market_validation_results.behavioral_hypotheses IS 'Array of 5 behavioral hypotheses validating existence, awareness, consideration, intent, and pay intention';
-COMMENT ON COLUMN market_validation_results.market_signals IS 'Array of 9 market-level signals including demand intensity, competitive landscape, etc.';
-COMMENT ON COLUMN market_validation_results.conflicts_and_gaps IS 'Contradictions, missing signals, and risk flags identified in the analysis';
-COMMENT ON COLUMN market_validation_results.synthesis_and_next_steps IS 'Summary of strong/weak points, unknowns, and suggested validation steps';
-COMMENT ON COLUMN market_validation_results.search_data IS 'Raw search data from SerpAPI (Google, Bing, Trends) for transparency and citation';
-
-COMMENT ON TABLE ai_personas_evaluation_results IS 'Stores AI Personas Evaluation results including conversation and feedback from AI personas per idea version';
-COMMENT ON COLUMN ai_personas_evaluation_results.ai_personas_evaluation IS 'AI Personas Evaluation: conversation and feedback from AI personas';
