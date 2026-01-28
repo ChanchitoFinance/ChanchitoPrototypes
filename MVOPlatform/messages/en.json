@@ -524,46 +524,6 @@
     "interest_over_time": "Search interest over the past year",
     "no_trends_data": "No trends data available"
   },
-  "deep_research": {
-    "tabs": {
-      "hypotheses": "Hypotheses",
-      "early_adopters": "Early Adopters",
-      "deep_research": "Deep Research"
-    },
-    "hypotheses": {
-      "intro": "These hypotheses are tested assumptions about your specific idea, validated by analyzing quantitative data (market research, statistics) and qualitative insights (social content, community sentiment) from real search results.",
-      "quantitative": "Quantitative Analysis",
-      "qualitative": "Qualitative Analysis",
-      "sources": "Sources",
-      "source_web": "Web",
-      "no_data": "No data available for this segment.",
-      "no_hypotheses": "No hypotheses generated yet.",
-      "hy1": {
-        "title": "There is market demand for this solution"
-      },
-      "hy2": {
-        "title": "The target audience is actively seeking solutions"
-      },
-      "hy3": {
-        "title": "Existing solutions leave gaps that this idea can fill"
-      },
-      "hy4": {
-        "title": "The business model is viable in this market"
-      },
-      "hy5": {
-        "title": "Early adopters can be identified and reached"
-      }
-    },
-    "early_adopters": {
-      "description": "A curated list of YouTube creators and Facebook pages related to your concept. These profiles can be useful for outreach, partnerships, and understanding your target audience.",
-      "from_youtube": "From YouTube",
-      "from_facebook": "From Facebook",
-      "view_video": "View video",
-      "view_page": "View page",
-      "no_data": "No early adopters found",
-      "no_data_hint": "No relevant YouTube videos or Facebook pages were found for your idea."
-    }
-  },
   "ai_risk_feedback": {
     "analyzing": "Analyzing...",
     "view_analysis": "View AI Risk Analysis",
@@ -689,5 +649,138 @@
     "new_version_created": "New version created successfully!",
     "version_activated": "Version {number} is now the public version",
     "no_other_versions": "This is the only version of this idea"
+  },
+  "market_validation": {
+    "feature_name": "AI Market Validation",
+    "title": "AI Market Validation & Analysis",
+    "researching": "Analyzing market...",
+    "get_validation": "Get Market Validation",
+    "view_validation": "View Market Validation",
+    "disclaimer": "These signals reduce uncertainty but do not predict success. Market outcomes depend on execution, timing, and external factors.",
+    "tabs": {
+      "market_snapshot": "Market Snapshot",
+      "behavioral_hypotheses": "Behavioral Hypotheses",
+      "market_signals": "Market Signals",
+      "conflicts_gaps": "Conflicts & Gaps",
+      "synthesis": "Synthesis & Next Steps"
+    },
+    "confidence": {
+      "low": "Low Confidence",
+      "medium": "Medium Confidence",
+      "high": "High Confidence"
+    },
+    "strength": {
+      "low": "Weak Signal",
+      "medium": "Moderate Signal",
+      "high": "Strong Signal"
+    },
+    "evidence_type": {
+      "behavioral": "Behavioral",
+      "stated": "Stated",
+      "quantitative": "Quantitative"
+    },
+    "snapshot": {
+      "intro": "This snapshot frames the customer segment and market context for this idea, anchoring all subsequent validation signals.",
+      "customer_segment": "Customer Segment",
+      "primary_user": "Primary User",
+      "buyer": "Buyer",
+      "context_of_use": "Context of Use",
+      "environment": "Environment",
+      "market_context": "Market Context",
+      "geography": "Geographic Scope",
+      "timing_context": "Timing & Market Readiness",
+      "horizontal": "Horizontal Market",
+      "vertical": "Vertical Market",
+      "new_category": "New Category",
+      "existing_category": "Existing Category"
+    },
+    "hypotheses": {
+      "intro": "These hypotheses validate your idea across 5 behavioral layers, from problem existence to willingness to pay. Each is backed by evidence from web research.",
+      "layer": "Layer",
+      "hypothesis": "Hypothesis",
+      "evidence_summary": "Evidence Summary",
+      "sources": "Supporting Sources",
+      "contradicting_signals": "Contradicting Signals",
+      "no_hypotheses": "No hypotheses available",
+      "existence": {
+        "title": "Problem Existence",
+        "description": "The problem actually occurs for the identified segment"
+      },
+      "awareness": {
+        "title": "Problem Awareness",
+        "description": "Users recognize and articulate the problem"
+      },
+      "consideration": {
+        "title": "Solution Consideration",
+        "description": "Users actively seek solutions or workarounds"
+      },
+      "intent": {
+        "title": "Adoption Intent",
+        "description": "Users show intent to adopt a solution"
+      },
+      "pay_intention": {
+        "title": "Willingness to Pay",
+        "description": "Users demonstrate willingness to pay for a solution"
+      }
+    },
+    "signals": {
+      "intro": "These market-level signals validate demand strength, timing, and competitive fit beyond individual hypotheses.",
+      "evidence": "Evidence",
+      "sources": "Sources",
+      "no_signals": "No market signals available",
+      "demand_intensity": {
+        "title": "Demand Intensity & Momentum",
+        "description": "Whether demand is emerging, growing, stable, or declining"
+      },
+      "problem_salience": {
+        "title": "Problem Salience & Urgency",
+        "description": "How painful and time-sensitive the problem is"
+      },
+      "existing_spend": {
+        "title": "Existing Spend & Budget Signals",
+        "description": "Whether money is already flowing in this space"
+      },
+      "competitive_landscape": {
+        "title": "Competitive Landscape",
+        "description": "Market crowding without judging winners"
+      },
+      "switching_friction": {
+        "title": "Switching & Adoption Friction",
+        "description": "Ease of adoption and switching costs"
+      },
+      "distribution": {
+        "title": "Distribution & Reachability",
+        "description": "Whether customers are reachable"
+      },
+      "geographic_fit": {
+        "title": "Geographic & Cultural Fit",
+        "description": "Market scope and regional factors"
+      },
+      "timing": {
+        "title": "Timing & Market Readiness",
+        "description": "Why this opportunity exists now"
+      },
+      "economic_plausibility": {
+        "title": "Economic Plausibility",
+        "description": "Order-of-magnitude market size validation"
+      }
+    },
+    "conflicts_gaps": {
+      "intro": "This section highlights contradictions, missing data, and risk flags that require attention.",
+      "contradictions": "Contradictions",
+      "missing_signals": "Missing Signals",
+      "risk_flags": "Risk Flags",
+      "no_major_issues": "No Major Issues Identified",
+      "no_major_issues_description": "The analysis didn't identify major contradictions or critical missing signals. This doesn't guarantee success, but suggests consistency in available data."
+    },
+    "synthesis": {
+      "intro": "This synthesis combines all signals to highlight what looks strong, what's concerning, and what to test next.",
+      "strong_points": "Strong Validation Points",
+      "weak_points": "Weak or Concerning Points",
+      "key_unknowns": "Key Unknowns Requiring Validation",
+      "suggested_next_steps": "Suggested Next Steps",
+      "pivot_guidance": "Pivot Guidance",
+      "disclaimer": "This is advisory guidance. Success depends on execution, timing, and factors beyond this analysis."
+    }
   }
 }

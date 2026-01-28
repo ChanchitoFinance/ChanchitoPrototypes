@@ -9,14 +9,16 @@ import {
   History,
   RefreshCw,
   Search,
+  Sparkles,
   Lightbulb,
-  Users,
-  FileSearch,
+  BarChart3,
+  AlertTriangle,
+  Target,
+  TrendingUp,
 } from 'lucide-react'
 import {
-  DeepResearchResult,
-  EnhancedDeepResearchResult,
-  DeepResearchMainTab,
+  MarketValidationResult,
+  MarketValidationTab,
 } from '@/core/types/ai'
 import { deepResearchStorage } from '@/core/lib/services/deepResearchStorage'
 import { ContentBlock } from '@/core/types/content'
@@ -27,9 +29,11 @@ import {
 import { useAppSelector } from '@/core/lib/hooks'
 import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import {
-  HypothesesTab,
-  EarlyAdoptersTab,
-  DeepResearchSubTabs,
+  MarketSnapshotSection,
+  BehavioralHypothesesSection,
+  MarketSignalsSection,
+  ConflictsGapsSection,
+  SynthesisNextStepsSection,
 } from './deep-research'
 
 interface AIDeepResearchProps {
@@ -38,13 +42,6 @@ interface AIDeepResearchProps {
   content: ContentBlock[]
   tags: string[]
   onRequestResearch?: () => Promise<void>
-}
-
-// Type guard to check if result is enhanced
-function isEnhancedResult(
-  result: DeepResearchResult | EnhancedDeepResearchResult
-): result is EnhancedDeepResearchResult {
-  return 'enhanced' in result && result.enhanced === true
 }
 
 export function AIDeepResearch({
@@ -56,24 +53,22 @@ export function AIDeepResearch({
 }: AIDeepResearchProps) {
   const t = useTranslations()
   const { locale } = useLocale()
-  const [research, setResearch] = useState<
-    DeepResearchResult | EnhancedDeepResearchResult | null
-  >(null)
+  const [research, setResearch] = useState<MarketValidationResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
   const [currentVersion, setCurrentVersion] = useState(1)
   const [totalVersions, setTotalVersions] = useState(0)
   const [showCreditConfirm, setShowCreditConfirm] = useState(false)
-  const [mainTab, setMainTab] = useState<DeepResearchMainTab>('hypotheses')
+  const [activeTab, setActiveTab] = useState<MarketValidationTab>('market_snapshot')
 
   const { plan, dailyCredits, usedCredits } = useAppSelector(
     state => state.credits
   )
   const remainingCredits =
     plan === 'innovator' ? Infinity : dailyCredits - usedCredits
-  // Enhanced research costs 8 credits
-  const creditCost = 8
+  // Market validation costs 10 credits (updated from 8)
+  const creditCost = 10
   const hasCredits = remainingCredits >= creditCost
   const isLastCredits = remainingCredits >= creditCost && remainingCredits < creditCost + 5
 
@@ -86,7 +81,7 @@ export function AIDeepResearch({
     )
 
     if (cachedResearch) {
-      setResearch(cachedResearch)
+      setResearch(cachedResearch as MarketValidationResult)
       const history = deepResearchStorage.getResearchHistory({
         title,
         description: description || '',
@@ -110,9 +105,9 @@ export function AIDeepResearch({
         },
         body: JSON.stringify({
           title,
+          description,
           tags,
           language: locale as 'en' | 'es',
-          enhanced: true, // Always request enhanced mode
         }),
       })
 
@@ -120,14 +115,14 @@ export function AIDeepResearch({
         const errorData = await response.json()
         if (
           response.status === 429 &&
-          errorData.error === 'AI_DAILY_LIMIT_EXCEEDED'
+          errorData.error === 'AI_RATE_LIMIT_EXCEEDED'
         ) {
-          throw new Error('AI_DAILY_LIMIT_EXCEEDED')
+          throw new Error('AI_RATE_LIMIT_EXCEEDED')
         }
-        throw new Error(errorData.error || 'Failed to perform research')
+        throw new Error(errorData.error || 'Failed to perform market validation')
       }
 
-      const result = await response.json()
+      const result: MarketValidationResult = await response.json()
 
       deepResearchStorage.saveResearch(
         result,
@@ -139,7 +134,7 @@ export function AIDeepResearch({
 
       setResearch(result)
       setIsExpanded(true)
-      setMainTab('hypotheses')
+      setActiveTab('market_snapshot')
 
       const history = deepResearchStorage.getResearchHistory({
         title,
@@ -150,9 +145,9 @@ export function AIDeepResearch({
       setTotalVersions(history.versions.length)
       setCurrentVersion(history.currentVersion)
     } catch (err) {
-      console.error('Deep research error:', err)
+      console.error('Market validation error:', err)
       setError(
-        err instanceof Error ? err.message : 'Failed to perform research'
+        err instanceof Error ? err.message : 'Failed to perform market validation'
       )
     } finally {
       setLoading(false)
@@ -169,7 +164,7 @@ export function AIDeepResearch({
 
     const versionData = history.versions.find(v => v.version === newVersion)
     if (versionData) {
-      setResearch(versionData.research)
+      setResearch(versionData.research as MarketValidationResult)
       setCurrentVersion(newVersion)
       deepResearchStorage.setCurrentVersion(versionData.ideaHash, newVersion)
     }
@@ -185,7 +180,16 @@ export function AIDeepResearch({
     }
   }
 
-  const isEnhanced = research && isEnhancedResult(research)
+  const getTabIcon = (tab: MarketValidationTab) => {
+    const icons: Record<MarketValidationTab, React.ReactNode> = {
+      market_snapshot: <Sparkles className="w-4 h-4" />,
+      behavioral_hypotheses: <Lightbulb className="w-4 h-4" />,
+      market_signals: <BarChart3 className="w-4 h-4" />,
+      conflicts_gaps: <AlertTriangle className="w-4 h-4" />,
+      synthesis: <Target className="w-4 h-4" />,
+    }
+    return icons[tab]
+  }
 
   return (
     <div className="mb-6">
@@ -200,13 +204,16 @@ export function AIDeepResearch({
             }
           }}
           disabled={loading}
-          className="w-full h-16 relative bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed overflow-visible"
+          className="w-full h-16 relative bg-primary-accent hover:opacity-90 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed overflow-visible"
+          style={{
+            background: loading || research ? undefined : 'var(--primary-accent)',
+          }}
         >
           <div className="flex items-center justify-center gap-3 px-6">
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>{t('ai_deep_research.researching')}</span>
+                <span>{t('market_validation.researching')}</span>
               </>
             ) : (
               <>
@@ -214,8 +221,8 @@ export function AIDeepResearch({
                 <div className="flex flex-col items-center">
                   <span>
                     {research
-                      ? t('ai_deep_research.view_research')
-                      : t('ai_deep_research.get_research')}
+                      ? t('market_validation.view_validation')
+                      : t('market_validation.get_validation')}
                   </span>
                 </div>
                 {research && (
@@ -246,7 +253,7 @@ export function AIDeepResearch({
           }
         }}
         creditCost={creditCost}
-        featureName={t('ai_deep_research.feature_name')}
+        featureName={t('market_validation.feature_name')}
         hasCredits={hasCredits}
         isLastCredit={isLastCredits}
         showNoButton={false}
@@ -259,13 +266,20 @@ export function AIDeepResearch({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg"
+            className="mt-4 p-4 rounded-lg"
+            style={{
+              backgroundColor: 'rgba(255, 148, 76, 0.1)',
+              border: '1px solid var(--error)',
+            }}
           >
-            <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+            <p className="text-sm" style={{ color: 'var(--error)' }}>
+              {error}
+            </p>
             <button
               type="button"
               onClick={requestResearch}
-              className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline font-medium"
+              className="mt-2 text-sm hover:underline font-medium"
+              style={{ color: 'var(--error)' }}
             >
               {t('ai_deep_research.try_again')}
             </button>
@@ -279,18 +293,22 @@ export function AIDeepResearch({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="mt-4 space-y-4 p-6 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-400 shadow-lg"
+            className="mt-4 space-y-4 p-6 rounded-lg shadow-lg"
+            style={{
+              backgroundColor: 'var(--gray-50)',
+              border: '2px solid var(--primary-accent)',
+            }}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">🔬</span>
-                <h4 className="font-semibold text-gray-900 dark:text-white">
-                  {t('ai_deep_research.title')}
+                <BarChart3 className="w-6 h-6" style={{ color: 'var(--primary-accent)' }} />
+                <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  {t('market_validation.title')}
                 </h4>
               </div>
               {totalVersions > 1 && (
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <History className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <History className="w-4 h-4" style={{ color: 'var(--primary-accent)' }} />
                   <span>
                     {t('ai_deep_research.version')} {currentVersion}{' '}
                     {t('ai_deep_research.of')} {totalVersions}
@@ -299,71 +317,149 @@ export function AIDeepResearch({
               )}
             </div>
 
-            {/* Main Tab Navigation - 3 tabs */}
-            <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+            {/* 5 Section Tab Navigation */}
+            <div className="flex flex-wrap gap-2 pb-2" style={{ borderBottom: '1px solid var(--border-color)' }}>
               <button
                 type="button"
-                onClick={() => setMainTab('hypotheses')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-                  mainTab === 'hypotheses'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
+                onClick={() => setActiveTab('market_snapshot')}
+                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
+                style={{
+                  backgroundColor: activeTab === 'market_snapshot' ? 'var(--primary-accent)' : 'var(--gray-100)',
+                  color: activeTab === 'market_snapshot' ? 'var(--white)' : 'var(--text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'market_snapshot') {
+                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'market_snapshot') {
+                    e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                  }
+                }}
               >
-                <Lightbulb className="w-4 h-4" />
-                {t('deep_research.tabs.hypotheses')}
+                {getTabIcon('market_snapshot')}
+                <span className="hidden sm:inline">{t('market_validation.tabs.market_snapshot')}</span>
+                <span className="sm:hidden">Snapshot</span>
               </button>
               <button
                 type="button"
-                onClick={() => setMainTab('earlyAdopters')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-                  mainTab === 'earlyAdopters'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
+                onClick={() => setActiveTab('behavioral_hypotheses')}
+                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
+                style={{
+                  backgroundColor: activeTab === 'behavioral_hypotheses' ? 'var(--primary-accent)' : 'var(--gray-100)',
+                  color: activeTab === 'behavioral_hypotheses' ? 'var(--white)' : 'var(--text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'behavioral_hypotheses') {
+                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'behavioral_hypotheses') {
+                    e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                  }
+                }}
               >
-                <Users className="w-4 h-4" />
-                {t('deep_research.tabs.early_adopters')}
+                {getTabIcon('behavioral_hypotheses')}
+                <span className="hidden sm:inline">{t('market_validation.tabs.behavioral_hypotheses')}</span>
+                <span className="sm:hidden">Hypotheses</span>
               </button>
               <button
                 type="button"
-                onClick={() => setMainTab('deepResearch')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-                  mainTab === 'deepResearch'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
+                onClick={() => setActiveTab('market_signals')}
+                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
+                style={{
+                  backgroundColor: activeTab === 'market_signals' ? 'var(--primary-accent)' : 'var(--gray-100)',
+                  color: activeTab === 'market_signals' ? 'var(--white)' : 'var(--text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'market_signals') {
+                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'market_signals') {
+                    e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                  }
+                }}
               >
-                <FileSearch className="w-4 h-4" />
-                {t('deep_research.tabs.deep_research')}
+                {getTabIcon('market_signals')}
+                <span className="hidden sm:inline">{t('market_validation.tabs.market_signals')}</span>
+                <span className="sm:hidden">Signals</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('conflicts_gaps')}
+                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
+                style={{
+                  backgroundColor: activeTab === 'conflicts_gaps' ? 'var(--primary-accent)' : 'var(--gray-100)',
+                  color: activeTab === 'conflicts_gaps' ? 'var(--white)' : 'var(--text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'conflicts_gaps') {
+                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'conflicts_gaps') {
+                    e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                  }
+                }}
+              >
+                {getTabIcon('conflicts_gaps')}
+                <span className="hidden sm:inline">{t('market_validation.tabs.conflicts_gaps')}</span>
+                <span className="sm:hidden">Issues</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('synthesis')}
+                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
+                style={{
+                  backgroundColor: activeTab === 'synthesis' ? 'var(--primary-accent)' : 'var(--gray-100)',
+                  color: activeTab === 'synthesis' ? 'var(--white)' : 'var(--text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'synthesis') {
+                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'synthesis') {
+                    e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                  }
+                }}
+              >
+                {getTabIcon('synthesis')}
+                <span className="hidden sm:inline">{t('market_validation.tabs.synthesis')}</span>
+                <span className="sm:hidden">Summary</span>
               </button>
             </div>
 
             {/* Tab Content */}
             <div className="min-h-[300px]">
-              {mainTab === 'hypotheses' && (
-                <HypothesesTab
-                  hypotheses={isEnhanced ? research.hypotheses : []}
-                />
+              {activeTab === 'market_snapshot' && (
+                <MarketSnapshotSection snapshot={research.marketSnapshot} />
               )}
 
-              {mainTab === 'earlyAdopters' && (
-                <EarlyAdoptersTab
-                  earlyAdopters={isEnhanced ? research.earlyAdopters : []}
-                />
+              {activeTab === 'behavioral_hypotheses' && (
+                <BehavioralHypothesesSection hypotheses={research.behavioralHypotheses} />
               )}
 
-              {mainTab === 'deepResearch' && (
-                <DeepResearchSubTabs
-                  googleResults={research.googleResults}
-                  googleTrends={research.googleTrends}
-                  bingResults={research.bingResults}
-                  aiSummary={research.aiSummary}
-                />
+              {activeTab === 'market_signals' && (
+                <MarketSignalsSection signals={research.marketSignals} />
+              )}
+
+              {activeTab === 'conflicts_gaps' && (
+                <ConflictsGapsSection conflictsAndGaps={research.conflictsAndGaps} />
+              )}
+
+              {activeTab === 'synthesis' && (
+                <SynthesisNextStepsSection synthesis={research.synthesisAndNextSteps} />
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4" style={{ borderTop: '1px solid var(--border-color)' }}>
               {totalVersions > 1 && (
                 <div className="flex items-center gap-2">
                   <button
@@ -372,7 +468,19 @@ export function AIDeepResearch({
                       changeVersion(Math.max(1, currentVersion - 1))
                     }
                     disabled={currentVersion === 1}
-                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    className="px-3 py-1.5 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all"
+                    style={{
+                      backgroundColor: 'var(--gray-100)',
+                      color: 'var(--text-secondary)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (currentVersion !== 1) {
+                        e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                    }}
                   >
                     {t('ai_deep_research.previous')}
                   </button>
@@ -382,7 +490,19 @@ export function AIDeepResearch({
                       changeVersion(Math.min(totalVersions, currentVersion + 1))
                     }
                     disabled={currentVersion === totalVersions}
-                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    className="px-3 py-1.5 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all"
+                    style={{
+                      backgroundColor: 'var(--gray-100)',
+                      color: 'var(--text-secondary)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (currentVersion !== totalVersions) {
+                        e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                    }}
                   >
                     {t('ai_deep_research.next')}
                   </button>
@@ -394,7 +514,19 @@ export function AIDeepResearch({
                   type="button"
                   onClick={() => setShowCreditConfirm(true)}
                   disabled={loading}
-                  className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
+                  className="px-4 py-2 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center gap-2"
+                  style={{
+                    backgroundColor: 'var(--primary-accent)',
+                    color: 'var(--white)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.opacity = '0.85'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1'
+                  }}
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -406,7 +538,17 @@ export function AIDeepResearch({
                 <button
                   type="button"
                   onClick={clearAllResearch}
-                  className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center gap-2"
+                  className="px-4 py-2 text-sm rounded-lg transition-all font-medium flex items-center gap-2"
+                  style={{
+                    backgroundColor: 'var(--error)',
+                    color: 'var(--white)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '0.85'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1'
+                  }}
                 >
                   <Trash2 className="w-4 h-4" />
                   {t('ai_deep_research.clear_all')}
@@ -414,8 +556,8 @@ export function AIDeepResearch({
               </div>
             </div>
 
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              {t('ai_deep_research.advisory_note')}
+            <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
+              {t('market_validation.disclaimer')}
             </p>
           </motion.div>
         )}

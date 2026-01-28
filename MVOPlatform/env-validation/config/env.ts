@@ -23,6 +23,7 @@ const rawServerEnv = {
     process.env.SUPABASE_STORAGE_SECRET_ACCESS_KEY!,
   supabaseStorageBucketName: process.env.SUPABASE_STORAGE_BUCKET_NAME!,
   serpapiApiKey: process.env.SERPAPI_API_KEY!,
+  openaiApiKey: process.env.OPENAI_API_KEY!,
 } as const
 
 // Client-side environment variables (must be prefixed with NEXT_PUBLIC_)

@@ -1,8 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
+  content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     extend: {
       colors: {
@@ -12,6 +10,8 @@ module.exports = {
         'text-secondary': 'var(--text-secondary)',
         'premium-cta': 'var(--premium-cta)',
         'primary-accent': 'var(--primary-accent)',
+        accent: 'var(--accent)',
+        'accent-alt': 'var(--accent-alt)',
         'hover-accent': 'var(--hover-accent)',
         error: 'var(--error)',
         white: 'var(--white)',

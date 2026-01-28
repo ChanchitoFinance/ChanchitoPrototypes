@@ -38,11 +38,7 @@ class SupabaseIdeaService implements IIdeaService {
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -79,11 +75,7 @@ class SupabaseIdeaService implements IIdeaService {
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -117,17 +109,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -159,17 +146,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -212,17 +194,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -254,17 +231,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -295,17 +267,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -344,17 +311,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -386,17 +348,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -436,17 +393,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -482,17 +434,12 @@ class SupabaseIdeaService implements IIdeaService {
         is_active_version,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -533,11 +480,7 @@ class SupabaseIdeaService implements IIdeaService {
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -593,7 +536,7 @@ class SupabaseIdeaService implements IIdeaService {
       const { count: tagCount, error: tagCountError } = await supabase
         .from('ideas')
         .select('id', { count: 'exact', head: true })
-        .filter('idea_tags.tags.name', 'ilike', searchTerm)
+        .filter('tags', 'cs', [searchTerm.replace(/%/g, '')])
 
       if (!tagCountError && tagCount) {
         // Subtract overlapping ideas to avoid double counting
@@ -614,16 +557,13 @@ class SupabaseIdeaService implements IIdeaService {
         users!ideas_creator_id_fkey (
           username,
           full_name,
-          email
+          ,
         ),
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
         ),
+        tags,
         comments!left (
           id
         )
@@ -669,22 +609,19 @@ class SupabaseIdeaService implements IIdeaService {
           users!ideas_creator_id_fkey (
             username,
             full_name,
-            email
+            ,
           ),
           idea_votes (
             vote_type
+        ),
           ),
-          idea_tags!inner (
-            tags!inner (
-              name
-            )
-          ),
+          ,
           comments!left (
             id
           )
         `
         )
-        .filter('idea_tags.tags.name', 'ilike', searchTerm)
+        .filter('tags', 'cs', [searchTerm.replace(/%/g, '')])
         .order('created_at', { ascending: false })
         .range(0, limit * 2) // Fetch more to account for overlaps
 
@@ -769,39 +706,11 @@ class SupabaseIdeaService implements IIdeaService {
       let heroVideo: string | undefined
       let description: string | undefined
 
-      if (Array.isArray(ideaJson.content)) {
-        // Old format: content is directly an array of blocks
-        contentBlocks = ideaJson.content as ContentBlock[]
-      } else if (ideaJson.content && typeof ideaJson.content === 'object') {
-        // New format: content is an object with blocks, hero_image, hero_video, description
-        contentBlocks = ideaJson.content.blocks as ContentBlock[] | undefined
-        heroImage = ideaJson.content.hero_image
-        heroVideo = ideaJson.content.hero_video
-        description = ideaJson.content.description
-      }
-
-      // Backward compatibility: extract from first block if hero media not in metadata
-      if (
-        !heroImage &&
-        !heroVideo &&
-        contentBlocks &&
-        contentBlocks.length > 0
-      ) {
-        const firstBlock = contentBlocks[0]
-        if (firstBlock.type === 'video') {
-          heroVideo = firstBlock.src
-        } else if (firstBlock.type === 'image') {
-          heroImage = firstBlock.src
-        }
-      }
-
-      // Backward compatibility: extract description from first text block if not in metadata
-      if (!description && contentBlocks) {
-        const firstTextBlock = contentBlocks.find(
-          block => block.type === 'text'
-        )
-        description = firstTextBlock?.content || ''
-      }
+      // New format: content is an object with blocks, hero_image, hero_video, description
+      contentBlocks = ideaJson.content?.blocks as ContentBlock[] | undefined
+      heroImage = ideaJson.content?.hero_image
+      heroVideo = ideaJson.content?.hero_video
+      description = ideaJson.content?.description
 
       const video =
         heroVideo ||
@@ -909,9 +818,22 @@ class SupabaseIdeaService implements IIdeaService {
   }
 
   async getAllTags(): Promise<string[]> {
-    const { data, error } = await supabase.from('tags').select('name')
+    // Extract unique tags from all ideas
+    const { data, error } = await supabase
+      .from('ideas')
+      .select('tags')
+      .eq('is_active_version', true)
+
     if (error) throw error
-    return data?.map(t => t.name) || []
+
+    const allTags = new Set<string>()
+    data?.forEach(idea => {
+      if (idea.tags && Array.isArray(idea.tags)) {
+        idea.tags.forEach((tag: string) => allTags.add(tag))
+      }
+    })
+
+    return Array.from(allTags).sort()
   }
 
   async getIdeasWithFilters(
@@ -942,15 +864,10 @@ class SupabaseIdeaService implements IIdeaService {
         users!ideas_creator_id_fkey (
           username,
           full_name
-        ),
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -1146,11 +1063,7 @@ class SupabaseIdeaService implements IIdeaService {
           idea_votes (
             vote_type
           ),
-          idea_tags (
-            tags (
-              name
-            )
-          ),
+          tags,
           comments!left (
             id
           )
@@ -1201,17 +1114,12 @@ class SupabaseIdeaService implements IIdeaService {
         created_at,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          email
+          full_name
         ),
         idea_votes (
           vote_type
         ),
-        idea_tags (
-          tags (
-            name
-          )
-        ),
+        tags,
         comments!left (
           id
         )
@@ -1377,8 +1285,6 @@ class SupabaseIdeaService implements IIdeaService {
     const totalVotes = voteCounts.dislike + voteCounts.use + voteCounts.pay
     const score = voteCounts.pay * 3 + voteCounts.use * 2 - voteCounts.dislike
 
-    const tags = dbIdea.idea_tags?.map((it: any) => it.tags.name) || []
-
     // Check if anonymous flag is set
     const isAnonymous = dbIdea.anonymous || false
 
@@ -1386,42 +1292,16 @@ class SupabaseIdeaService implements IIdeaService {
       ? 'Anonymous'
       : dbIdea.users?.username || dbIdea.users?.full_name || 'Unknown User'
 
-    // Handle both old format (array) and new format (object with blocks)
-    let contentBlocks: ContentBlock[] | undefined
-    let heroImage: string | undefined
-    let heroVideo: string | undefined
-    let description: string | undefined
+    // New format: content is an object with blocks, hero_image, hero_video, description
+    const contentBlocks = dbIdea.content?.blocks as ContentBlock[] | undefined
+    const heroImage = dbIdea.content?.hero_image
+    const heroVideo = dbIdea.content?.hero_video
+    const description = dbIdea.content?.description
 
-    if (Array.isArray(dbIdea.content)) {
-      // Old format: content is directly an array of blocks
-      contentBlocks = dbIdea.content as ContentBlock[]
-    } else if (dbIdea.content && typeof dbIdea.content === 'object') {
-      // New format: content is an object with blocks, hero_image, hero_video, description
-      contentBlocks = dbIdea.content.blocks as ContentBlock[] | undefined
-      heroImage = dbIdea.content.hero_image
-      heroVideo = dbIdea.content.hero_video
-      description = dbIdea.content.description
-    }
-
-    // Backward compatibility: extract from first block if hero media not in metadata
-    if (!heroImage && !heroVideo && contentBlocks && contentBlocks.length > 0) {
-      const firstBlock = contentBlocks[0]
-      if (firstBlock.type === 'video') {
-        heroVideo = firstBlock.src
-      } else if (firstBlock.type === 'image') {
-        heroImage = firstBlock.src
-      }
-    }
-
-    // Backward compatibility: extract description from first text block if not in metadata
-    if (!description && contentBlocks) {
-      const firstTextBlock = contentBlocks.find(block => block.type === 'text')
-      description = firstTextBlock?.content || ''
-    }
-
-    // Backward compatibility: check other blocks for media (for old data)
     // Include creator email for ownership verification
     const creatorEmail = dbIdea.users?.email || null
+
+    const tags = dbIdea.tags || []
 
     const content = dbIdea.content as ContentBlock[] | undefined
 
@@ -1434,7 +1314,6 @@ class SupabaseIdeaService implements IIdeaService {
 
     const commentCount = dbIdea.comments?.length || 0
 
-    // Backward compatibility: extract image from blocks (for old data)
     const image =
       heroImage ||
       contentBlocks?.find(block => block.type === 'image')?.src ||
@@ -1480,38 +1359,13 @@ class SupabaseIdeaService implements IIdeaService {
     }
     const totalVotes = voteCounts.dislike + voteCounts.use + voteCounts.pay
 
-    // Handle content parsing similar to mapDbIdeaToIdea
-    let contentBlocks: ContentBlock[] | undefined
-    let heroImage: string | undefined
-    let heroVideo: string | undefined
-    let description: string | undefined
-
-    if (Array.isArray(rpcResult.content)) {
-      // Old format: content is directly an array of blocks
-      contentBlocks = rpcResult.content as ContentBlock[]
-    } else if (rpcResult.content && typeof rpcResult.content === 'object') {
-      // New format: content is an object with blocks, hero_image, hero_video, description
-      contentBlocks = rpcResult.content.blocks as ContentBlock[] | undefined
-      heroImage = rpcResult.content.hero_image
-      heroVideo = rpcResult.content.hero_video
-      description = rpcResult.content.description
-    }
-
-    // Backward compatibility: extract from first block if hero media not in metadata
-    if (!heroImage && !heroVideo && contentBlocks && contentBlocks.length > 0) {
-      const firstBlock = contentBlocks[0]
-      if (firstBlock.type === 'video') {
-        heroVideo = firstBlock.src
-      } else if (firstBlock.type === 'image') {
-        heroImage = firstBlock.src
-      }
-    }
-
-    // Backward compatibility: extract description from first text block if not in metadata
-    if (!description && contentBlocks) {
-      const firstTextBlock = contentBlocks.find(block => block.type === 'text')
-      description = firstTextBlock?.content || ''
-    }
+    // New format: content is an object with blocks, hero_image, hero_video, description
+    const contentBlocks = rpcResult.content?.blocks as
+      | ContentBlock[]
+      | undefined
+    const heroImage = rpcResult.content?.hero_image
+    const heroVideo = rpcResult.content?.hero_video
+    const description = rpcResult.content?.description
 
     const video =
       heroVideo ||
@@ -1536,7 +1390,7 @@ class SupabaseIdeaService implements IIdeaService {
       votes: totalVotes,
       votesByType: voteCounts,
       commentCount: rpcResult.comment_count || 0,
-      tags: [], // RPC doesn't include tags
+      tags: rpcResult.tags || [],
       createdAt: rpcResult.created_at,
       image: image,
       video: video,
@@ -1575,6 +1429,7 @@ class SupabaseIdeaService implements IIdeaService {
           hero_video: ideaData.video,
           description: ideaData.description,
         },
+        tags: ideaData.tags || [],
         status_flag: ideaData.status_flag || 'new',
         anonymous: ideaData.anonymous || false,
       })
@@ -1582,33 +1437,6 @@ class SupabaseIdeaService implements IIdeaService {
       .single()
 
     if (error) throw error
-
-    if (ideaData.tags && ideaData.tags.length > 0) {
-      for (const tagName of ideaData.tags) {
-        let { data: tag } = await supabase
-          .from('tags')
-          .select('id')
-          .eq('name', tagName)
-          .maybeSingle()
-
-        if (!tag) {
-          const { data: newTag, error: tagError } = await supabase
-            .from('tags')
-            .insert({ name: tagName })
-            .select('id')
-            .single()
-
-          if (tagError) throw tagError
-
-          tag = newTag
-        }
-
-        await supabase.from('idea_tags').insert({
-          idea_id: data.id,
-          tag_id: tag.id,
-        })
-      }
-    }
 
     return this.getIdeaById(data.id).then(idea => {
       if (!idea) throw new Error('Idea not found after creation')
@@ -1629,7 +1457,6 @@ class SupabaseIdeaService implements IIdeaService {
       updateData.status_flag = updates.status_flag
     if (updates.anonymous !== undefined)
       updateData.anonymous = updates.anonymous
-
     // Handle content update with hero media
     if (
       updates.content !== undefined ||
@@ -1654,6 +1481,11 @@ class SupabaseIdeaService implements IIdeaService {
       }
     }
 
+    // Handle tags update
+    if (updates.tags !== undefined) {
+      updateData.tags = updates.tags
+    }
+
     const { data, error } = await supabase
       .from('ideas')
       .update(updateData)
@@ -1662,74 +1494,6 @@ class SupabaseIdeaService implements IIdeaService {
       .single()
 
     if (error) throw error
-
-    // Update tags if provided
-    if (updates.tags !== undefined) {
-      // Get the idea to determine the correct idea_id for tags (use group_id if exists)
-      const currentIdea = await this.getIdeaById(ideaId)
-      const tagIdeaId = currentIdea?.ideaGroupId || ideaId
-
-      // Get current tags
-      const { data: currentIdeaTags } = await supabase
-        .from('idea_tags')
-        .select('tags(name)')
-        .eq('idea_id', tagIdeaId)
-
-      const currentTagNames =
-        (currentIdeaTags as any)?.map((it: any) => it.tags.name) || []
-
-      // Tags to remove
-      const tagsToRemove = currentTagNames.filter(
-        name => !updates.tags!.includes(name)
-      )
-
-      // Tags to add
-      const tagsToAdd = updates.tags.filter(
-        name => !currentTagNames.includes(name)
-      )
-
-      // Remove old tags
-      for (const tagName of tagsToRemove) {
-        const { data: tag } = await supabase
-          .from('tags')
-          .select('id')
-          .eq('name', tagName)
-          .single()
-
-        if (tag) {
-          await supabase
-            .from('idea_tags')
-            .delete()
-            .eq('idea_id', tagIdeaId)
-            .eq('tag_id', tag.id)
-        }
-      }
-
-      // Add new tags
-      for (const tagName of tagsToAdd) {
-        let { data: tag } = await supabase
-          .from('tags')
-          .select('id')
-          .eq('name', tagName)
-          .maybeSingle()
-
-        if (!tag) {
-          const { data: newTag, error: tagError } = await supabase
-            .from('tags')
-            .insert({ name: tagName })
-            .select('id')
-            .single()
-
-          if (tagError) throw tagError
-          tag = newTag
-        }
-
-        await supabase.from('idea_tags').insert({
-          idea_id: tagIdeaId,
-          tag_id: tag.id,
-        })
-      }
-    }
 
     return this.getIdeaById(ideaId).then(idea => {
       if (!idea) throw new Error('Idea not found after update')
@@ -1835,35 +1599,7 @@ class SupabaseIdeaService implements IIdeaService {
 
     // Update tags if provided
     if (updates?.tags !== undefined) {
-      // Delete existing tags
-      await supabase.from('idea_tags').delete().eq('idea_id', data)
-
-      // Add new tags
-      if (updates.tags.length > 0) {
-        for (const tagName of updates.tags) {
-          let { data: tag } = await supabase
-            .from('tags')
-            .select('id')
-            .eq('name', tagName)
-            .maybeSingle()
-
-          if (!tag) {
-            const { data: newTag, error: tagError } = await supabase
-              .from('tags')
-              .insert({ name: tagName })
-              .select('id')
-              .single()
-
-            if (tagError) throw tagError
-            tag = newTag
-          }
-
-          await supabase.from('idea_tags').insert({
-            idea_id: data,
-            tag_id: tag.id,
-          })
-        }
-      }
+      await supabase.from('ideas').update({ tags: updates.tags }).eq('id', data)
     }
 
     // Fetch the newly created idea

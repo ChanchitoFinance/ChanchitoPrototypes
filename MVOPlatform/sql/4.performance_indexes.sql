@@ -10,14 +10,13 @@ DROP INDEX IF EXISTS idx_ideas_created_at;
 DROP INDEX IF EXISTS idx_idea_votes_idea_id;
 DROP INDEX IF EXISTS idx_comments_idea_id;
 DROP INDEX IF EXISTS idx_comments_parent_id;
-DROP INDEX IF EXISTS idx_idea_tags_tag_id;
-DROP INDEX IF EXISTS idx_idea_tags_idea_id;
 DROP INDEX IF EXISTS idx_ideas_explore;
 DROP INDEX IF EXISTS idx_idea_votes_user_idea;
 DROP INDEX IF EXISTS idx_comment_votes_comment_id;
 DROP INDEX IF EXISTS idx_ideas_creator_id;
 DROP INDEX IF EXISTS idx_idea_engagement_score;
 DROP INDEX IF EXISTS idx_idea_engagement_created;
+DROP INDEX IF EXISTS idx_ideas_tags;
 
 -- ============================================================================
 -- CRITICAL: Indexes for ideas queries
@@ -60,11 +59,11 @@ CREATE INDEX idx_comments_parent_id ON comments(parent_comment_id);
 CREATE INDEX idx_comment_votes_comment_id ON comment_votes(comment_id);
 
 -- ============================================================================
--- Indexes for tags queries
+-- Indexes for tags queries (JSONB array in ideas table)
 -- ============================================================================
 
-CREATE INDEX idx_idea_tags_idea_id ON idea_tags(idea_id);
-CREATE INDEX idx_idea_tags_tag_id ON idea_tags(tag_id);
+-- GIN index for efficient tag array queries
+CREATE INDEX idx_ideas_tags ON ideas USING GIN (tags);
 
 
 -- ============================================================================
@@ -111,5 +110,10 @@ SELECT
   indexname,
   indexdef
 FROM pg_indexes
-WHERE tablename IN ('ideas', 'idea_votes', 'comments', 'idea_tags')
+WHERE tablename IN ('ideas', 'idea_votes', 'comments')
 ORDER BY tablename, indexname;
+
+-- ============================================================================
+-- Force PostgREST schema cache refresh
+-- ============================================================================
+NOTIFY pgrst, 'reload schema';

@@ -1,30 +1,26 @@
+/**
+ * AI Market Validation & Analysis API Route
+ *
+ * This route implements the new market validation system using:
+ * - SerpAPI for web search (Google, Bing, Trends)
+ * - OpenAI two-stage pipeline (gpt-4o-mini + gpt-4o) for analysis
+ *
+ * Replaces the previous Gemini-based hypothesis system.
+ */
+
 import { NextRequest, NextResponse } from 'next/server'
-import { serverEnv, clientEnv } from '@/env-validation/config/env'
+import { serverEnv } from '@/env-validation/config/env'
 import {
   GoogleSearchResult,
   GoogleTrendsData,
   BingSearchResult,
-  DeepResearchResult,
-  EnhancedDeepResearchResult,
-  EarlyAdopter,
+  MarketValidationResult,
+  IdeaContext,
 } from '@/core/types/ai'
-import {
-  searchYouTube,
-  isYouTubeConfigured,
-} from './services/youtubeService'
-import {
-  searchFacebook,
-  isFacebookConfigured,
-} from './services/facebookService'
-import {
-  generateAllHypotheses,
-  generateIdeaSearchQueries,
-  type IdeaContext,
-} from './services/hypothesisService'
+import { ingestSearchResults } from './services/ingestionService'
+import { runMarketValidationPipeline } from './services/openaiService'
 
 const SERPAPI_API_KEY = serverEnv.serpapiApiKey
-const GEMINI_API_KEY = clientEnv.geminiApiKey
-const GEMINI_MODEL = clientEnv.geminiModel
 const SERPAPI_BASE_URL = 'https://serpapi.com/search.json'
 
 // Retry with exponential backoff
@@ -53,7 +49,7 @@ async function retryWithBackoff<T>(
 // Fetch Google Search Results
 async function fetchGoogleSearchResults(
   query: string,
-  num: number = 5
+  num: number = 10
 ): Promise<GoogleSearchResult[]> {
   const params = new URLSearchParams({
     engine: 'google',
@@ -158,146 +154,6 @@ async function fetchBingSearchResults(
   }))
 }
 
-// Call Gemini for AI Summary (1 API call)
-async function generateAISummary(
-  title: string,
-  tags: string[],
-  googleResults: GoogleSearchResult[],
-  googleTrends: GoogleTrendsData[],
-  bingResults: BingSearchResult[],
-  language: 'en' | 'es'
-): Promise<string> {
-  if (!GEMINI_API_KEY) {
-    throw new Error('Gemini API key not configured')
-  }
-
-  const languageInstruction =
-    language === 'es'
-      ? '\n\nIMPORTANT: You MUST respond in Spanish (Español). All your analysis must be in Spanish.'
-      : '\n\nIMPORTANT: You MUST respond in English. All your analysis must be in English.'
-
-  const systemPrompt = `You are a Deep Research AI assistant helping entrepreneurs validate their business ideas. Your role is to analyze search results from multiple sources and provide actionable insights about market feasibility and competition.
-
-Your personality:
-- Thorough and analytical
-- Balanced and objective
-- Focused on actionable insights
-- Supportive but realistic`
-
-  const prompt = `Analyze these search results for a business idea:
-
-IDEA TITLE: ${title}
-RELATED TAGS: ${tags.join(', ')}
-
-=== GOOGLE SEARCH RESULTS ===
-${googleResults.map(r => `${r.position}. ${r.title}\n   Link: ${r.link}\n   ${r.snippet}`).join('\n\n')}
-
-=== GOOGLE TRENDS DATA (Last 5 periods) ===
-${googleTrends.map(t => `${t.date}: Interest value ${t.value}`).join('\n')}
-
-=== BING SEARCH RESULTS ===
-${bingResults.map(r => `${r.position}. ${r.title}\n   Link: ${r.link}\n   ${r.snippet}`).join('\n\n')}
-
-Please provide a comprehensive analysis in 2-3 paragraphs:
-1. First paragraph: Summarize the market landscape based on the search results. What existing solutions or competitors exist? What's the general market sentiment?
-2. Second paragraph: Analyze the trends data. Is interest in this topic growing, stable, or declining? What does this mean for the business idea?
-3. Third paragraph: Provide your final verdict. Which search results are most relevant to explore further? What opportunities or gaps do you see? Give actionable recommendations.
-
-Keep your response concise but insightful. Focus on practical advice for the entrepreneur.`
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: systemPrompt + languageInstruction + '\n\n' + prompt,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 1024,
-        },
-      }),
-    }
-  )
-
-  if (!response.ok) {
-    const errorData = await response.json()
-    if (errorData.error?.code === 429) {
-      const isDailyLimit =
-        errorData.error?.message?.includes('daily') ||
-        errorData.error?.message?.includes('quota')
-
-      if (isDailyLimit) {
-        throw new Error('AI_DAILY_LIMIT_EXCEEDED')
-      }
-      throw new Error('AI_RATE_LIMIT_EXCEEDED')
-    }
-    throw new Error(`Gemini API error: ${response.statusText}`)
-  }
-
-  const data = await response.json()
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-}
-
-// Extract early adopters from social results
-function extractEarlyAdopters(
-  youtubeResults: Awaited<ReturnType<typeof searchYouTube>>,
-  facebookResults: Awaited<ReturnType<typeof searchFacebook>>
-): EarlyAdopter[] {
-  const earlyAdopters: EarlyAdopter[] = []
-
-  // Add YouTube creators as early adopters
-  for (const video of youtubeResults.slice(0, 10)) {
-    earlyAdopters.push({
-      id: `youtube_${video.id}`,
-      platform: 'youtube',
-      username: video.channelName,
-      displayName: video.channelName,
-      profileUrl: video.channelLink,
-      postUrl: video.link,
-      postContent: `${video.title}: ${video.description?.slice(0, 200) || ''}`,
-      relevanceScore: calculateRelevanceScore(video.views || 0, 0),
-      createdAt: video.publishedDate || new Date().toISOString(),
-    })
-  }
-
-  // Add Facebook pages as early adopters
-  for (const page of facebookResults.slice(0, 10)) {
-    earlyAdopters.push({
-      id: `facebook_${page.id}`,
-      platform: 'facebook',
-      username: page.name,
-      displayName: page.name,
-      profileUrl: page.profileUrl,
-      postUrl: page.profileUrl,
-      postContent: page.about?.slice(0, 200) || page.category || '',
-      relevanceScore: calculateRelevanceScore(page.followers || 0, page.likes || 0),
-      createdAt: new Date().toISOString(),
-    })
-  }
-
-  // Sort by relevance score
-  return earlyAdopters.sort((a, b) => b.relevanceScore - a.relevanceScore)
-}
-
-// Calculate relevance score based on engagement metrics
-function calculateRelevanceScore(primaryMetric: number, secondaryMetric: number): number {
-  const score = Math.min(1, (primaryMetric * 0.7 + secondaryMetric * 0.3) / 100)
-  return Math.round(score * 100) / 100
-}
-
 export async function POST(request: NextRequest) {
   try {
     const {
@@ -305,13 +161,11 @@ export async function POST(request: NextRequest) {
       description,
       tags,
       language,
-      enhanced = false,
     }: {
       title: string
       description?: string
       tags: string[]
       language: 'en' | 'es'
-      enhanced?: boolean
     } = await request.json()
 
     if (!title || title.length < 10) {
@@ -328,108 +182,50 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Build search query from title and tags (idea-specific)
+    // Build search query from title and tags
     const searchQuery = `${title} ${tags.slice(0, 3).join(' ')}`.trim()
 
-    // Fetch all search results in parallel with retry logic
-    // These results are used for both basic Deep Research and Hypotheses
+    // Phase 1: Fetch all search results in parallel with SerpAPI
     const [googleResults, googleTrends, bingResults] = await Promise.all([
-      retryWithBackoff(() => fetchGoogleSearchResults(searchQuery, enhanced ? 10 : 5)),
+      retryWithBackoff(() => fetchGoogleSearchResults(searchQuery, 10)),
       retryWithBackoff(() => fetchGoogleTrends(title)),
       retryWithBackoff(() => fetchBingSearchResults(searchQuery)),
     ])
 
-    // Generate AI summary (1st Gemini API call)
-    const aiSummary = await retryWithBackoff(() =>
-      generateAISummary(
-        title,
-        tags,
-        googleResults,
-        googleTrends,
-        bingResults,
-        language
-      )
-    )
+    // Phase 2: Ingest and chunk the search results
+    const chunks = ingestSearchResults(googleResults, bingResults, googleTrends)
 
-    // If not enhanced mode, return basic result
-    if (!enhanced) {
-      const result: DeepResearchResult = {
-        googleResults: googleResults.slice(0, 5),
-        googleTrends,
-        bingResults,
-        aiSummary,
-        timestamp: new Date(),
-      }
-
-      return NextResponse.json(result)
-    }
-
-    // ============================================
-    // ENHANCED MODE
-    // Uses only 2 Gemini API calls total:
-    // 1. AI Summary (above)
-    // 2. All hypotheses in one call (below)
-    // ============================================
-
-    const youtubeConfigured = isYouTubeConfigured()
-    const facebookConfigured = isFacebookConfigured()
-
-    // Create idea context for idea-specific searches
+    // Create idea context for the AI pipeline
     const ideaContext: IdeaContext = {
       title,
       description,
       tags,
     }
 
-    // Generate idea-specific search queries
-    const ideaQueries = generateIdeaSearchQueries(ideaContext)
-
-    // Fetch social data for early adopters AND hypothesis analysis
-    // Uses idea-specific queries instead of generic ones
-    const [youtubeResults, facebookResults] = await Promise.all([
-      youtubeConfigured
-        ? searchYouTube(ideaQueries.youtubeQueries[0], 15)
-        : Promise.resolve([]),
-      facebookConfigured
-        ? searchFacebook(ideaQueries.facebookQueries[0], 10)
-        : Promise.resolve([]),
-    ])
-
-    // Extract early adopters from social results
-    const earlyAdopters = extractEarlyAdopters(youtubeResults, facebookResults)
-
-    // Generate ALL hypotheses with a SINGLE Gemini API call (2nd call)
-    // Passes the idea context and all collected data
-    const hypotheses = await generateAllHypotheses(
+    // Phase 3 & 4: Run the two-stage OpenAI pipeline
+    const validationResult = await runMarketValidationPipeline(
+      chunks,
+      googleTrends,
       ideaContext,
-      googleResults, // Reuse the google results we already have
-      youtubeResults,
-      facebookResults,
       language
     )
 
-    const enhancedResult: EnhancedDeepResearchResult = {
-      // Original data (for Deep Research subtabs)
-      googleResults: googleResults.slice(0, 5),
-      googleTrends,
-      bingResults,
-      aiSummary,
-
-      // Enhanced data
-      hypotheses,
-      earlyAdopters,
-      youtubeResults,
-      facebookResults,
-
-      // Metadata
+    // Return the complete market validation result
+    const result: MarketValidationResult = {
+      ...validationResult,
+      // Ensure search data is properly populated
+      searchData: {
+        googleResults,
+        googleTrends,
+        bingResults,
+      },
       timestamp: new Date(),
       version: 1,
-      enhanced: true,
     }
 
-    return NextResponse.json(enhancedResult)
+    return NextResponse.json(result)
   } catch (error) {
-    console.error('Deep research error:', error)
+    console.error('Market validation error:', error)
 
     if (error instanceof Error) {
       if (error.message === 'SERPAPI_RATE_LIMIT') {
@@ -438,11 +234,17 @@ export async function POST(request: NextRequest) {
           { status: 429 }
         )
       }
-      if (
-        error.message === 'AI_DAILY_LIMIT_EXCEEDED' ||
-        error.message === 'AI_RATE_LIMIT_EXCEEDED'
-      ) {
-        return NextResponse.json({ error: error.message }, { status: 429 })
+      if (error.message === 'OPENAI_RATE_LIMIT') {
+        return NextResponse.json(
+          { error: 'AI_RATE_LIMIT_EXCEEDED' },
+          { status: 429 }
+        )
+      }
+      if (error.message.includes('OpenAI API key not configured')) {
+        return NextResponse.json(
+          { error: 'AI service not configured' },
+          { status: 500 }
+        )
       }
     }
 

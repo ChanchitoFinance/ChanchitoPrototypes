@@ -58,7 +58,17 @@ export function VersionHistoryPanel({
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        className="w-full flex items-center justify-between p-4 rounded-lg transition-colors"
+        style={{
+          backgroundColor: 'var(--gray-50)',
+          border: '1px solid var(--border-color)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'var(--gray-50)'
+        }}
       >
         <div className="flex items-center gap-3">
           <GitBranch className="w-5 h-5 text-accent" />
@@ -153,7 +163,16 @@ export function VersionHistoryPanel({
                       <button
                         type="button"
                         onClick={() => onViewVersion(version.id)}
-                        className="p-2 text-text-secondary hover:text-text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ color: 'var(--text-secondary)' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = 'var(--text-primary)'
+                          e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = 'var(--text-secondary)'
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                        }}
                         title={t('versioning.view_version')}
                       >
                         <Eye className="w-4 h-4" />
@@ -162,7 +181,16 @@ export function VersionHistoryPanel({
                       <button
                         type="button"
                         onClick={() => onEditVersion(version.id)}
-                        className="p-2 text-text-secondary hover:text-text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ color: 'var(--text-secondary)' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = 'var(--text-primary)'
+                          e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = 'var(--text-secondary)'
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                        }}
                         title={t('versioning.edit_version')}
                       >
                         <Pencil className="w-4 h-4" />

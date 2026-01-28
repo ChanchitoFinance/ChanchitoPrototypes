@@ -269,7 +269,10 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
 
   // Use the original 'idea' state for ownership check, not 'ideaData'
   // because ideaData may come from Redux currentIdea which doesn't include creatorEmail after voting
-  const isOwner = isAuthenticated && user?.email === idea?.creatorEmail
+  const isOwner =
+    isAuthenticated &&
+    user?.email === idea?.creatorEmail &&
+    idea?.creatorEmail !== undefined
 
   if (loading) {
     return <IdeaDetailSkeleton />
@@ -437,33 +440,17 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           showVersionBadge={isOwner && (versionGroup?.totalVersions ?? 0) > 1}
         />
 
-        {/* Rich Content - filter out hero media if it's the first block */}
-        {idea.content &&
-          idea.content.length > 0 &&
-          (() => {
-            // Filter out first block if it's the same as hero media
-            const filteredContent = idea.content.filter((block, index) => {
-              if (index === 0) {
-                // Skip first block if it matches hero media
-                if (block.type === 'video' && block.src === idea.video)
-                  return false
-                if (block.type === 'image' && block.src === idea.image)
-                  return false
-              }
-              return true
-            })
-
-            return filteredContent.length > 0 ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="mb-12"
-              >
-                <ContentRenderer content={filteredContent} />
-              </motion.div>
-            ) : null
-          })()}
+        {/* Rich Content - show all content blocks */}
+        {idea.content && idea.content.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mb-12"
+          >
+            <ContentRenderer content={idea.content} />
+          </motion.div>
+        )}
 
         {/* Comments Section */}
         <motion.div

@@ -9,10 +9,12 @@
   --background: #000000;
   --text-primary: #ffffff;
   --text-secondary: #a0a0a0;
-  --premium-cta: #992BFF;
-  --primary-accent: #A07BCF;
-  --hover-accent: #B0A7B8;
-  --error: #FF944C;
+  --premium-cta: #992bff;
+  --primary-accent: #a07bcf;
+  --accent: #a07bcf;
+  --accent-alt: #c4a3e0;
+  --hover-accent: #b0a7b8;
+  --error: #ff944c;
   --border-color: #1f1f1f;
   --white: #ffffff;
   --black: #000000;
@@ -118,6 +120,14 @@ a {
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .text-accent {
+    color: var(--accent);
+  }
+
+  .text-accent-alt {
+    color: var(--accent-alt);
   }
 
   .scrollbar-hide {

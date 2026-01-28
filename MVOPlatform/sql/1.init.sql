@@ -66,11 +66,6 @@ CREATE VIEW public_user_profiles AS
   LEFT JOIN media_assets m ON u.profile_media_id = m.id;
 
 
--- Tags
-CREATE TABLE tags (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(255) NOT NULL UNIQUE
-);
 
 
 -- Ideas
@@ -82,6 +77,7 @@ CREATE TABLE ideas (
   pivot_state pivot_state NOT NULL DEFAULT 'stable',
   anonymous BOOLEAN NOT NULL DEFAULT FALSE,
   content JSONB,
+  tags JSONB DEFAULT '[]'::jsonb, -- Array of tag strings, max 3 tags
   -- Versioning fields
   version_number INT NOT NULL DEFAULT 1,
   idea_group_id UUID,
@@ -91,12 +87,6 @@ CREATE TABLE ideas (
 );
 
 
--- Idea Tags
-CREATE TABLE idea_tags (
-  idea_id UUID NOT NULL REFERENCES ideas(id) ON DELETE CASCADE,
-  tag_id UUID NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (idea_id, tag_id)
-);
 
 -- Idea Media
 CREATE TABLE idea_media (
@@ -142,16 +132,6 @@ CREATE TABLE comment_votes (
 
 
 
--- Notifications
-CREATE TABLE notifications (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  type VARCHAR(255) NOT NULL,
-  payload JSONB,
-  is_read BOOLEAN NOT NULL DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  read_at TIMESTAMPTZ
-);
 
 
 -- Indexes
@@ -170,8 +150,6 @@ CREATE INDEX idx_comments_parent ON comments(parent_comment_id);
 CREATE INDEX idx_comments_user_created_at ON comments(user_id, created_at);
 CREATE INDEX idx_comment_votes_comment ON comment_votes(comment_id);
 CREATE INDEX idx_comment_votes_user_created_at ON comment_votes(user_id, created_at);
-CREATE INDEX idx_notifications_user_read_created_at ON notifications(user_id, is_read, created_at);
-CREATE INDEX idx_idea_tags_tag ON idea_tags(tag_id);
 CREATE INDEX idx_payments_user_date ON payments(user_id, payment_date);
 CREATE INDEX idx_payments_transaction ON payments(transaction_id);
 
@@ -301,10 +279,7 @@ BEGIN
   RETURNING id INTO new_idea_id;
 
   -- Copy tags to new version
-  INSERT INTO idea_tags (idea_id, tag_id)
-  SELECT new_idea_id, tag_id
-  FROM idea_tags
-  WHERE idea_id = source_idea_id;
+  UPDATE ideas SET tags = source_idea.tags WHERE id = new_idea_id;
 
   RETURN new_idea_id;
 END;
@@ -363,14 +338,11 @@ GRANT EXECUTE ON FUNCTION set_active_version(UUID) TO authenticated;
 -- ============================================================================
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE media_assets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ideas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE idea_tags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE idea_media ENABLE ROW LEVEL SECURITY;
 ALTER TABLE idea_votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comment_votes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
@@ -392,10 +364,8 @@ CREATE POLICY "Users can update their own profile" ON users
 -- Other table policies
 -- ============================================================================
 
--- Public read for media_assets, tags
+-- Public read for media_assets
 CREATE POLICY "Public read media_assets" ON media_assets FOR SELECT USING (true);
-CREATE POLICY "Public read tags" ON tags FOR SELECT USING (true);
-CREATE POLICY "Authenticated insert tags" ON tags FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
 -- Ideas: public read (active versions only), authenticated create/update
 -- Public sees only active versions, owners see all their versions, admins see all
@@ -454,19 +424,8 @@ CREATE POLICY "Users view own comment_votes" ON comment_votes FOR SELECT USING (
 DROP POLICY IF EXISTS "Anyone can read comment votes" ON comment_votes;
 CREATE POLICY "Anyone can read comment votes" ON comment_votes FOR SELECT USING (true);
 
--- Notifications: users can view/update their own
-DROP POLICY IF EXISTS "Users view own notifications" ON notifications;
-CREATE POLICY "Users view own notifications" ON notifications FOR SELECT USING (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Users update own notifications" ON notifications;
-CREATE POLICY "Users update own notifications" ON notifications FOR UPDATE USING (auth.uid() = user_id);
-
--- Idea tags, media: follow parent permissions
-DROP POLICY IF EXISTS "Public read idea_tags" ON idea_tags;
-CREATE POLICY "Public read idea_tags" ON idea_tags FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "Authenticated insert idea_tags" ON idea_tags;
-CREATE POLICY "Authenticated insert idea_tags" ON idea_tags FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+-- Idea media: follow parent permissions
 
 DROP POLICY IF EXISTS "Public read idea_media" ON idea_media;
 CREATE POLICY "Public read idea_media" ON idea_media FOR SELECT USING (true);
