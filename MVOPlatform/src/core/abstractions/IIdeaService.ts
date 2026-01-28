@@ -111,4 +111,71 @@ export interface IIdeaService {
     categoryBreakdown: Record<string, number>
     sentimentAnalysis: { positive: number; neutral: number; negative: number }
   }>
+
+  // Market Validation methods
+  saveMarketValidation(
+    ideaId: string,
+    ideaVersionNumber: number,
+    validation: {
+      marketSnapshot?: any
+      behavioralHypotheses?: any
+      marketSignals?: any
+      conflictsAndGaps?: any
+      synthesisAndNextSteps?: any
+      searchData?: any
+      language?: string
+    }
+  ): Promise<void>
+
+  getMarketValidationByIdeaId(
+    ideaId: string,
+    ideaVersionNumber?: number
+  ): Promise<any[]>
+
+  getLatestMarketValidation(
+    ideaId: string,
+    ideaVersionNumber: number
+  ): Promise<any | null>
+
+  getMarketValidationVersion(
+    ideaId: string,
+    ideaVersionNumber: number,
+    version: number
+  ): Promise<any | null>
+
+  deleteMarketValidation(
+    ideaId: string,
+    ideaVersionNumber?: number
+  ): Promise<void>
+
+  // AI Personas Evaluation methods
+  saveAIPersonasEvaluation(
+    ideaId: string,
+    ideaVersionNumber: number,
+    evaluation: {
+      aiPersonasEvaluation?: any
+      language?: string
+    }
+  ): Promise<void>
+
+  getAIPersonasEvaluationByIdeaId(
+    ideaId: string,
+    ideaVersionNumber?: number
+  ): Promise<any[]>
+
+  getLatestAIPersonasEvaluation(
+    ideaId: string,
+    ideaVersionNumber: number
+  ): Promise<any | null>
+
+  getAIPersonasEvaluationVersion(
+    ideaId: string,
+    ideaVersionNumber: number,
+    version: number
+  ): Promise<any | null>
+
+  deleteAIPersonasEvaluation(
+    ideaId: string,
+    ideaVersionNumber?: number
+  ): Promise<void>
 }

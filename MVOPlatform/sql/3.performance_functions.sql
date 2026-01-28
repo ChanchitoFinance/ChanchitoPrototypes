@@ -92,6 +92,9 @@ BEGIN
     'created_at', i.created_at,
     'anonymous', i.anonymous,
     'creator_id', i.creator_id,
+    'version_number', i.version_number,
+    'idea_group_id', i.idea_group_id,
+    'is_active_version', i.is_active_version,
     'total_votes', (
       SELECT COUNT(*) FROM idea_votes WHERE idea_id = i.id
     ),

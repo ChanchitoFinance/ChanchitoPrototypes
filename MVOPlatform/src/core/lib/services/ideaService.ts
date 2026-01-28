@@ -1398,6 +1398,10 @@ class SupabaseIdeaService implements IIdeaService {
       status_flag: rpcResult.status_flag,
       anonymous: rpcResult.anonymous || false,
       creatorEmail: null,
+      // Versioning fields
+      versionNumber: rpcResult.version_number || 1,
+      ideaGroupId: rpcResult.idea_group_id || rpcResult.id,
+      isActiveVersion: rpcResult.is_active_version !== false, // Default to true if not set
     }
   }
 
@@ -1655,6 +1659,254 @@ class SupabaseIdeaService implements IIdeaService {
 
     if (error) throw error
     return true
+  }
+
+  // Market Validation methods
+  async saveMarketValidation(
+    ideaId: string,
+    ideaVersionNumber: number,
+    validation: {
+      marketSnapshot?: any
+      behavioralHypotheses?: any
+      marketSignals?: any
+      conflictsAndGaps?: any
+      synthesisAndNextSteps?: any
+      searchData?: any
+      language?: string
+    }
+  ): Promise<void> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    // Get latest version number for this idea and idea version
+    const { data: latestVersionData, error: versionError } = await supabase
+      .from('market_validation_results')
+      .select('version')
+      .eq('idea_id', ideaId)
+      .eq('idea_version_number', ideaVersionNumber)
+      .order('version', { ascending: false })
+      .limit(1)
+
+    if (versionError) throw versionError
+
+    const newVersion =
+      latestVersionData.length > 0 ? latestVersionData[0].version + 1 : 1
+
+    // Save new version
+    const { error: insertError } = await supabase
+      .from('market_validation_results')
+      .insert({
+        idea_id: ideaId,
+        idea_version_number: ideaVersionNumber,
+        version: newVersion,
+        market_snapshot: validation.marketSnapshot,
+        behavioral_hypotheses: validation.behavioralHypotheses,
+        market_signals: validation.marketSignals,
+        conflicts_and_gaps: validation.conflictsAndGaps,
+        synthesis_and_next_steps: validation.synthesisAndNextSteps,
+        search_data: validation.searchData,
+        language: validation.language || 'en',
+      })
+
+    if (insertError) throw insertError
+  }
+
+  async getMarketValidationByIdeaId(
+    ideaId: string,
+    ideaVersionNumber?: number
+  ): Promise<any[]> {
+    let query = supabase
+      .from('market_validation_results')
+      .select('*')
+      .eq('idea_id', ideaId)
+
+    if (ideaVersionNumber !== undefined) {
+      query = query.eq('idea_version_number', ideaVersionNumber)
+    }
+
+    const { data, error } = await query
+      .order('idea_version_number', { ascending: false })
+      .order('version', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  }
+
+  async getLatestMarketValidation(
+    ideaId: string,
+    ideaVersionNumber: number
+  ): Promise<any | null> {
+    const { data, error } = await supabase
+      .from('market_validation_results')
+      .select('*')
+      .eq('idea_id', ideaId)
+      .eq('idea_version_number', ideaVersionNumber)
+      .order('version', { ascending: false })
+      .limit(1)
+
+    if (error) throw error
+    return data[0] || null
+  }
+
+  async getMarketValidationVersion(
+    ideaId: string,
+    ideaVersionNumber: number,
+    version: number
+  ): Promise<any | null> {
+    const { data, error } = await supabase
+      .from('market_validation_results')
+      .select('*')
+      .eq('idea_id', ideaId)
+      .eq('idea_version_number', ideaVersionNumber)
+      .eq('version', version)
+      .single()
+
+    if (error) return null
+    return data
+  }
+
+  async deleteMarketValidation(
+    ideaId: string,
+    ideaVersionNumber?: number
+  ): Promise<void> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    let query = supabase
+      .from('market_validation_results')
+      .delete()
+      .eq('idea_id', ideaId)
+
+    if (ideaVersionNumber !== undefined) {
+      query = query.eq('idea_version_number', ideaVersionNumber)
+    }
+
+    const { error } = await query
+
+    if (error) throw error
+  }
+
+  // AI Personas Evaluation methods
+  async saveAIPersonasEvaluation(
+    ideaId: string,
+    ideaVersionNumber: number,
+    evaluation: {
+      aiPersonasEvaluation?: any
+      language?: string
+    }
+  ): Promise<void> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    // Get latest version number for this idea and idea version
+    const { data: latestVersionData, error: versionError } = await supabase
+      .from('ai_personas_evaluation_results')
+      .select('version')
+      .eq('idea_id', ideaId)
+      .eq('idea_version_number', ideaVersionNumber)
+      .order('version', { ascending: false })
+      .limit(1)
+
+    if (versionError) throw versionError
+
+    const newVersion =
+      latestVersionData.length > 0 ? latestVersionData[0].version + 1 : 1
+
+    // Save new version
+    const { error: insertError } = await supabase
+      .from('ai_personas_evaluation_results')
+      .insert({
+        idea_id: ideaId,
+        idea_version_number: ideaVersionNumber,
+        version: newVersion,
+        ai_personas_evaluation: evaluation.aiPersonasEvaluation,
+        language: evaluation.language || 'en',
+      })
+
+    if (insertError) throw insertError
+  }
+
+  async getAIPersonasEvaluationByIdeaId(
+    ideaId: string,
+    ideaVersionNumber?: number
+  ): Promise<any[]> {
+    let query = supabase
+      .from('ai_personas_evaluation_results')
+      .select('*')
+      .eq('idea_id', ideaId)
+
+    if (ideaVersionNumber !== undefined) {
+      query = query.eq('idea_version_number', ideaVersionNumber)
+    }
+
+    const { data, error } = await query
+      .order('idea_version_number', { ascending: false })
+      .order('version', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  }
+
+  async getLatestAIPersonasEvaluation(
+    ideaId: string,
+    ideaVersionNumber: number
+  ): Promise<any | null> {
+    const { data, error } = await supabase
+      .from('ai_personas_evaluation_results')
+      .select('*')
+      .eq('idea_id', ideaId)
+      .eq('idea_version_number', ideaVersionNumber)
+      .order('version', { ascending: false })
+      .limit(1)
+
+    if (error) throw error
+    return data[0] || null
+  }
+
+  async getAIPersonasEvaluationVersion(
+    ideaId: string,
+    ideaVersionNumber: number,
+    version: number
+  ): Promise<any | null> {
+    const { data, error } = await supabase
+      .from('ai_personas_evaluation_results')
+      .select('*')
+      .eq('idea_id', ideaId)
+      .eq('idea_version_number', ideaVersionNumber)
+      .eq('version', version)
+      .single()
+
+    if (error) return null
+    return data
+  }
+
+  async deleteAIPersonasEvaluation(
+    ideaId: string,
+    ideaVersionNumber?: number
+  ): Promise<void> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    let query = supabase
+      .from('ai_personas_evaluation_results')
+      .delete()
+      .eq('idea_id', ideaId)
+
+    if (ideaVersionNumber !== undefined) {
+      query = query.eq('idea_version_number', ideaVersionNumber)
+    }
+
+    const { error } = await query
+
+    if (error) throw error
   }
 }
 

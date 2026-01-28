@@ -11,7 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { AIPersonaFeedback } from '@/core/types/ai'
-import { aiPersonasFeedbackStorage } from '@/core/lib/services/aiPersonasFeedbackStorage'
+import { ideaService } from '@/core/lib/services/ideaService'
 import { Idea } from '@/core/types/idea'
 import { Comment } from '@/core/types/comment'
 import {
@@ -55,25 +55,28 @@ export function AIPersonasEvaluation({
   const isLastCredit = remainingCredits === 1
 
   useEffect(() => {
-    const cachedFeedback = aiPersonasFeedbackStorage.getLatestFeedback(
-      idea.id,
-      idea.title,
-      idea.votes,
-      comments.length
-    )
-
-    if (cachedFeedback) {
-      setFeedback(cachedFeedback)
-      const history = aiPersonasFeedbackStorage.getFeedbackHistory({
-        ideaId: idea.id,
-        title: idea.title,
-        votes: idea.votes,
-        commentCount: comments.length,
-      })
-      setTotalVersions(history.versions.length)
-      setCurrentVersion(history.currentVersion)
+    const loadFeedback = async () => {
+      try {
+        const aiPersonasEvaluation =
+          await ideaService.getAIPersonasEvaluationByIdeaId(
+            idea.id,
+            idea.versionNumber
+          )
+        if (aiPersonasEvaluation.length > 0) {
+          setTotalVersions(aiPersonasEvaluation.length)
+          const latestEvaluation = aiPersonasEvaluation[0]
+          if (latestEvaluation.ai_personas_evaluation) {
+            setFeedback(latestEvaluation.ai_personas_evaluation)
+            setCurrentVersion(latestEvaluation.version)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load AI personas feedback:', error)
+      }
     }
-  }, [idea.id, idea.title, idea.votes, comments.length])
+
+    loadFeedback()
+  }, [idea.id, idea.versionNumber])
 
   const requestFeedback = async () => {
     setLoading(true)
@@ -105,25 +108,22 @@ export function AIPersonasEvaluation({
 
       const result = await response.json()
 
-      aiPersonasFeedbackStorage.saveFeedback(
-        result,
-        idea.id,
-        idea.title,
-        idea.votes,
-        comments.length
-      )
+      await ideaService.saveAIPersonasEvaluation(idea.id, idea.versionNumber, {
+        aiPersonasEvaluation: result,
+        language: locale,
+      })
 
       setFeedback(result)
       setIsExpanded(true)
 
-      const history = aiPersonasFeedbackStorage.getFeedbackHistory({
-        ideaId: idea.id,
-        title: idea.title,
-        votes: idea.votes,
-        commentCount: comments.length,
-      })
-      setTotalVersions(history.versions.length)
-      setCurrentVersion(history.currentVersion)
+      const aiPersonasEvaluation =
+        await ideaService.getAIPersonasEvaluationByIdeaId(
+          idea.id,
+          idea.versionNumber
+        )
+      setTotalVersions(aiPersonasEvaluation.length)
+      const latestEvaluation = aiPersonasEvaluation[0]
+      setCurrentVersion(latestEvaluation.version)
     } catch (err) {
       console.error('AI personas feedback error:', err)
       setError(err instanceof Error ? err.message : 'Failed to analyze')
@@ -132,32 +132,37 @@ export function AIPersonasEvaluation({
     }
   }
 
-  const changeVersion = (newVersion: number) => {
-    const history = aiPersonasFeedbackStorage.getFeedbackHistory({
-      ideaId: idea.id,
-      title: idea.title,
-      votes: idea.votes,
-      commentCount: comments.length,
-    })
-
-    const versionData = history.versions.find(v => v.version === newVersion)
-    if (versionData) {
-      setFeedback(versionData.feedback)
-      setCurrentVersion(newVersion)
-      aiPersonasFeedbackStorage.setCurrentVersion(
-        versionData.ideaHash,
-        newVersion
-      )
+  const changeVersion = async (newVersion: number) => {
+    try {
+      const aiPersonasEvaluation =
+        await ideaService.getAIPersonasEvaluationVersion(
+          idea.id,
+          idea.versionNumber,
+          newVersion
+        )
+      if (aiPersonasEvaluation && aiPersonasEvaluation.ai_personas_evaluation) {
+        setFeedback(aiPersonasEvaluation.ai_personas_evaluation)
+        setCurrentVersion(newVersion)
+      }
+    } catch (error) {
+      console.error('Failed to load AI personas feedback version:', error)
     }
   }
 
-  const clearAllFeedback = () => {
+  const clearAllFeedback = async () => {
     if (confirm(t('ai_personas_evaluation.clear_history_confirm'))) {
-      aiPersonasFeedbackStorage.clearAllFeedback()
-      setFeedback(null)
-      setTotalVersions(0)
-      setCurrentVersion(1)
-      setIsExpanded(false)
+      try {
+        await ideaService.deleteAIPersonasEvaluation(
+          idea.id,
+          idea.versionNumber
+        )
+        setFeedback(null)
+        setTotalVersions(0)
+        setCurrentVersion(1)
+        setIsExpanded(false)
+      } catch (error) {
+        console.error('Failed to clear AI personas feedback:', error)
+      }
     }
   }
 
@@ -178,12 +183,12 @@ export function AIPersonasEvaluation({
             backgroundColor: 'var(--primary-accent)',
             color: 'var(--white)',
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={e => {
             if (!loading) {
               e.currentTarget.style.opacity = '0.9'
             }
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={e => {
             if (!loading) {
               e.currentTarget.style.opacity = '1'
             }
@@ -259,7 +264,9 @@ export function AIPersonasEvaluation({
               border: '1px solid var(--error)',
             }}
           >
-            <p className="text-sm" style={{ color: 'var(--error)' }}>{error}</p>
+            <p className="text-sm" style={{ color: 'var(--error)' }}>
+              {error}
+            </p>
             <button
               onClick={() => setShowCreditConfirm(true)}
               className="mt-2 text-sm hover:underline font-medium"
@@ -285,14 +292,26 @@ export function AIPersonasEvaluation({
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6" style={{ color: 'var(--primary-accent)' }} />
-                <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                <Sparkles
+                  className="w-6 h-6"
+                  style={{ color: 'var(--primary-accent)' }}
+                />
+                <h4
+                  className="font-semibold"
+                  style={{ color: 'var(--text-primary)' }}
+                >
                   {t('ai_personas_evaluation.evaluation_title')}
                 </h4>
               </div>
               {totalVersions > 1 && (
-                <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  <History className="w-4 h-4" style={{ color: 'var(--primary-accent)' }} />
+                <div
+                  className="flex items-center gap-2 text-sm"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  <History
+                    className="w-4 h-4"
+                    style={{ color: 'var(--primary-accent)' }}
+                  />
                   <span>
                     {t('ai_personas_evaluation.version')} {currentVersion}{' '}
                     {t('ai_personas_evaluation.of')} {totalVersions}
@@ -301,14 +320,23 @@ export function AIPersonasEvaluation({
               )}
             </div>
 
-            <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(160, 123, 207, 0.1)', border: '1px solid var(--primary-accent)' }}>
+            <div
+              className="p-4 rounded-lg"
+              style={{
+                backgroundColor: 'rgba(160, 123, 207, 0.1)',
+                border: '1px solid var(--primary-accent)',
+              }}
+            >
               <AIPersonasRenderer
                 content={feedback.conversation}
                 className="text-gray-800 dark:text-gray-200"
               />
             </div>
 
-            <div className="flex items-center justify-between pt-4" style={{ borderTop: '1px solid var(--border-color)' }}>
+            <div
+              className="flex items-center justify-between pt-4"
+              style={{ borderTop: '1px solid var(--border-color)' }}
+            >
               {totalVersions > 1 && (
                 <div className="flex items-center gap-2">
                   <button
@@ -321,12 +349,13 @@ export function AIPersonasEvaluation({
                       backgroundColor: 'var(--gray-100)',
                       color: 'var(--text-secondary)',
                     }}
-                    onMouseEnter={(e) => {
+                    onMouseEnter={e => {
                       if (currentVersion !== 1) {
-                        e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                        e.currentTarget.style.backgroundColor =
+                          'var(--hover-accent)'
                       }
                     }}
-                    onMouseLeave={(e) => {
+                    onMouseLeave={e => {
                       e.currentTarget.style.backgroundColor = 'var(--gray-100)'
                     }}
                   >
@@ -342,12 +371,13 @@ export function AIPersonasEvaluation({
                       backgroundColor: 'var(--gray-100)',
                       color: 'var(--text-secondary)',
                     }}
-                    onMouseEnter={(e) => {
+                    onMouseEnter={e => {
                       if (currentVersion !== totalVersions) {
-                        e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                        e.currentTarget.style.backgroundColor =
+                          'var(--hover-accent)'
                       }
                     }}
-                    onMouseLeave={(e) => {
+                    onMouseLeave={e => {
                       e.currentTarget.style.backgroundColor = 'var(--gray-100)'
                     }}
                   >
@@ -365,12 +395,12 @@ export function AIPersonasEvaluation({
                     backgroundColor: 'var(--primary-accent)',
                     color: 'var(--white)',
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={e => {
                     if (!loading) {
                       e.currentTarget.style.opacity = '0.85'
                     }
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={e => {
                     e.currentTarget.style.opacity = '1'
                   }}
                 >
@@ -388,10 +418,10 @@ export function AIPersonasEvaluation({
                     backgroundColor: 'var(--error)',
                     color: 'var(--white)',
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={e => {
                     e.currentTarget.style.opacity = '0.85'
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={e => {
                     e.currentTarget.style.opacity = '1'
                   }}
                 >
@@ -401,7 +431,10 @@ export function AIPersonasEvaluation({
               </div>
             </div>
 
-            <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
+            <p
+              className="text-xs text-center"
+              style={{ color: 'var(--text-secondary)' }}
+            >
               {t('ai_personas_evaluation.advisory_note')}
             </p>
           </motion.div>

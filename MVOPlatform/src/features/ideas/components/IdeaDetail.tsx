@@ -497,6 +497,8 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             <AIDeepResearch
+              ideaId={ideaId}
+              ideaVersionNumber={ideaData.versionNumber}
               title={ideaData.title}
               description={
                 ideaData.content?.find(b => b.type === 'text')?.content || ''

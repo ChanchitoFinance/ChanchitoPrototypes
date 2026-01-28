@@ -45,7 +45,9 @@
     "clear_draft": "Limpiar Borrador",
     "browse_ideas": "Explorar Ideas",
     "share_success": "¡Enlace compartido exitosamente!",
-    "link_copied": "¡Enlace copiado al portapapeles!"
+    "link_copied": "¡Enlace copiado al portapapeles!",
+    "export": "Exportar",
+    "import": "Importar"
   },
   "status": {
     "loading": "Cargando...",
@@ -363,7 +365,14 @@
     "drag_position": "Arrastrar para posicionar",
     "zoom": "Zoom",
     "post_anonymously": "Publicar de forma anónima",
-    "post_anonymously_description": "Ocultar tu nombre cuando esta idea se muestre al público"
+    "post_anonymously_description": "Ocultar tu nombre cuando esta idea se muestre al público",
+    "export_tooltip": "Exportar contenido de la idea a archivo JSON",
+    "import_tooltip": "Importar contenido de la idea desde archivo JSON",
+    "export_success": "Idea exportada exitosamente",
+    "import_success": "Idea importada exitosamente",
+    "import_error": "Error al importar archivo de idea",
+    "import_invalid_file": "Formato de archivo inválido",
+    "import_version_error": "Versión de archivo incompatible"
   },
   "prompts": {
     "enter_image_url": "Ingresa la URL de la imagen:",

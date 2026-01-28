@@ -16,11 +16,8 @@ import {
   Target,
   TrendingUp,
 } from 'lucide-react'
-import {
-  MarketValidationResult,
-  MarketValidationTab,
-} from '@/core/types/ai'
-import { deepResearchStorage } from '@/core/lib/services/deepResearchStorage'
+import { MarketValidationResult, MarketValidationTab } from '@/core/types/ai'
+import { ideaService } from '@/core/lib/services/ideaService'
 import { ContentBlock } from '@/core/types/content'
 import {
   useTranslations,
@@ -37,6 +34,8 @@ import {
 } from './deep-research'
 
 interface AIDeepResearchProps {
+  ideaId: string
+  ideaVersionNumber: number
   title: string
   description: string
   content: ContentBlock[]
@@ -45,6 +44,8 @@ interface AIDeepResearchProps {
 }
 
 export function AIDeepResearch({
+  ideaId,
+  ideaVersionNumber,
   title,
   description,
   content,
@@ -60,7 +61,8 @@ export function AIDeepResearch({
   const [currentVersion, setCurrentVersion] = useState(1)
   const [totalVersions, setTotalVersions] = useState(0)
   const [showCreditConfirm, setShowCreditConfirm] = useState(false)
-  const [activeTab, setActiveTab] = useState<MarketValidationTab>('market_snapshot')
+  const [activeTab, setActiveTab] =
+    useState<MarketValidationTab>('market_snapshot')
 
   const { plan, dailyCredits, usedCredits } = useAppSelector(
     state => state.credits
@@ -70,28 +72,47 @@ export function AIDeepResearch({
   // Market validation costs 10 credits (updated from 8)
   const creditCost = 10
   const hasCredits = remainingCredits >= creditCost
-  const isLastCredits = remainingCredits >= creditCost && remainingCredits < creditCost + 5
+  const isLastCredits =
+    remainingCredits >= creditCost && remainingCredits < creditCost + 5
 
   useEffect(() => {
-    const cachedResearch = deepResearchStorage.getLatestResearch(
-      title,
-      description || '',
-      content.length,
-      tags
-    )
-
-    if (cachedResearch) {
-      setResearch(cachedResearch as MarketValidationResult)
-      const history = deepResearchStorage.getResearchHistory({
-        title,
-        description: description || '',
-        contentLength: content.length,
-        tags,
-      })
-      setTotalVersions(history.versions.length)
-      setCurrentVersion(history.currentVersion)
+    const loadResearch = async () => {
+      try {
+        const marketValidationResults =
+          await ideaService.getMarketValidationByIdeaId(
+            ideaId,
+            ideaVersionNumber
+          )
+        if (marketValidationResults.length > 0) {
+          setTotalVersions(marketValidationResults.length)
+          const latestValidation = marketValidationResults[0]
+          if (
+            latestValidation.market_snapshot &&
+            latestValidation.behavioral_hypotheses &&
+            latestValidation.market_signals &&
+            latestValidation.conflicts_and_gaps &&
+            latestValidation.synthesis_and_next_steps
+          ) {
+            setResearch({
+              marketSnapshot: latestValidation.market_snapshot,
+              behavioralHypotheses: latestValidation.behavioral_hypotheses,
+              marketSignals: latestValidation.market_signals,
+              conflictsAndGaps: latestValidation.conflicts_and_gaps,
+              synthesisAndNextSteps: latestValidation.synthesis_and_next_steps,
+              searchData: latestValidation.search_data,
+              timestamp: new Date(latestValidation.created_at),
+              version: latestValidation.version,
+            })
+            setCurrentVersion(latestValidation.version)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load market validation:', error)
+      }
     }
-  }, [title, description, content.length, tags])
+
+    loadResearch()
+  }, [ideaId, ideaVersionNumber])
 
   const requestResearch = async () => {
     setLoading(true)
@@ -119,64 +140,87 @@ export function AIDeepResearch({
         ) {
           throw new Error('AI_RATE_LIMIT_EXCEEDED')
         }
-        throw new Error(errorData.error || 'Failed to perform market validation')
+        throw new Error('Failed to perform market validation')
       }
 
-      const result: MarketValidationResult = await response.json()
+      const result = await response.json()
 
-      deepResearchStorage.saveResearch(
-        result,
-        title,
-        description || '',
-        content.length,
-        tags
-      )
+      await ideaService.saveMarketValidation(ideaId, ideaVersionNumber, {
+        marketSnapshot: result.marketSnapshot,
+        behavioralHypotheses: result.behavioralHypotheses,
+        marketSignals: result.marketSignals,
+        conflictsAndGaps: result.conflictsAndGaps,
+        synthesisAndNextSteps: result.synthesisAndNextSteps,
+        searchData: result.searchData,
+        language: locale,
+      })
 
       setResearch(result)
       setIsExpanded(true)
       setActiveTab('market_snapshot')
 
-      const history = deepResearchStorage.getResearchHistory({
-        title,
-        description: description || '',
-        contentLength: content.length,
-        tags,
-      })
-      setTotalVersions(history.versions.length)
-      setCurrentVersion(history.currentVersion)
+      const marketValidationResults =
+        await ideaService.getMarketValidationByIdeaId(ideaId, ideaVersionNumber)
+      setTotalVersions(marketValidationResults.length)
+      const latestValidation = marketValidationResults[0]
+      setCurrentVersion(latestValidation.version)
     } catch (err) {
       console.error('Market validation error:', err)
       setError(
-        err instanceof Error ? err.message : 'Failed to perform market validation'
+        err instanceof Error
+          ? err.message
+          : 'Failed to perform market validation'
       )
     } finally {
       setLoading(false)
     }
   }
 
-  const changeVersion = (newVersion: number) => {
-    const history = deepResearchStorage.getResearchHistory({
-      title,
-      description: description || '',
-      contentLength: content.length,
-      tags,
-    })
-
-    const versionData = history.versions.find(v => v.version === newVersion)
-    if (versionData) {
-      setResearch(versionData.research as MarketValidationResult)
-      setCurrentVersion(newVersion)
-      deepResearchStorage.setCurrentVersion(versionData.ideaHash, newVersion)
+  const changeVersion = async (newVersion: number) => {
+    try {
+      const marketValidationResult =
+        await ideaService.getMarketValidationVersion(
+          ideaId,
+          ideaVersionNumber,
+          newVersion
+        )
+      if (
+        marketValidationResult &&
+        marketValidationResult.market_snapshot &&
+        marketValidationResult.behavioral_hypotheses &&
+        marketValidationResult.market_signals &&
+        marketValidationResult.conflicts_and_gaps &&
+        marketValidationResult.synthesis_and_next_steps
+      ) {
+        setResearch({
+          marketSnapshot: marketValidationResult.market_snapshot,
+          behavioralHypotheses: marketValidationResult.behavioral_hypotheses,
+          marketSignals: marketValidationResult.market_signals,
+          conflictsAndGaps: marketValidationResult.conflicts_and_gaps,
+          synthesisAndNextSteps:
+            marketValidationResult.synthesis_and_next_steps,
+          searchData: marketValidationResult.search_data,
+          timestamp: new Date(marketValidationResult.created_at),
+          version: marketValidationResult.version,
+        })
+        setCurrentVersion(newVersion)
+      }
+    } catch (error) {
+      console.error('Failed to load market validation version:', error)
     }
   }
 
-  const clearAllResearch = () => {
+  const clearAllResearch = async () => {
     if (confirm(t('ai_deep_research.clear_history_confirm'))) {
-      deepResearchStorage.clearAllResearch()
-      setResearch(null)
-      setTotalVersions(0)
-      setCurrentVersion(1)
-      setIsExpanded(false)
+      try {
+        await ideaService.deleteMarketValidation(ideaId, ideaVersionNumber)
+        setResearch(null)
+        setTotalVersions(0)
+        setCurrentVersion(1)
+        setIsExpanded(false)
+      } catch (error) {
+        console.error('Failed to clear market validation:', error)
+      }
     }
   }
 
@@ -206,7 +250,8 @@ export function AIDeepResearch({
           disabled={loading}
           className="w-full h-16 relative bg-primary-accent hover:opacity-90 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed overflow-visible"
           style={{
-            background: loading || research ? undefined : 'var(--primary-accent)',
+            background:
+              loading || research ? undefined : 'var(--primary-accent)',
           }}
         >
           <div className="flex items-center justify-center gap-3 px-6">
@@ -301,14 +346,26 @@ export function AIDeepResearch({
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <BarChart3 className="w-6 h-6" style={{ color: 'var(--primary-accent)' }} />
-                <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                <BarChart3
+                  className="w-6 h-6"
+                  style={{ color: 'var(--primary-accent)' }}
+                />
+                <h4
+                  className="font-semibold"
+                  style={{ color: 'var(--text-primary)' }}
+                >
                   {t('market_validation.title')}
                 </h4>
               </div>
               {totalVersions > 1 && (
-                <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  <History className="w-4 h-4" style={{ color: 'var(--primary-accent)' }} />
+                <div
+                  className="flex items-center gap-2 text-sm"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  <History
+                    className="w-4 h-4"
+                    style={{ color: 'var(--primary-accent)' }}
+                  />
                   <span>
                     {t('ai_deep_research.version')} {currentVersion}{' '}
                     {t('ai_deep_research.of')} {totalVersions}
@@ -318,28 +375,40 @@ export function AIDeepResearch({
             </div>
 
             {/* 5 Section Tab Navigation */}
-            <div className="flex flex-wrap gap-2 pb-2" style={{ borderBottom: '1px solid var(--border-color)' }}>
+            <div
+              className="flex flex-wrap gap-2 pb-2"
+              style={{ borderBottom: '1px solid var(--border-color)' }}
+            >
               <button
                 type="button"
                 onClick={() => setActiveTab('market_snapshot')}
                 className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
                 style={{
-                  backgroundColor: activeTab === 'market_snapshot' ? 'var(--primary-accent)' : 'var(--gray-100)',
-                  color: activeTab === 'market_snapshot' ? 'var(--white)' : 'var(--text-secondary)',
+                  backgroundColor:
+                    activeTab === 'market_snapshot'
+                      ? 'var(--primary-accent)'
+                      : 'var(--gray-100)',
+                  color:
+                    activeTab === 'market_snapshot'
+                      ? 'var(--white)'
+                      : 'var(--text-secondary)',
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={e => {
                   if (activeTab !== 'market_snapshot') {
-                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                    e.currentTarget.style.backgroundColor =
+                      'var(--hover-accent)'
                   }
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   if (activeTab !== 'market_snapshot') {
                     e.currentTarget.style.backgroundColor = 'var(--gray-100)'
                   }
                 }}
               >
                 {getTabIcon('market_snapshot')}
-                <span className="hidden sm:inline">{t('market_validation.tabs.market_snapshot')}</span>
+                <span className="hidden sm:inline">
+                  {t('market_validation.tabs.market_snapshot')}
+                </span>
                 <span className="sm:hidden">Snapshot</span>
               </button>
               <button
@@ -347,22 +416,31 @@ export function AIDeepResearch({
                 onClick={() => setActiveTab('behavioral_hypotheses')}
                 className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
                 style={{
-                  backgroundColor: activeTab === 'behavioral_hypotheses' ? 'var(--primary-accent)' : 'var(--gray-100)',
-                  color: activeTab === 'behavioral_hypotheses' ? 'var(--white)' : 'var(--text-secondary)',
+                  backgroundColor:
+                    activeTab === 'behavioral_hypotheses'
+                      ? 'var(--primary-accent)'
+                      : 'var(--gray-100)',
+                  color:
+                    activeTab === 'behavioral_hypotheses'
+                      ? 'var(--white)'
+                      : 'var(--text-secondary)',
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={e => {
                   if (activeTab !== 'behavioral_hypotheses') {
-                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                    e.currentTarget.style.backgroundColor =
+                      'var(--hover-accent)'
                   }
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   if (activeTab !== 'behavioral_hypotheses') {
                     e.currentTarget.style.backgroundColor = 'var(--gray-100)'
                   }
                 }}
               >
                 {getTabIcon('behavioral_hypotheses')}
-                <span className="hidden sm:inline">{t('market_validation.tabs.behavioral_hypotheses')}</span>
+                <span className="hidden sm:inline">
+                  {t('market_validation.tabs.behavioral_hypotheses')}
+                </span>
                 <span className="sm:hidden">Hypotheses</span>
               </button>
               <button
@@ -370,22 +448,31 @@ export function AIDeepResearch({
                 onClick={() => setActiveTab('market_signals')}
                 className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
                 style={{
-                  backgroundColor: activeTab === 'market_signals' ? 'var(--primary-accent)' : 'var(--gray-100)',
-                  color: activeTab === 'market_signals' ? 'var(--white)' : 'var(--text-secondary)',
+                  backgroundColor:
+                    activeTab === 'market_signals'
+                      ? 'var(--primary-accent)'
+                      : 'var(--gray-100)',
+                  color:
+                    activeTab === 'market_signals'
+                      ? 'var(--white)'
+                      : 'var(--text-secondary)',
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={e => {
                   if (activeTab !== 'market_signals') {
-                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                    e.currentTarget.style.backgroundColor =
+                      'var(--hover-accent)'
                   }
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   if (activeTab !== 'market_signals') {
                     e.currentTarget.style.backgroundColor = 'var(--gray-100)'
                   }
                 }}
               >
                 {getTabIcon('market_signals')}
-                <span className="hidden sm:inline">{t('market_validation.tabs.market_signals')}</span>
+                <span className="hidden sm:inline">
+                  {t('market_validation.tabs.market_signals')}
+                </span>
                 <span className="sm:hidden">Signals</span>
               </button>
               <button
@@ -393,22 +480,31 @@ export function AIDeepResearch({
                 onClick={() => setActiveTab('conflicts_gaps')}
                 className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
                 style={{
-                  backgroundColor: activeTab === 'conflicts_gaps' ? 'var(--primary-accent)' : 'var(--gray-100)',
-                  color: activeTab === 'conflicts_gaps' ? 'var(--white)' : 'var(--text-secondary)',
+                  backgroundColor:
+                    activeTab === 'conflicts_gaps'
+                      ? 'var(--primary-accent)'
+                      : 'var(--gray-100)',
+                  color:
+                    activeTab === 'conflicts_gaps'
+                      ? 'var(--white)'
+                      : 'var(--text-secondary)',
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={e => {
                   if (activeTab !== 'conflicts_gaps') {
-                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                    e.currentTarget.style.backgroundColor =
+                      'var(--hover-accent)'
                   }
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   if (activeTab !== 'conflicts_gaps') {
                     e.currentTarget.style.backgroundColor = 'var(--gray-100)'
                   }
                 }}
               >
                 {getTabIcon('conflicts_gaps')}
-                <span className="hidden sm:inline">{t('market_validation.tabs.conflicts_gaps')}</span>
+                <span className="hidden sm:inline">
+                  {t('market_validation.tabs.conflicts_gaps')}
+                </span>
                 <span className="sm:hidden">Issues</span>
               </button>
               <button
@@ -416,22 +512,31 @@ export function AIDeepResearch({
                 onClick={() => setActiveTab('synthesis')}
                 className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
                 style={{
-                  backgroundColor: activeTab === 'synthesis' ? 'var(--primary-accent)' : 'var(--gray-100)',
-                  color: activeTab === 'synthesis' ? 'var(--white)' : 'var(--text-secondary)',
+                  backgroundColor:
+                    activeTab === 'synthesis'
+                      ? 'var(--primary-accent)'
+                      : 'var(--gray-100)',
+                  color:
+                    activeTab === 'synthesis'
+                      ? 'var(--white)'
+                      : 'var(--text-secondary)',
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={e => {
                   if (activeTab !== 'synthesis') {
-                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                    e.currentTarget.style.backgroundColor =
+                      'var(--hover-accent)'
                   }
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   if (activeTab !== 'synthesis') {
                     e.currentTarget.style.backgroundColor = 'var(--gray-100)'
                   }
                 }}
               >
                 {getTabIcon('synthesis')}
-                <span className="hidden sm:inline">{t('market_validation.tabs.synthesis')}</span>
+                <span className="hidden sm:inline">
+                  {t('market_validation.tabs.synthesis')}
+                </span>
                 <span className="sm:hidden">Summary</span>
               </button>
             </div>
@@ -443,7 +548,9 @@ export function AIDeepResearch({
               )}
 
               {activeTab === 'behavioral_hypotheses' && (
-                <BehavioralHypothesesSection hypotheses={research.behavioralHypotheses} />
+                <BehavioralHypothesesSection
+                  hypotheses={research.behavioralHypotheses}
+                />
               )}
 
               {activeTab === 'market_signals' && (
@@ -451,15 +558,22 @@ export function AIDeepResearch({
               )}
 
               {activeTab === 'conflicts_gaps' && (
-                <ConflictsGapsSection conflictsAndGaps={research.conflictsAndGaps} />
+                <ConflictsGapsSection
+                  conflictsAndGaps={research.conflictsAndGaps}
+                />
               )}
 
               {activeTab === 'synthesis' && (
-                <SynthesisNextStepsSection synthesis={research.synthesisAndNextSteps} />
+                <SynthesisNextStepsSection
+                  synthesis={research.synthesisAndNextSteps}
+                />
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4" style={{ borderTop: '1px solid var(--border-color)' }}>
+            <div
+              className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4"
+              style={{ borderTop: '1px solid var(--border-color)' }}
+            >
               {totalVersions > 1 && (
                 <div className="flex items-center gap-2">
                   <button
@@ -473,12 +587,13 @@ export function AIDeepResearch({
                       backgroundColor: 'var(--gray-100)',
                       color: 'var(--text-secondary)',
                     }}
-                    onMouseEnter={(e) => {
+                    onMouseEnter={e => {
                       if (currentVersion !== 1) {
-                        e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                        e.currentTarget.style.backgroundColor =
+                          'var(--hover-accent)'
                       }
                     }}
-                    onMouseLeave={(e) => {
+                    onMouseLeave={e => {
                       e.currentTarget.style.backgroundColor = 'var(--gray-100)'
                     }}
                   >
@@ -495,12 +610,13 @@ export function AIDeepResearch({
                       backgroundColor: 'var(--gray-100)',
                       color: 'var(--text-secondary)',
                     }}
-                    onMouseEnter={(e) => {
+                    onMouseEnter={e => {
                       if (currentVersion !== totalVersions) {
-                        e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                        e.currentTarget.style.backgroundColor =
+                          'var(--hover-accent)'
                       }
                     }}
-                    onMouseLeave={(e) => {
+                    onMouseLeave={e => {
                       e.currentTarget.style.backgroundColor = 'var(--gray-100)'
                     }}
                   >
@@ -519,12 +635,12 @@ export function AIDeepResearch({
                     backgroundColor: 'var(--primary-accent)',
                     color: 'var(--white)',
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={e => {
                     if (!loading) {
                       e.currentTarget.style.opacity = '0.85'
                     }
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={e => {
                     e.currentTarget.style.opacity = '1'
                   }}
                 >
@@ -543,10 +659,10 @@ export function AIDeepResearch({
                     backgroundColor: 'var(--error)',
                     color: 'var(--white)',
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={e => {
                     e.currentTarget.style.opacity = '0.85'
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={e => {
                     e.currentTarget.style.opacity = '1'
                   }}
                 >
@@ -556,7 +672,10 @@ export function AIDeepResearch({
               </div>
             </div>
 
-            <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
+            <p
+              className="text-xs text-center"
+              style={{ color: 'var(--text-secondary)' }}
+            >
               {t('market_validation.disclaimer')}
             </p>
           </motion.div>

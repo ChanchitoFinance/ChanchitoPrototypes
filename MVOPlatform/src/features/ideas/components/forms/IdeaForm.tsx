@@ -22,6 +22,8 @@ import {
   Loader2,
   UserX,
   Check,
+  Download,
+  FileJson,
 } from 'lucide-react'
 import Image from 'next/image'
 import {
@@ -100,6 +102,7 @@ export function IdeaForm({
   const [wantAIComments, setWantAIComments] = useState<boolean | null>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
+  const importInputRef = useRef<HTMLInputElement>(null)
   const { profile, user } = useAppSelector(state => state.auth)
   const { isAuthenticated } = useAppSelector(state => state.auth)
   const { plan, dailyCredits, usedCredits } = useAppSelector(
@@ -515,6 +518,187 @@ export function IdeaForm({
         )
       } finally {
         setIsUploadingHeroVideo(false)
+      }
+    }
+  }
+
+  // Export idea contents to JSON file
+  const handleExport = () => {
+    const serializedContentBlocks = contentBlocks.map(block => {
+      if (block.type === 'carousel') {
+        return {
+          ...block,
+          slides: block.slides.map(slide => ({
+            image: slide.image || undefined,
+            video: slide.video || undefined,
+            title: slide.title || undefined,
+            description: slide.description || '',
+          })),
+        }
+      }
+      if (block.type === 'video') {
+        return {
+          ...block,
+          src: block.src || '',
+          title: block.title || undefined,
+          description: block.description || undefined,
+          objectFit: block.objectFit || 'fit',
+          alignment: block.alignment || 'center',
+          crop: block.crop || undefined,
+        }
+      }
+      if (block.type === 'html') {
+        return {
+          ...block,
+          content: block.content || '',
+        }
+      }
+      return block
+    })
+
+    const exportData = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      title: titleValue || '',
+      tags: selectedTags,
+      contentBlocks: serializedContentBlocks,
+      heroImage: heroImage,
+      heroVideo: heroVideo,
+      heroCrop: heroCrop,
+      isAnonymous: isAnonymous,
+    }
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: 'application/json',
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `idea-${(titleValue || 'export').replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    toast.success(t('form.export_success'))
+  }
+
+  // Handle import button click
+  const handleImportClick = () => {
+    importInputRef.current?.click()
+  }
+
+  // Import idea contents from JSON file
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+
+      // Validate basic structure
+      if (!data || typeof data !== 'object') {
+        toast.error(t('form.import_invalid_file'))
+        return
+      }
+
+      // Validate version
+      if (data.version !== 1) {
+        toast.error(t('form.import_version_error'))
+        return
+      }
+
+      // Clear existing content before import
+      setValue('title', '')
+      setValue('tags', '')
+      setSelectedTags([])
+      setContentBlocks([])
+      setHeroImage(null)
+      setHeroVideo(null)
+      setHeroCrop(null)
+      setIsAnonymous(false)
+
+      // Import title
+      if (data.title) {
+        setValue('title', data.title)
+      }
+
+      // Import tags
+      if (data.tags && Array.isArray(data.tags)) {
+        setSelectedTags(data.tags)
+        setValue('tags', data.tags.join(','))
+      }
+
+      // Import content blocks
+      if (data.contentBlocks && Array.isArray(data.contentBlocks)) {
+        const restoredBlocks = data.contentBlocks
+          .map((block: any) => {
+            if (!block || !block.type) return null
+
+            if (block.type === 'carousel') {
+              return {
+                type: 'carousel' as const,
+                slides: Array.isArray(block.slides)
+                  ? block.slides.map((s: any) => ({
+                      image: s.image || undefined,
+                      video: s.video || undefined,
+                      title: s.title || undefined,
+                      description: s.description || '',
+                    }))
+                  : [{ description: '' }],
+              }
+            }
+
+            if (block.type === 'video') {
+              return {
+                type: 'video' as const,
+                src: block.src || '',
+                title: block.title,
+                description: block.description,
+                objectFit: block.objectFit || 'fit',
+                alignment: block.alignment || 'center',
+                crop: block.crop,
+              }
+            }
+
+            if (block.type === 'html') {
+              return {
+                type: 'html' as const,
+                content: block.content || '',
+              }
+            }
+
+            return block
+          })
+          .filter((block: any) => block !== null)
+
+        setContentBlocks(restoredBlocks)
+      }
+
+      // Import hero media
+      if (data.heroImage) {
+        setHeroImage(data.heroImage)
+      }
+      if (data.heroVideo) {
+        setHeroVideo(data.heroVideo)
+      }
+      if (data.heroCrop) {
+        setHeroCrop(data.heroCrop)
+      }
+
+      // Import anonymous flag
+      if (data.isAnonymous !== undefined) {
+        setIsAnonymous(data.isAnonymous)
+      }
+
+      toast.success(t('form.import_success'))
+    } catch (error) {
+      console.error('Error importing idea:', error)
+      toast.error(t('form.import_error'))
+    } finally {
+      // Reset input
+      if (e.target) {
+        e.target.value = ''
       }
     }
   }
@@ -1208,6 +1392,14 @@ export function IdeaForm({
         onChange={handleVideoUpload}
         className="hidden"
       />
+      {/* Hidden file input for importing idea JSON */}
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".json,application/json"
+        onChange={handleImport}
+        className="hidden"
+      />
 
       {/* Article Content */}
       <article className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-12">
@@ -1423,7 +1615,7 @@ export function IdeaForm({
             )}
 
           {/* Submit Buttons */}
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <Button type="submit" variant="primary" disabled={isSubmitting}>
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
@@ -1433,6 +1625,26 @@ export function IdeaForm({
               ) : (
                 t('actions.submit_idea')
               )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleExport}
+              disabled={isSubmitting}
+              title={t('form.export_tooltip')}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {t('actions.export')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleImportClick}
+              disabled={isSubmitting}
+              title={t('form.import_tooltip')}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {t('actions.import')}
             </Button>
             <Button
               type="button"
