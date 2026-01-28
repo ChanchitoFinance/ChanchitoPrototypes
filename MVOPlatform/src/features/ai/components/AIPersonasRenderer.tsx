@@ -26,6 +26,10 @@ export function AIPersonasRenderer({
   className = '',
 }: AIPersonasRendererProps) {
   const parsedContent = useMemo(() => {
+    if (!content || typeof content !== 'string') {
+      return ''
+    }
+
     let html = content
 
     html = html.replace(/\r\n/g, '\n')
