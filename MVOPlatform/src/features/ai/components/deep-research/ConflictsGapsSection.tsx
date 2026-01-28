@@ -19,10 +19,10 @@ export function ConflictsGapsSection({ conflictsAndGaps }: ConflictsGapsSectionP
   return (
     <div className="space-y-4">
       {/* Intro */}
-      <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+      <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(255, 148, 76, 0.1)', border: '1px solid var(--error)' }}>
         <div className="flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-gray-700 dark:text-gray-300">
+          <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: 'var(--error)' }} />
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             {t('market_validation.conflicts_gaps.intro')}
           </p>
         </div>
@@ -30,14 +30,14 @@ export function ConflictsGapsSection({ conflictsAndGaps }: ConflictsGapsSectionP
 
       {/* Contradictions */}
       {conflictsAndGaps.contradictions && conflictsAndGaps.contradictions.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="px-4 py-3 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-b border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--gray-100)', border: '1px solid var(--border-color)' }}>
+          <div className="px-4 py-3" style={{ backgroundColor: 'rgba(255, 148, 76, 0.15)', borderBottom: '1px solid var(--border-color)' }}>
             <div className="flex items-center gap-2">
-              <GitMerge className="w-5 h-5 text-red-600 dark:text-red-400" />
-              <h3 className="font-semibold text-gray-900 dark:text-white">
+              <GitMerge className="w-5 h-5" style={{ color: 'var(--error)' }} />
+              <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                 {t('market_validation.conflicts_gaps.contradictions')}
               </h3>
-              <span className="ml-auto px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+              <span className="ml-auto px-2 py-0.5 text-xs font-medium rounded-full" style={{ backgroundColor: 'rgba(255, 148, 76, 0.2)', color: 'var(--error)' }}>
                 {conflictsAndGaps.contradictions.length}
               </span>
             </div>
@@ -46,9 +46,10 @@ export function ConflictsGapsSection({ conflictsAndGaps }: ConflictsGapsSectionP
             {conflictsAndGaps.contradictions.map((item, i) => (
               <div
                 key={i}
-                className="p-3 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800"
+                className="p-3 rounded-lg"
+                style={{ backgroundColor: 'rgba(255, 148, 76, 0.1)', border: '1px solid var(--error)' }}
               >
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
                   {item.description}
                 </p>
                 {item.relatedSignals && item.relatedSignals.length > 0 && (
@@ -56,7 +57,8 @@ export function ConflictsGapsSection({ conflictsAndGaps }: ConflictsGapsSectionP
                     {item.relatedSignals.map((signal, j) => (
                       <span
                         key={j}
-                        className="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                        className="text-xs px-2 py-0.5 rounded"
+                        style={{ backgroundColor: 'rgba(255, 148, 76, 0.2)', color: 'var(--error)' }}
                       >
                         {signal}
                       </span>
@@ -71,14 +73,14 @@ export function ConflictsGapsSection({ conflictsAndGaps }: ConflictsGapsSectionP
 
       {/* Missing Signals */}
       {conflictsAndGaps.missingSignals && conflictsAndGaps.missingSignals.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="px-4 py-3 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-b border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--gray-100)', border: '1px solid var(--border-color)' }}>
+          <div className="px-4 py-3" style={{ backgroundColor: 'rgba(176, 167, 184, 0.15)', borderBottom: '1px solid var(--border-color)' }}>
             <div className="flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-              <h3 className="font-semibold text-gray-900 dark:text-white">
+              <HelpCircle className="w-5 h-5" style={{ color: 'var(--hover-accent)' }} />
+              <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                 {t('market_validation.conflicts_gaps.missing_signals')}
               </h3>
-              <span className="ml-auto px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">
+              <span className="ml-auto px-2 py-0.5 text-xs font-medium rounded-full" style={{ backgroundColor: 'rgba(176, 167, 184, 0.2)', color: 'var(--hover-accent)' }}>
                 {conflictsAndGaps.missingSignals.length}
               </span>
             </div>
@@ -87,9 +89,10 @@ export function ConflictsGapsSection({ conflictsAndGaps }: ConflictsGapsSectionP
             {conflictsAndGaps.missingSignals.map((item, i) => (
               <div
                 key={i}
-                className="p-3 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-800"
+                className="p-3 rounded-lg"
+                style={{ backgroundColor: 'rgba(176, 167, 184, 0.1)', border: '1px solid var(--hover-accent)' }}
               >
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
                   {item.description}
                 </p>
                 {item.relatedSignals && item.relatedSignals.length > 0 && (
@@ -97,7 +100,8 @@ export function ConflictsGapsSection({ conflictsAndGaps }: ConflictsGapsSectionP
                     {item.relatedSignals.map((signal, j) => (
                       <span
                         key={j}
-                        className="text-xs px-2 py-0.5 rounded bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"
+                        className="text-xs px-2 py-0.5 rounded"
+                        style={{ backgroundColor: 'rgba(176, 167, 184, 0.2)', color: 'var(--hover-accent)' }}
                       >
                         {signal}
                       </span>
@@ -112,14 +116,14 @@ export function ConflictsGapsSection({ conflictsAndGaps }: ConflictsGapsSectionP
 
       {/* Risk Flags */}
       {conflictsAndGaps.riskFlags && conflictsAndGaps.riskFlags.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="px-4 py-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-b border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--gray-100)', border: '1px solid var(--border-color)' }}>
+          <div className="px-4 py-3" style={{ backgroundColor: 'rgba(255, 148, 76, 0.15)', borderBottom: '1px solid var(--border-color)' }}>
             <div className="flex items-center gap-2">
-              <Flag className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-              <h3 className="font-semibold text-gray-900 dark:text-white">
+              <Flag className="w-5 h-5" style={{ color: 'var(--error)' }} />
+              <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                 {t('market_validation.conflicts_gaps.risk_flags')}
               </h3>
-              <span className="ml-auto px-2 py-0.5 text-xs font-medium rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">
+              <span className="ml-auto px-2 py-0.5 text-xs font-medium rounded-full" style={{ backgroundColor: 'rgba(255, 148, 76, 0.2)', color: 'var(--error)' }}>
                 {conflictsAndGaps.riskFlags.length}
               </span>
             </div>
@@ -128,9 +132,10 @@ export function ConflictsGapsSection({ conflictsAndGaps }: ConflictsGapsSectionP
             {conflictsAndGaps.riskFlags.map((item, i) => (
               <div
                 key={i}
-                className="p-3 bg-orange-50 dark:bg-orange-900/10 rounded-lg border border-orange-200 dark:border-orange-800"
+                className="p-3 rounded-lg"
+                style={{ backgroundColor: 'rgba(255, 148, 76, 0.1)', border: '1px solid var(--error)' }}
               >
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
                   {item.description}
                 </p>
                 {item.relatedSignals && item.relatedSignals.length > 0 && (
@@ -138,7 +143,8 @@ export function ConflictsGapsSection({ conflictsAndGaps }: ConflictsGapsSectionP
                     {item.relatedSignals.map((signal, j) => (
                       <span
                         key={j}
-                        className="text-xs px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
+                        className="text-xs px-2 py-0.5 rounded"
+                        style={{ backgroundColor: 'rgba(255, 148, 76, 0.2)', color: 'var(--error)' }}
                       >
                         {signal}
                       </span>
@@ -154,13 +160,13 @@ export function ConflictsGapsSection({ conflictsAndGaps }: ConflictsGapsSectionP
       {/* No Issues Found */}
       {!hasContent && (
         <div className="text-center py-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-            <AlertTriangle className="w-8 h-8 text-green-600 dark:text-green-400" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style={{ backgroundColor: 'rgba(160, 123, 207, 0.2)' }}>
+            <AlertTriangle className="w-8 h-8" style={{ color: 'var(--primary-accent)' }} />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
             {t('market_validation.conflicts_gaps.no_major_issues')}
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+          <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--text-secondary)' }}>
             {t('market_validation.conflicts_gaps.no_major_issues_description')}
           </p>
         </div>

@@ -42,35 +42,42 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
     return icons[type]
   }
 
-  const getSignalColor = (type: MarketSignalType): string => {
-    const colors: Record<MarketSignalType, string> = {
-      demand_intensity: 'from-blue-500 to-blue-600',
-      problem_salience: 'from-red-500 to-red-600',
-      existing_spend: 'from-green-500 to-green-600',
-      competitive_landscape: 'from-purple-500 to-purple-600',
-      switching_friction: 'from-orange-500 to-orange-600',
-      distribution: 'from-pink-500 to-pink-600',
-      geographic_fit: 'from-teal-500 to-teal-600',
-      timing: 'from-indigo-500 to-indigo-600',
-      economic_plausibility: 'from-amber-500 to-amber-600',
+  const getSignalColor = (type: MarketSignalType) => {
+    // All signals use primary-accent color but with different opacity levels for variety
+    const colors: Record<MarketSignalType, { bg: string; iconColor: string }> = {
+      demand_intensity: { bg: 'var(--primary-accent)', iconColor: 'var(--white)' },
+      problem_salience: { bg: 'var(--error)', iconColor: 'var(--white)' },
+      existing_spend: { bg: 'var(--premium-cta)', iconColor: 'var(--white)' },
+      competitive_landscape: { bg: 'var(--primary-accent)', iconColor: 'var(--white)' },
+      switching_friction: { bg: 'var(--hover-accent)', iconColor: 'var(--white)' },
+      distribution: { bg: 'var(--primary-accent)', iconColor: 'var(--white)' },
+      geographic_fit: { bg: 'var(--premium-cta)', iconColor: 'var(--white)' },
+      timing: { bg: 'var(--primary-accent)', iconColor: 'var(--white)' },
+      economic_plausibility: { bg: 'var(--hover-accent)', iconColor: 'var(--white)' },
     }
     return colors[type]
   }
 
   const getStrengthBadge = (strength: ConfidenceLevel) => {
-    const configs: Record<ConfidenceLevel, { color: string; icon: React.ReactNode; label: string }> = {
+    const configs: Record<ConfidenceLevel, { bg: string; color: string; borderColor: string; icon: React.ReactNode; label: string }> = {
       low: {
-        color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800',
+        bg: 'rgba(255, 255, 255, 0.3)',
+        color: 'var(--white)',
+        borderColor: 'rgba(255, 255, 255, 0.5)',
         icon: <HelpCircle className="w-3 h-3" />,
         label: t('market_validation.strength.low'),
       },
       medium: {
-        color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
+        bg: 'rgba(255, 255, 255, 0.3)',
+        color: 'var(--white)',
+        borderColor: 'rgba(255, 255, 255, 0.5)',
         icon: <AlertTriangle className="w-3 h-3" />,
         label: t('market_validation.strength.medium'),
       },
       high: {
-        color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800',
+        bg: 'rgba(255, 255, 255, 0.3)',
+        color: 'var(--white)',
+        borderColor: 'rgba(255, 255, 255, 0.5)',
         icon: <CheckCircle2 className="w-3 h-3" />,
         label: t('market_validation.strength.high'),
       },
@@ -127,10 +134,10 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
   return (
     <div className="space-y-4">
       {/* Intro */}
-      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+      <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(160, 123, 207, 0.1)', border: '1px solid var(--primary-accent)' }}>
         <div className="flex items-start gap-3">
-          <BarChart3 className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-gray-700 dark:text-gray-300">
+          <BarChart3 className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: 'var(--primary-accent)' }} />
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             {t('market_validation.signals.intro')}
           </p>
         </div>
@@ -140,15 +147,16 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sortedSignals.map((signal) => {
           const strengthBadge = getStrengthBadge(signal.strength)
-          const gradientColor = getSignalColor(signal.type)
+          const signalColor = getSignalColor(signal.type)
 
           return (
             <div
               key={signal.type}
-              className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+              className="rounded-lg overflow-hidden"
+              style={{ backgroundColor: 'var(--gray-100)', border: '1px solid var(--border-color)' }}
             >
               {/* Card Header */}
-              <div className={`p-3 bg-gradient-to-r ${gradientColor} text-white`}>
+              <div className="p-3" style={{ backgroundColor: signalColor.bg, color: signalColor.iconColor }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {getSignalIcon(signal.type)}
@@ -156,12 +164,12 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
                       {getSignalTitle(signal.type)}
                     </h3>
                   </div>
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full border bg-white/20 border-white/30 text-white`}>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full" style={{ backgroundColor: strengthBadge.bg, border: `1px solid ${strengthBadge.borderColor}`, color: strengthBadge.color }}>
                     {strengthBadge.icon}
                     {strengthBadge.label}
                   </span>
                 </div>
-                <p className="text-xs mt-1 text-white/80">
+                <p className="text-xs mt-1" style={{ opacity: 0.9 }}>
                   {getSignalDescription(signal.type)}
                 </p>
               </div>
@@ -170,27 +178,28 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
               <div className="p-4 space-y-3">
                 {/* Classification Badge */}
                 {signal.classification && (
-                  <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium">
+                  <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: 'rgba(160, 123, 207, 0.15)', color: 'var(--primary-accent)' }}>
                     {signal.classification}
                   </div>
                 )}
 
                 {/* Summary */}
-                <div className="text-sm text-gray-700 dark:text-gray-300">
+                <div className="text-sm">
                   <MarkdownRenderer content={signal.summary} />
                 </div>
 
                 {/* Evidence Snippets */}
                 {signal.evidenceSnippets && signal.evidenceSnippets.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                    <h4 className="text-xs font-semibold uppercase" style={{ color: 'var(--text-secondary)' }}>
                       {t('market_validation.signals.evidence')}
                     </h4>
                     <ul className="space-y-1.5">
                       {signal.evidenceSnippets.slice(0, 3).map((snippet, i) => (
                         <li
                           key={i}
-                          className="text-xs text-gray-600 dark:text-gray-400 pl-3 border-l-2 border-gray-300 dark:border-gray-600"
+                          className="text-xs pl-3"
+                          style={{ color: 'var(--text-secondary)', borderLeft: '2px solid var(--primary-accent)' }}
                         >
                           {snippet}
                         </li>
@@ -201,8 +210,8 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
 
                 {/* Sources */}
                 {signal.sources && signal.sources.length > 0 && (
-                  <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-                    <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1.5">
+                  <div className="pt-3" style={{ borderTop: '1px solid var(--border-color)' }}>
+                    <h4 className="text-xs font-semibold uppercase mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                       {t('market_validation.signals.sources')}
                     </h4>
                     <div className="space-y-1">
@@ -212,7 +221,8 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
                           href={source.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                          className="flex items-center gap-1 text-xs hover:underline"
+                          style={{ color: 'var(--primary-accent)' }}
                         >
                           <ExternalLink className="w-3 h-3 flex-shrink-0" />
                           <span className="truncate">{source.title}</span>
@@ -228,7 +238,7 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
       </div>
 
       {signals.length === 0 && (
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-8" style={{ color: 'var(--text-secondary)' }}>
           <p>{t('market_validation.signals.no_signals')}</p>
         </div>
       )}

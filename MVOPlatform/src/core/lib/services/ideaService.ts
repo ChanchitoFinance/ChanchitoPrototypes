@@ -1062,9 +1062,8 @@ class SupabaseIdeaService implements IIdeaService {
           ),
           idea_votes (
             vote_type
-        ),
           ),
-          ,
+          tags,
           comments!left (
             id
           )
@@ -1115,12 +1114,10 @@ class SupabaseIdeaService implements IIdeaService {
         created_at,
         users!ideas_creator_id_fkey (
           username,
-          full_name,
-          ,
+          full_name
         ),
         idea_votes (
           vote_type
-        ),
         ),
         tags,
         comments!left (

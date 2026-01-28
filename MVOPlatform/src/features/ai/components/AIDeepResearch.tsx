@@ -14,6 +14,7 @@ import {
   BarChart3,
   AlertTriangle,
   Target,
+  TrendingUp,
 } from 'lucide-react'
 import {
   MarketValidationResult,
@@ -203,7 +204,10 @@ export function AIDeepResearch({
             }
           }}
           disabled={loading}
-          className="w-full h-16 relative bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed overflow-visible"
+          className="w-full h-16 relative bg-primary-accent hover:opacity-90 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed overflow-visible"
+          style={{
+            background: loading || research ? undefined : 'var(--primary-accent)',
+          }}
         >
           <div className="flex items-center justify-center gap-3 px-6">
             {loading ? (
@@ -262,13 +266,20 @@ export function AIDeepResearch({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg"
+            className="mt-4 p-4 rounded-lg"
+            style={{
+              backgroundColor: 'rgba(255, 148, 76, 0.1)',
+              border: '1px solid var(--error)',
+            }}
           >
-            <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+            <p className="text-sm" style={{ color: 'var(--error)' }}>
+              {error}
+            </p>
             <button
               type="button"
               onClick={requestResearch}
-              className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline font-medium"
+              className="mt-2 text-sm hover:underline font-medium"
+              style={{ color: 'var(--error)' }}
             >
               {t('ai_deep_research.try_again')}
             </button>
@@ -282,18 +293,22 @@ export function AIDeepResearch({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="mt-4 space-y-4 p-6 bg-white dark:bg-gray-800 rounded-lg border-2 border-purple-400 dark:border-purple-600 shadow-lg"
+            className="mt-4 space-y-4 p-6 rounded-lg shadow-lg"
+            style={{
+              backgroundColor: 'var(--gray-50)',
+              border: '2px solid var(--primary-accent)',
+            }}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">📊</span>
-                <h4 className="font-semibold text-gray-900 dark:text-white">
+                <BarChart3 className="w-6 h-6" style={{ color: 'var(--primary-accent)' }} />
+                <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                   {t('market_validation.title')}
                 </h4>
               </div>
               {totalVersions > 1 && (
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <History className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <History className="w-4 h-4" style={{ color: 'var(--primary-accent)' }} />
                   <span>
                     {t('ai_deep_research.version')} {currentVersion}{' '}
                     {t('ai_deep_research.of')} {totalVersions}
@@ -303,15 +318,25 @@ export function AIDeepResearch({
             </div>
 
             {/* 5 Section Tab Navigation */}
-            <div className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+            <div className="flex flex-wrap gap-2 pb-2" style={{ borderBottom: '1px solid var(--border-color)' }}>
               <button
                 type="button"
                 onClick={() => setActiveTab('market_snapshot')}
-                className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-colors ${
-                  activeTab === 'market_snapshot'
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
+                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
+                style={{
+                  backgroundColor: activeTab === 'market_snapshot' ? 'var(--primary-accent)' : 'var(--gray-100)',
+                  color: activeTab === 'market_snapshot' ? 'var(--white)' : 'var(--text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'market_snapshot') {
+                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'market_snapshot') {
+                    e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                  }
+                }}
               >
                 {getTabIcon('market_snapshot')}
                 <span className="hidden sm:inline">{t('market_validation.tabs.market_snapshot')}</span>
@@ -320,11 +345,21 @@ export function AIDeepResearch({
               <button
                 type="button"
                 onClick={() => setActiveTab('behavioral_hypotheses')}
-                className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-colors ${
-                  activeTab === 'behavioral_hypotheses'
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
+                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
+                style={{
+                  backgroundColor: activeTab === 'behavioral_hypotheses' ? 'var(--primary-accent)' : 'var(--gray-100)',
+                  color: activeTab === 'behavioral_hypotheses' ? 'var(--white)' : 'var(--text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'behavioral_hypotheses') {
+                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'behavioral_hypotheses') {
+                    e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                  }
+                }}
               >
                 {getTabIcon('behavioral_hypotheses')}
                 <span className="hidden sm:inline">{t('market_validation.tabs.behavioral_hypotheses')}</span>
@@ -333,11 +368,21 @@ export function AIDeepResearch({
               <button
                 type="button"
                 onClick={() => setActiveTab('market_signals')}
-                className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-colors ${
-                  activeTab === 'market_signals'
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
+                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
+                style={{
+                  backgroundColor: activeTab === 'market_signals' ? 'var(--primary-accent)' : 'var(--gray-100)',
+                  color: activeTab === 'market_signals' ? 'var(--white)' : 'var(--text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'market_signals') {
+                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'market_signals') {
+                    e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                  }
+                }}
               >
                 {getTabIcon('market_signals')}
                 <span className="hidden sm:inline">{t('market_validation.tabs.market_signals')}</span>
@@ -346,11 +391,21 @@ export function AIDeepResearch({
               <button
                 type="button"
                 onClick={() => setActiveTab('conflicts_gaps')}
-                className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-colors ${
-                  activeTab === 'conflicts_gaps'
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
+                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
+                style={{
+                  backgroundColor: activeTab === 'conflicts_gaps' ? 'var(--primary-accent)' : 'var(--gray-100)',
+                  color: activeTab === 'conflicts_gaps' ? 'var(--white)' : 'var(--text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'conflicts_gaps') {
+                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'conflicts_gaps') {
+                    e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                  }
+                }}
               >
                 {getTabIcon('conflicts_gaps')}
                 <span className="hidden sm:inline">{t('market_validation.tabs.conflicts_gaps')}</span>
@@ -359,11 +414,21 @@ export function AIDeepResearch({
               <button
                 type="button"
                 onClick={() => setActiveTab('synthesis')}
-                className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-colors ${
-                  activeTab === 'synthesis'
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
+                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-t-lg transition-all"
+                style={{
+                  backgroundColor: activeTab === 'synthesis' ? 'var(--primary-accent)' : 'var(--gray-100)',
+                  color: activeTab === 'synthesis' ? 'var(--white)' : 'var(--text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'synthesis') {
+                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'synthesis') {
+                    e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                  }
+                }}
               >
                 {getTabIcon('synthesis')}
                 <span className="hidden sm:inline">{t('market_validation.tabs.synthesis')}</span>
@@ -394,7 +459,7 @@ export function AIDeepResearch({
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4" style={{ borderTop: '1px solid var(--border-color)' }}>
               {totalVersions > 1 && (
                 <div className="flex items-center gap-2">
                   <button
@@ -403,7 +468,19 @@ export function AIDeepResearch({
                       changeVersion(Math.max(1, currentVersion - 1))
                     }
                     disabled={currentVersion === 1}
-                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    className="px-3 py-1.5 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all"
+                    style={{
+                      backgroundColor: 'var(--gray-100)',
+                      color: 'var(--text-secondary)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (currentVersion !== 1) {
+                        e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                    }}
                   >
                     {t('ai_deep_research.previous')}
                   </button>
@@ -413,7 +490,19 @@ export function AIDeepResearch({
                       changeVersion(Math.min(totalVersions, currentVersion + 1))
                     }
                     disabled={currentVersion === totalVersions}
-                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    className="px-3 py-1.5 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all"
+                    style={{
+                      backgroundColor: 'var(--gray-100)',
+                      color: 'var(--text-secondary)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (currentVersion !== totalVersions) {
+                        e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                    }}
                   >
                     {t('ai_deep_research.next')}
                   </button>
@@ -425,7 +514,19 @@ export function AIDeepResearch({
                   type="button"
                   onClick={() => setShowCreditConfirm(true)}
                   disabled={loading}
-                  className="px-4 py-2 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
+                  className="px-4 py-2 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center gap-2"
+                  style={{
+                    backgroundColor: 'var(--primary-accent)',
+                    color: 'var(--white)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.opacity = '0.85'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1'
+                  }}
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -437,7 +538,17 @@ export function AIDeepResearch({
                 <button
                   type="button"
                   onClick={clearAllResearch}
-                  className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center gap-2"
+                  className="px-4 py-2 text-sm rounded-lg transition-all font-medium flex items-center gap-2"
+                  style={{
+                    backgroundColor: 'var(--error)',
+                    color: 'var(--white)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '0.85'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1'
+                  }}
                 >
                   <Trash2 className="w-4 h-4" />
                   {t('ai_deep_research.clear_all')}
@@ -445,7 +556,7 @@ export function AIDeepResearch({
               </div>
             </div>
 
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+            <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
               {t('market_validation.disclaimer')}
             </p>
           </motion.div>

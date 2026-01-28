@@ -43,7 +43,7 @@ export function AIPersonasEvaluation({
   const [totalVersions, setTotalVersions] = useState(0)
   const [showCreditConfirm, setShowCreditConfirm] = useState(false)
 
-  const { profile, user } = useAppSelector(state => state.auth)
+  const { user } = useAppSelector(state => state.auth)
   const { plan, dailyCredits, usedCredits } = useAppSelector(
     state => state.credits
   )
@@ -173,7 +173,21 @@ export function AIPersonasEvaluation({
             }
           }}
           disabled={loading}
-          className="w-full h-16 relative bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed overflow-visible"
+          className="w-full h-16 relative font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed overflow-visible"
+          style={{
+            backgroundColor: 'var(--primary-accent)',
+            color: 'var(--white)',
+          }}
+          onMouseEnter={(e) => {
+            if (!loading) {
+              e.currentTarget.style.opacity = '0.9'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!loading) {
+              e.currentTarget.style.opacity = '1'
+            }
+          }}
         >
           <div className="flex items-center justify-center gap-3 px-6">
             {loading ? (
@@ -239,12 +253,17 @@ export function AIPersonasEvaluation({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg"
+            className="mt-4 p-4 rounded-lg"
+            style={{
+              backgroundColor: 'rgba(255, 148, 76, 0.1)',
+              border: '1px solid var(--error)',
+            }}
           >
-            <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+            <p className="text-sm" style={{ color: 'var(--error)' }}>{error}</p>
             <button
               onClick={() => setShowCreditConfirm(true)}
-              className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline font-medium"
+              className="mt-2 text-sm hover:underline font-medium"
+              style={{ color: 'var(--error)' }}
             >
               {t('ai_personas_evaluation.try_again')}
             </button>
@@ -258,18 +277,22 @@ export function AIPersonasEvaluation({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="mt-4 space-y-4 p-6 bg-white dark:bg-gray-800 rounded-lg border-2 border-purple-400 shadow-lg"
+            className="mt-4 space-y-4 p-6 rounded-lg shadow-lg"
+            style={{
+              backgroundColor: 'var(--gray-50)',
+              border: '2px solid var(--primary-accent)',
+            }}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-purple-500" />
-                <h4 className="font-semibold text-gray-900 dark:text-white">
+                <Sparkles className="w-6 h-6" style={{ color: 'var(--primary-accent)' }} />
+                <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                   {t('ai_personas_evaluation.evaluation_title')}
                 </h4>
               </div>
               {totalVersions > 1 && (
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <History className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  <History className="w-4 h-4" style={{ color: 'var(--primary-accent)' }} />
                   <span>
                     {t('ai_personas_evaluation.version')} {currentVersion}{' '}
                     {t('ai_personas_evaluation.of')} {totalVersions}
@@ -278,14 +301,14 @@ export function AIPersonasEvaluation({
               )}
             </div>
 
-            <div className="p-4 bg-purple-50 dark:bg-gray-900 rounded-lg border border-purple-200 dark:border-gray-700">
+            <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(160, 123, 207, 0.1)', border: '1px solid var(--primary-accent)' }}>
               <AIPersonasRenderer
                 content={feedback.conversation}
                 className="text-gray-800 dark:text-gray-200"
               />
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between pt-4" style={{ borderTop: '1px solid var(--border-color)' }}>
               {totalVersions > 1 && (
                 <div className="flex items-center gap-2">
                   <button
@@ -293,7 +316,19 @@ export function AIPersonasEvaluation({
                       changeVersion(Math.max(1, currentVersion - 1))
                     }
                     disabled={currentVersion === 1}
-                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    className="px-3 py-1.5 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all"
+                    style={{
+                      backgroundColor: 'var(--gray-100)',
+                      color: 'var(--text-secondary)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (currentVersion !== 1) {
+                        e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                    }}
                   >
                     {t('ai_personas_evaluation.previous')}
                   </button>
@@ -302,7 +337,19 @@ export function AIPersonasEvaluation({
                       changeVersion(Math.min(totalVersions, currentVersion + 1))
                     }
                     disabled={currentVersion === totalVersions}
-                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    className="px-3 py-1.5 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all"
+                    style={{
+                      backgroundColor: 'var(--gray-100)',
+                      color: 'var(--text-secondary)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (currentVersion !== totalVersions) {
+                        e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                    }}
                   >
                     {t('ai_personas_evaluation.next')}
                   </button>
@@ -313,7 +360,19 @@ export function AIPersonasEvaluation({
                 <button
                   onClick={() => setShowCreditConfirm(true)}
                   disabled={loading}
-                  className="px-4 py-2 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
+                  className="px-4 py-2 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center gap-2"
+                  style={{
+                    backgroundColor: 'var(--primary-accent)',
+                    color: 'var(--white)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.opacity = '0.85'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1'
+                  }}
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -324,7 +383,17 @@ export function AIPersonasEvaluation({
                 </button>
                 <button
                   onClick={clearAllFeedback}
-                  className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center gap-2"
+                  className="px-4 py-2 text-sm rounded-lg transition-all font-medium flex items-center gap-2"
+                  style={{
+                    backgroundColor: 'var(--error)',
+                    color: 'var(--white)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '0.85'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1'
+                  }}
                 >
                   <Trash2 className="w-4 h-4" />
                   {t('ai_personas_evaluation.clear_all')}
@@ -332,7 +401,7 @@ export function AIPersonasEvaluation({
               </div>
             </div>
 
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+            <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
               {t('ai_personas_evaluation.advisory_note')}
             </p>
           </motion.div>

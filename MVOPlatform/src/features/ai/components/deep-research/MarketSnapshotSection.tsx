@@ -46,64 +46,64 @@ export function MarketSnapshotSection({
   return (
     <div className="space-y-6">
       {/* Intro */}
-      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+      <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(160, 123, 207, 0.1)', border: '1px solid var(--primary-accent)' }}>
         <div className="flex items-start gap-3">
-          <Sparkles className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-gray-700 dark:text-gray-300">
+          <Sparkles className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: 'var(--primary-accent)' }} />
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             {t('market_validation.snapshot.intro')}
           </p>
         </div>
       </div>
 
       {/* Customer Segment Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-b border-gray-200 dark:border-gray-700">
+      <div className="rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--gray-100)', border: '1px solid var(--border-color)' }}>
+        <div className="px-4 py-3" style={{ backgroundColor: 'rgba(160, 123, 207, 0.15)', borderBottom: '1px solid var(--border-color)' }}>
           <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">
+            <Users className="w-5 h-5" style={{ color: 'var(--primary-accent)' }} />
+            <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
               {t('market_validation.snapshot.customer_segment')}
             </h3>
           </div>
         </div>
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            <div className="flex items-center gap-2 text-xs font-medium uppercase" style={{ color: 'var(--text-secondary)' }}>
               <Target className="w-3.5 h-3.5" />
               {t('market_validation.snapshot.primary_user')}
             </div>
-            <p className="text-sm text-gray-800 dark:text-gray-300">
+            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
               {snapshot.customerSegment.primaryUser}
             </p>
           </div>
 
           {snapshot.customerSegment.buyer && (
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase" style={{ color: 'var(--text-secondary)' }}>
                 <Briefcase className="w-3.5 h-3.5" />
                 {t('market_validation.snapshot.buyer')}
               </div>
-              <p className="text-sm text-gray-800 dark:text-gray-300">
+              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
                 {snapshot.customerSegment.buyer}
               </p>
             </div>
           )}
 
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            <div className="flex items-center gap-2 text-xs font-medium uppercase" style={{ color: 'var(--text-secondary)' }}>
               <Clock className="w-3.5 h-3.5" />
               {t('market_validation.snapshot.context_of_use')}
             </div>
-            <p className="text-sm text-gray-800 dark:text-gray-300">
+            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
               {snapshot.customerSegment.contextOfUse}
             </p>
           </div>
 
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+            <div className="flex items-center gap-2 text-xs font-medium uppercase" style={{ color: 'var(--text-secondary)' }}>
               <Building2 className="w-3.5 h-3.5" />
               {t('market_validation.snapshot.environment')}
             </div>
-            <p className="text-sm text-gray-800 dark:text-gray-300 capitalize">
+            <p className="text-sm capitalize" style={{ color: 'var(--text-primary)' }}>
               {snapshot.customerSegment.environment}
             </p>
           </div>
@@ -111,24 +111,24 @@ export function MarketSnapshotSection({
       </div>
 
       {/* Market Context Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-b border-gray-200 dark:border-gray-700">
+      <div className="rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--gray-100)', border: '1px solid var(--border-color)' }}>
+        <div className="px-4 py-3" style={{ backgroundColor: 'rgba(160, 123, 207, 0.15)', borderBottom: '1px solid var(--border-color)' }}>
           <div className="flex items-center gap-2">
-            <Globe className="w-5 h-5 text-green-600 dark:text-green-400" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">
+            <Globe className="w-5 h-5" style={{ color: 'var(--primary-accent)' }} />
+            <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
               {t('market_validation.snapshot.market_context')}
             </h3>
           </div>
         </div>
         <div className="p-4">
           <div className="flex flex-wrap gap-3">
-            <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium">
+            <div className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium" style={{ backgroundColor: 'rgba(160, 123, 207, 0.2)', color: 'var(--primary-accent)' }}>
               {getMarketTypeLabel(snapshot.marketContext.type)}
             </div>
-            <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-medium">
+            <div className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium" style={{ backgroundColor: 'rgba(160, 123, 207, 0.2)', color: 'var(--primary-accent)' }}>
               {getScopeLabel(snapshot.marketContext.scope)}
             </div>
-            <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-medium">
+            <div className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium" style={{ backgroundColor: 'rgba(160, 123, 207, 0.2)', color: 'var(--primary-accent)' }}>
               {getCategoryLabel(snapshot.marketContext.categoryType)}
             </div>
           </div>
@@ -138,27 +138,27 @@ export function MarketSnapshotSection({
       {/* Geography & Timing Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Geography Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--gray-100)', border: '1px solid var(--border-color)' }}>
           <div className="flex items-center gap-2 mb-2">
-            <MapPin className="w-4 h-4 text-red-500" />
-            <h4 className="font-medium text-gray-900 dark:text-white text-sm">
+            <MapPin className="w-4 h-4" style={{ color: 'var(--primary-accent)' }} />
+            <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
               {t('market_validation.snapshot.geography')}
             </h4>
           </div>
-          <p className="text-sm text-gray-700 dark:text-gray-300">
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             {snapshot.geography}
           </p>
         </div>
 
         {/* Timing Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--gray-100)', border: '1px solid var(--border-color)' }}>
           <div className="flex items-center gap-2 mb-2">
-            <Clock className="w-4 h-4 text-orange-500" />
-            <h4 className="font-medium text-gray-900 dark:text-white text-sm">
+            <Clock className="w-4 h-4" style={{ color: 'var(--primary-accent)' }} />
+            <h4 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
               {t('market_validation.snapshot.timing_context')}
             </h4>
           </div>
-          <p className="text-sm text-gray-700 dark:text-gray-300">
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             {snapshot.timingContext}
           </p>
         </div>
