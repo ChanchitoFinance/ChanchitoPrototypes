@@ -226,7 +226,7 @@ export interface IdeaContext {
 export const AI_PERSONAS: Record<AIPersonaType, AIPersona> = {
   technical: {
     id: 'technical',
-    name: 'AI · Technical Feasibility',
+    name: 'AI · The Architect',
     description:
       'Architecture, scalability, and technical implementation risks',
     personality:

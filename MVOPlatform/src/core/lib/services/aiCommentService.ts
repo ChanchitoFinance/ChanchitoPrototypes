@@ -3,19 +3,19 @@ import { Idea } from '@/core/types/idea'
 import { Comment } from '@/core/types/comment'
 
 export const AI_PERSONA_NAMES: Record<string, string> = {
-  technical: 'AI · Technical Feasibility',
-  founder: 'AI · Founder Reality Check',
-  market: 'AI · Market Skeptic',
-  gtm: 'AI · GTM & Distribution',
-  investor: 'AI · Investor Lens',
+  technical: 'AI · The Architect',
+  founder: 'AI · The Delivery Lead',
+  market: 'AI · The Challenger',
+  gtm: 'AI · The Strategist',
+  investor: 'AI · The Capital Lens',
 }
 
 export const AI_PERSONA_HANDLES: Record<string, string> = {
-  technical: '@ai_technical_feasibility',
-  founder: '@ai_founder_reality_check',
-  market: '@ai_market_skeptic',
-  gtm: '@ai_gtm_distribution',
-  investor: '@ai_investor_lens',
+  technical: '@ai_the_architect',
+  founder: '@ai_the_delivery_lead',
+  market: '@ai_the_challenger',
+  gtm: '@ai_the_strategist',
+  investor: '@ai_the_capital_lens',
 }
 
 class AICommentService {

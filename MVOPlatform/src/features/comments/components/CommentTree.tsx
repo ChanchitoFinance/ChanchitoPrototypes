@@ -210,7 +210,7 @@ export function CommentTree({
       ? AI_PERSONA_NAMES[aiPersonaData.personaKey!]
       : comment.author
     const displayAvatar = isAIComment
-      ? `/ai-personas/${aiPersonaData.personaKey}.png`
+      ? `/ai-personas/v2/${aiPersonaData.personaKey}.png`
       : comment.authorImage
 
     const hasReplies = comment.replies && comment.replies.length > 0

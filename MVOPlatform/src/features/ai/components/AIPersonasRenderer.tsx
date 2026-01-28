@@ -14,11 +14,11 @@ interface PersonaConfig {
 }
 
 const PERSONA_NAMES: Record<string, PersonaConfig> = {
-  'AI · Technical Feasibility': { key: 'technical', width: 74, height: 76 },
-  'AI · Founder Reality Check': { key: 'founder', width: 74, height: 80 },
-  'AI · Market Skeptic': { key: 'market', width: 74, height: 72 },
-  'AI · GTM & Distribution': { key: 'gtm', width: 74, height: 80 },
-  'AI · Investor Lens': { key: 'investor', width: 72, height: 80 },
+  'AI · The Architect': { key: 'technical', width: 74, height: 76 },
+  'AI · The Delivery Lead': { key: 'founder', width: 74, height: 80 },
+  'AI · The Challenger': { key: 'market', width: 74, height: 72 },
+  'AI · The Strategist': { key: 'gtm', width: 74, height: 80 },
+  'AI · The Capital Lens': { key: 'investor', width: 72, height: 80 },
 }
 
 export function AIPersonasRenderer({
