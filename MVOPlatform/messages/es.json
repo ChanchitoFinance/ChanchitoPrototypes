@@ -372,7 +372,9 @@
     "import_success": "Idea importada exitosamente",
     "import_error": "Error al importar archivo de idea",
     "import_invalid_file": "Formato de archivo inválido",
-    "import_version_error": "Versión de archivo incompatible"
+    "import_version_error": "Versión de archivo incompatible",
+    "generate_ai_comments": "Generar comentarios de IA",
+    "generate_ai_comments_description": "Obtén comentarios iniciales de los personajes de IA cuando publiques esta idea"
   },
   "prompts": {
     "enter_image_url": "Ingresa la URL de la imagen:",
@@ -536,7 +538,8 @@
   "ai_risk_feedback": {
     "analyzing": "Analizando...",
     "view_analysis": "Ver Análisis de Riesgos IA",
-    "receive_feedback": "Recibir Retroalimentación",
+    "receive_feedback": "Recibir Retroalimentación Antes de Publicar",
+    "receive_feedback_subline": "Obtén sugerencias de mejora para comunicar la idea correctamente",
     "clear_history_confirm": "¿Estás seguro de que quieres eliminar todo el historial de análisis?",
     "try_again": "Intentar de nuevo",
     "risk_analysis": "Análisis de Riesgos",

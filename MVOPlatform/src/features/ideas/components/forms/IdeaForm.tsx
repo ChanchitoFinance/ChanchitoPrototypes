@@ -24,6 +24,7 @@ import {
   Check,
   Download,
   FileJson,
+  MessageSquare,
 } from 'lucide-react'
 import Image from 'next/image'
 import {
@@ -99,7 +100,7 @@ export function IdeaForm({
     null
   )
   const [showAICommentsDialog, setShowAICommentsDialog] = useState(false)
-  const [wantAIComments, setWantAIComments] = useState<boolean | null>(null)
+  const [wantAIComments, setWantAIComments] = useState<boolean>(false)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
   const importInputRef = useRef<HTMLInputElement>(null)
@@ -739,13 +740,13 @@ export function IdeaForm({
     }
 
     // For new ideas or new versions, show AI comments dialog
-    if (!ideaId || isNewVersion) {
+    if ((!ideaId || isNewVersion) && (wantAIComments && user)) {
       setShowAICommentsDialog(true)
       return
     }
 
     // For editing, proceed directly without AI comments
-    await proceedWithSubmission(data, false, validBlocks)
+    await proceedWithSubmission(data, wantAIComments, validBlocks)
   }
 
   const handleAICommentsChoice = async (choice: boolean) => {
@@ -1576,6 +1577,85 @@ export function IdeaForm({
                 </div>
                 <div className="text-xs text-text-secondary leading-relaxed pl-6">
                   {t('form.post_anonymously_description')}
+                </div>
+              </div>
+            </motion.label>
+          </div>
+          
+          {/* Generate AI Comments Option */}
+          <div className="mb-6 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 transition-colors hover:border-accent/30 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+            <motion.label
+              className="flex items-start gap-4 cursor-pointer group"
+              whileHover={{ scale: 1.005 }}
+              whileTap={{ scale: 0.995 }}
+            >
+              {/* Custom Styled Toggle Switch */}
+              <div className="relative flex-shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={wantAIComments}
+                  onChange={e => setWantAIComments(e.target.checked)}
+                  className="sr-only"
+                />
+                <motion.div
+                  className={`relative w-12 h-6 rounded-full transition-colors duration-250 ease-in-out ${
+                    wantAIComments ? 'bg-accent' : 'bg-gray-300'
+                  }`}
+                >
+                  <motion.div
+                    className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
+                    animate={{
+                      x: wantAIComments ? 24 : 0,
+                    }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 500,
+                      damping: 30,
+                    }}
+                  >
+                    {wantAIComments ? (
+                      <motion.div
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: 'spring', stiffness: 500 }}
+                      >
+                        <MessageSquare className="w-3 h-3 text-accent" />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 500 }}
+                      >
+                        <Check className="w-3 h-3 text-gray-400" />
+                      </motion.div>
+                    )}
+                  </motion.div>
+                </motion.div>
+              </div>
+
+              {/* Label Content */}
+              <div className="flex-1 pt-0.5">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <MessageSquare
+                    className={`w-4 h-4 transition-colors duration-250 ${
+                      wantAIComments
+                        ? 'text-accent'
+                        : 'text-text-secondary group-hover:text-accent'
+                    }`}
+                  />
+                  <div
+                    className={`text-sm font-semibold transition-colors duration-250 ${
+                      wantAIComments
+                        ? 'text-accent'
+                        : 'text-text-primary group-hover:text-accent'
+                    }`}
+                  >
+                    {t('form.generate_ai_comments')}
+                  </div>
+                </div>
+                <div className="text-xs text-text-secondary leading-relaxed pl-6">
+                  {t('form.generate_ai_comments_description')}
                 </div>
               </div>
             </motion.label>

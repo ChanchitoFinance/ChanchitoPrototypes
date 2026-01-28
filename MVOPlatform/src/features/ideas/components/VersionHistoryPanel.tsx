@@ -58,17 +58,7 @@ export function VersionHistoryPanel({
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 rounded-lg transition-colors"
-        style={{
-          backgroundColor: 'var(--gray-50)',
-          border: '1px solid var(--border-color)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'var(--gray-100)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'var(--gray-50)'
-        }}
+        className="w-full flex items-center justify-between p-4 rounded-lg transition-colors bg-gray-50 border border-border-color hover:bg-gray-100"
       >
         <div className="flex items-center gap-3">
           <GitBranch className="w-5 h-5 text-accent" />
@@ -109,7 +99,7 @@ export function VersionHistoryPanel({
                       version.id === currentVersionId
                         ? 'border-accent bg-accent/5'
                         : version.isActiveVersion
-                          ? 'border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-900/10'
+                          ? 'border-premium-cta bg-premium-cta/10'
                           : 'border-border-color bg-background'
                     }
                   `}
@@ -124,7 +114,7 @@ export function VersionHistoryPanel({
                           )}
                         </span>
                         {version.isActiveVersion && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-premium-cta/20 text-premium-cta">
                             <Check className="w-3 h-3" />
                             {t('versioning.active_version')}
                           </span>
@@ -163,16 +153,7 @@ export function VersionHistoryPanel({
                       <button
                         type="button"
                         onClick={() => onViewVersion(version.id)}
-                        className="p-2 rounded-lg transition-colors"
-                        style={{ color: 'var(--text-secondary)' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.color = 'var(--text-primary)'
-                          e.currentTarget.style.backgroundColor = 'var(--gray-100)'
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.color = 'var(--text-secondary)'
-                          e.currentTarget.style.backgroundColor = 'transparent'
-                        }}
+                        className="p-2 rounded-lg transition-colors text-text-secondary hover:text-text-primary hover:bg-gray-100"
                         title={t('versioning.view_version')}
                       >
                         <Eye className="w-4 h-4" />
@@ -181,16 +162,7 @@ export function VersionHistoryPanel({
                       <button
                         type="button"
                         onClick={() => onEditVersion(version.id)}
-                        className="p-2 rounded-lg transition-colors"
-                        style={{ color: 'var(--text-secondary)' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.color = 'var(--text-primary)'
-                          e.currentTarget.style.backgroundColor = 'var(--gray-100)'
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.color = 'var(--text-secondary)'
-                          e.currentTarget.style.backgroundColor = 'transparent'
-                        }}
+                        className="p-2 rounded-lg transition-colors text-text-secondary hover:text-text-primary hover:bg-gray-100"
                         title={t('versioning.edit_version')}
                       >
                         <Pencil className="w-4 h-4" />
@@ -203,7 +175,7 @@ export function VersionHistoryPanel({
                           disabled={
                             isLoading || settingActiveId === version.id
                           }
-                          className="px-3 py-1.5 text-xs font-medium bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                          className="px-3 py-1.5 text-xs font-medium bg-premium-cta text-white rounded-lg hover:bg-premium-cta/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
                         >
                           {settingActiveId === version.id ? (
                             <Loader2 className="w-3 h-3 animate-spin" />

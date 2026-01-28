@@ -372,7 +372,9 @@
     "import_success": "Idea imported successfully",
     "import_error": "Error importing idea file",
     "import_invalid_file": "Invalid file format",
-    "import_version_error": "Incompatible file version"
+    "import_version_error": "Incompatible file version",
+    "generate_ai_comments": "Generate AI comments",
+    "generate_ai_comments_description": "Get initial feedback from AI personas when you post this idea"
   },
   "prompts": {
     "enter_image_url": "Enter image URL:",
@@ -536,7 +538,8 @@
   "ai_risk_feedback": {
     "analyzing": "Analyzing...",
     "view_analysis": "View AI Risk Analysis",
-    "receive_feedback": "Receive Feedback",
+    "receive_feedback": "Receive Feedback Before Posting",
+    "receive_feedback_subline": "Get improvements suggestions to communicate the idea correctly",
     "clear_history_confirm": "Are you sure you want to clear all analysis history?",
     "try_again": "Try again",
     "risk_analysis": "Risk Analysis",

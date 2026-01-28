@@ -63,7 +63,7 @@ export function VersionSelectionModal({
                 className="w-full p-4 text-left border-2 border-border-color rounded-lg hover:border-accent hover:bg-accent/5 transition-all group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
+                  <div className="p-2 rounded-lg bg-accent/10 text-accent transition-colors group-hover:bg-accent/20">
                     <Pencil className="w-5 h-5" />
                   </div>
                   <div>
@@ -87,10 +87,10 @@ export function VersionSelectionModal({
                   onClose()
                   onCreateNewVersion()
                 }}
-                className="w-full p-4 text-left border-2 border-border-color rounded-lg hover:border-green-500 hover:bg-green-500/5 transition-all group"
+                className="w-full p-4 text-left border-2 border-border-color rounded-lg hover:border-premium-cta hover:bg-premium-cta/5 transition-all group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
+                  <div className="p-2 rounded-lg bg-premium-cta/10 text-premium-cta transition-colors group-hover:bg-premium-cta/20">
                     <Plus className="w-5 h-5" />
                   </div>
                   <div>
