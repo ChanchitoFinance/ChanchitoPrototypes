@@ -45,7 +45,9 @@
     "clear_draft": "Clear Draft",
     "browse_ideas": "Browse Ideas",
     "share_success": "Link shared successfully!",
-    "link_copied": "Link copied to clipboard!"
+    "link_copied": "Link copied to clipboard!",
+    "export": "Export",
+    "import": "Import"
   },
   "status": {
     "loading": "Loading...",
@@ -363,7 +365,14 @@
     "drag_position": "Drag to position",
     "zoom": "Zoom",
     "post_anonymously": "Post anonymously",
-    "post_anonymously_description": "Hide your name when this idea is shown to the public"
+    "post_anonymously_description": "Hide your name when this idea is shown to the public",
+    "export_tooltip": "Export idea contents to JSON file",
+    "import_tooltip": "Import idea contents from JSON file",
+    "export_success": "Idea exported successfully",
+    "import_success": "Idea imported successfully",
+    "import_error": "Error importing idea file",
+    "import_invalid_file": "Invalid file format",
+    "import_version_error": "Incompatible file version"
   },
   "prompts": {
     "enter_image_url": "Enter image URL:",
