@@ -775,6 +775,38 @@
       "economic_plausibility": {
         "title": "Plausibilidad Económica",
         "description": "Validación del tamaño de mercado en orden de magnitud"
+      },
+      "existing_workarounds": {
+        "title": "Alternativas Existentes",
+        "description": "Cómo resuelven el problema hoy sin tu solución"
+      },
+      "competitors": {
+        "title": "Competidores Directos y Posibles",
+        "description": "Quién más atiende esta necesidad y cómo"
+      },
+      "social_trend": {
+        "title": "Tendencias en Redes Sociales",
+        "description": "Comportamiento y buzz en TikTok, Instagram y similares"
+      },
+      "cost_per_attention": {
+        "title": "Señales de Coste por Atención",
+        "description": "Cuánto cuesta llegar y captar a esta audiencia"
+      },
+      "channel_fit": {
+        "title": "Ajuste Canal–Idea",
+        "description": "Si tus canales pueden alcanzar y convertir este mercado"
+      },
+      "share_triggers": {
+        "title": "Disparadores de Compartir",
+        "description": "Qué hace que la gente comparta o recomiende en este espacio"
+      },
+      "market_sophistication": {
+        "title": "Nivel de Sofisticación del Mercado",
+        "description": "Qué tan maduro e informado está el mercado"
+      },
+      "objection_density": {
+        "title": "Densidad de Objeciones",
+        "description": "Objeciones y fricciones comunes en este espacio"
       }
     },
     "conflicts_gaps": {

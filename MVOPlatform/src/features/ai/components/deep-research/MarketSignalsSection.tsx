@@ -18,6 +18,8 @@ import {
   CheckCircle2,
   HelpCircle,
   AlertTriangle,
+  Package,
+  Share2,
 } from 'lucide-react'
 
 interface MarketSignalsSectionProps {
@@ -38,6 +40,14 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
       geographic_fit: <Globe className="w-5 h-5" />,
       timing: <Clock className="w-5 h-5" />,
       economic_plausibility: <Calculator className="w-5 h-5" />,
+      existing_workarounds: <Package className="w-5 h-5" />,
+      competitors: <Users className="w-5 h-5" />,
+      social_trend: <TrendingUp className="w-5 h-5" />,
+      cost_per_attention: <DollarSign className="w-5 h-5" />,
+      channel_fit: <Radio className="w-5 h-5" />,
+      share_triggers: <Share2 className="w-5 h-5" />,
+      market_sophistication: <BarChart3 className="w-5 h-5" />,
+      objection_density: <AlertCircle className="w-5 h-5" />,
     }
     return icons[type]
   }
@@ -54,6 +64,14 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
       geographic_fit: { bg: 'var(--premium-cta)', iconColor: 'var(--white)' },
       timing: { bg: 'var(--primary-accent)', iconColor: 'var(--white)' },
       economic_plausibility: { bg: 'var(--hover-accent)', iconColor: 'var(--white)' },
+      existing_workarounds: { bg: 'var(--primary-accent)', iconColor: 'var(--white)' },
+      competitors: { bg: 'var(--primary-accent)', iconColor: 'var(--white)' },
+      social_trend: { bg: 'var(--premium-cta)', iconColor: 'var(--white)' },
+      cost_per_attention: { bg: 'var(--error)', iconColor: 'var(--white)' },
+      channel_fit: { bg: 'var(--primary-accent)', iconColor: 'var(--white)' },
+      share_triggers: { bg: 'var(--hover-accent)', iconColor: 'var(--white)' },
+      market_sophistication: { bg: 'var(--premium-cta)', iconColor: 'var(--white)' },
+      objection_density: { bg: 'var(--error)', iconColor: 'var(--white)' },
     }
     return colors[type]
   }
@@ -96,6 +114,14 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
       geographic_fit: t('market_validation.signals.geographic_fit.title'),
       timing: t('market_validation.signals.timing.title'),
       economic_plausibility: t('market_validation.signals.economic_plausibility.title'),
+      existing_workarounds: t('market_validation.signals.existing_workarounds.title'),
+      competitors: t('market_validation.signals.competitors.title'),
+      social_trend: t('market_validation.signals.social_trend.title'),
+      cost_per_attention: t('market_validation.signals.cost_per_attention.title'),
+      channel_fit: t('market_validation.signals.channel_fit.title'),
+      share_triggers: t('market_validation.signals.share_triggers.title'),
+      market_sophistication: t('market_validation.signals.market_sophistication.title'),
+      objection_density: t('market_validation.signals.objection_density.title'),
     }
     return titles[type]
   }
@@ -111,8 +137,47 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
       geographic_fit: t('market_validation.signals.geographic_fit.description'),
       timing: t('market_validation.signals.timing.description'),
       economic_plausibility: t('market_validation.signals.economic_plausibility.description'),
+      existing_workarounds: t('market_validation.signals.existing_workarounds.description'),
+      competitors: t('market_validation.signals.competitors.description'),
+      social_trend: t('market_validation.signals.social_trend.description'),
+      cost_per_attention: t('market_validation.signals.cost_per_attention.description'),
+      channel_fit: t('market_validation.signals.channel_fit.description'),
+      share_triggers: t('market_validation.signals.share_triggers.description'),
+      market_sophistication: t('market_validation.signals.market_sophistication.description'),
+      objection_density: t('market_validation.signals.objection_density.description'),
     }
     return descriptions[type]
+  }
+
+  const DEFAULT_SIGNAL_COLOR: { bg: string; iconColor: string } = {
+    bg: 'var(--primary-accent)',
+    iconColor: 'var(--white)',
+  }
+  
+  const VALID_SIGNAL_TYPES: MarketSignalType[] = [
+    'demand_intensity',
+    'problem_salience',
+    'existing_spend',
+    'competitive_landscape',
+    'switching_friction',
+    'distribution',
+    'geographic_fit',
+    'timing',
+    'economic_plausibility',
+    'existing_workarounds',
+    'competitors',
+    'social_trend',
+    'cost_per_attention',
+    'channel_fit',
+    'share_triggers',
+    'market_sophistication',
+    'objection_density',
+  ]
+  
+  function safeSignalType(type: string): MarketSignalType {
+    return VALID_SIGNAL_TYPES.includes(type as MarketSignalType)
+      ? (type as MarketSignalType)
+      : 'demand_intensity'
   }
 
   // Sort signals by type
@@ -126,6 +191,14 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
     'geographic_fit',
     'timing',
     'economic_plausibility',
+    'existing_workarounds',
+    'competitors',
+    'social_trend',
+    'cost_per_attention',
+    'channel_fit',
+    'share_triggers',
+    'market_sophistication',
+    'objection_density',
   ]
   const sortedSignals = [...signals].sort(
     (a, b) => signalTypeOrder.indexOf(a.type) - signalTypeOrder.indexOf(b.type)
@@ -147,11 +220,10 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sortedSignals.map((signal) => {
           const strengthBadge = getStrengthBadge(signal.strength)
-          const signalColor = getSignalColor(signal.type)
-
+          const signalColor = getSignalColor(safeSignalType(signal.type)) ?? DEFAULT_SIGNAL_COLOR
           return (
             <div
-              key={signal.type}
+              key={`${signal.type}-${signal.title ?? ''}`}
               className="rounded-lg overflow-hidden"
               style={{ backgroundColor: 'var(--gray-100)', border: '1px solid var(--border-color)' }}
             >
@@ -159,9 +231,9 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
               <div className="p-3" style={{ backgroundColor: signalColor.bg, color: signalColor.iconColor }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {getSignalIcon(signal.type)}
+                    {getSignalIcon(safeSignalType(signal.type)) ?? <BarChart3 className="w-5 h-5" />}
                     <h3 className="font-semibold text-sm">
-                      {getSignalTitle(signal.type)}
+                      {getSignalTitle(safeSignalType(signal.type)) ?? signal.title ?? 'Signal'}
                     </h3>
                   </div>
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full" style={{ backgroundColor: strengthBadge.bg, border: `1px solid ${strengthBadge.borderColor}`, color: strengthBadge.color }}>
@@ -170,7 +242,7 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
                   </span>
                 </div>
                 <p className="text-xs mt-1" style={{ opacity: 0.9 }}>
-                  {getSignalDescription(signal.type)}
+                  {getSignalDescription(safeSignalType(signal.type)) ?? ''}
                 </p>
               </div>
 

@@ -775,6 +775,38 @@
       "economic_plausibility": {
         "title": "Economic Plausibility",
         "description": "Order-of-magnitude market size validation"
+      },
+      "existing_workarounds": {
+        "title": "Existing Workarounds",
+        "description": "How people solve the problem today without your solution"
+      },
+      "competitors": {
+        "title": "Direct and Possible Competitors",
+        "description": "Who else serves this need and how"
+      },
+      "social_trend": {
+        "title": "Social Media Trending",
+        "description": "Buzz and behavior on TikTok, Instagram, and similar"
+      },
+      "cost_per_attention": {
+        "title": "Cost-Per-Attention Signals",
+        "description": "What it costs to reach and engage this audience"
+      },
+      "channel_fit": {
+        "title": "Channel–Idea Fit",
+        "description": "Whether your channels can reach and convert this market"
+      },
+      "share_triggers": {
+        "title": "Share Triggers",
+        "description": "What makes people share or recommend in this space"
+      },
+      "market_sophistication": {
+        "title": "Market Sophistication Level",
+        "description": "How mature and informed the market is"
+      },
+      "objection_density": {
+        "title": "Objection Density",
+        "description": "Common objections and friction in this space"
       }
     },
     "conflicts_gaps": {

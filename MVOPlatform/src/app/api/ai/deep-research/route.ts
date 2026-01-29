@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { runMarketValidationPipeline } from './services/openaiService'
 import { IdeaContext } from '@/core/types/ai'
-import { runDeepResearch } from './services/ingestionService'
+import { runMarketValidationSingleCall } from './marketValidationDeepResearchService'
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,16 +8,7 @@ export async function POST(request: NextRequest) {
 
     const ideaContext: IdeaContext = { title, description, tags }
 
-    // Phase 1: AI deep research
-    const chunks = await runDeepResearch(ideaContext, language)
-
-    // Phase 2: Synthesis
-    const result = await runMarketValidationPipeline(
-      chunks,
-      [],
-      ideaContext,
-      language
-    )
+    const result = await runMarketValidationSingleCall(ideaContext, language)
 
     return NextResponse.json({
       ...result,
