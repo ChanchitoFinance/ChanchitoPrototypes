@@ -30,14 +30,11 @@ const rawServerEnv = {
 const rawClientEnv = {
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  adminEmail: process.env.NEXT_PUBLIC_ADMIN_EMAIL!,
   paypalClientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
   paypalEnvironment: process.env.NEXT_PUBLIC_PAYPAL_ENVIRONMENT!,
   paypalCurrency: process.env.NEXT_PUBLIC_PAYPAL_CURRENCY!,
   paypalIntent: process.env.NEXT_PUBLIC_PAYPAL_INTENT!,
   paypalLocale: process.env.NEXT_PUBLIC_PAYPAL_LOCALE!,
-  geminiApiKey: process.env.GEMINI_API_KEY!,
-  geminiModel: process.env.NEXT_PUBLIC_GEMINI_MODEL!,
 } as const
 
 // Validate environment variables using schema (server-side only)

@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { clientEnv } from '@/env-validation/config/env'
+import { serverEnv } from '@/env-validation/config/env'
 import { Idea } from '@/core/types/idea'
 
-const GEMINI_API_KEY = clientEnv.geminiApiKey
-const GEMINI_MODEL = clientEnv.geminiModel
+const OPENAI_API_KEY = serverEnv.openaiApiKey
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
+const MINI_MODEL = 'gpt-4o-mini'
 
-async function callGemini(
-  prompt: string,
+async function callOpenAI(
   systemPrompt: string,
-  language: 'en' | 'es'
+  userPrompt: string,
+  language: 'en' | 'es',
+  maxTokens: number = 2048,
+  temperature: number = 0.7
 ): Promise<string> {
-  if (!GEMINI_API_KEY) {
-    throw new Error('Gemini API key not configured')
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI API key not configured')
   }
 
   const languageInstruction =
@@ -19,54 +22,33 @@ async function callGemini(
       ? '\n\nIMPORTANT: You MUST respond in Spanish (Español). All your feedback, suggestions, and warnings must be in Spanish.'
       : '\n\nIMPORTANT: You MUST respond in English. All your feedback, suggestions, and warnings must be in English.'
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: systemPrompt + languageInstruction + '\n\n' + prompt,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 1024,
-        },
-      }),
-    }
-  )
+  const response = await fetch(OPENAI_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: MINI_MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt + languageInstruction },
+        { role: 'user', content: userPrompt },
+      ],
+      max_tokens: maxTokens,
+      temperature,
+      response_format: { type: 'json_object' },
+    }),
+  })
 
   if (!response.ok) {
-    const errorData = await response.json()
-    if (errorData.error?.code === 429) {
-      const isDailyLimit =
-        errorData.error?.message?.includes('daily') ||
-        errorData.error?.message?.includes('quota') ||
-        !errorData.error?.details?.find(
-          (detail: any) =>
-            detail['@type'] === 'type.googleapis.com/google.rpc.RetryInfo'
-        )
-
-      if (isDailyLimit) {
-        throw new Error('AI_DAILY_LIMIT_EXCEEDED')
-      }
+    if (response.status === 429) {
       throw new Error('AI_RATE_LIMIT_EXCEEDED')
     }
-    throw new Error(`Gemini API error: ${response.statusText}`)
+    throw new Error(`OpenAI API error: ${response.statusText}`)
   }
 
   const data = await response.json()
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+  return data.choices?.[0]?.message?.content || ''
 }
 
 export async function POST(request: NextRequest) {
@@ -74,7 +56,7 @@ export async function POST(request: NextRequest) {
     const { idea, language }: { idea: Idea; language: 'en' | 'es' } =
       await request.json()
 
-      const systemPrompt = `
+    const systemPrompt = `
       You are "Decision Clarity" — a calm, serious decision-validation panel that helps founders decide before they build.
 
       PRODUCT CONTEXT (Decision Clarity)
@@ -176,21 +158,18 @@ export async function POST(request: NextRequest) {
 
       FINAL STRICTNESS
       Return ONLY JSON. No markdown fences. No explanation. No extra text.
-      `;
+      `
 
-      
+    const contentPreview = (idea.content || [])
+      .slice(0, 6)
+      .map((b: any, i: number) => {
+        const t = (b?.text || b?.content || b?.value || '').toString()
+        return t ? `Block ${i + 1}: ${t.slice(0, 280)}` : null
+      })
+      .filter(Boolean)
+      .join('\n')
 
-      const contentPreview =
-      (idea.content || [])
-        .slice(0, 6)
-        .map((b: any, i: number) => {
-          const t = (b?.text || b?.content || b?.value || '').toString();
-          return t ? `Block ${i + 1}: ${t.slice(0, 280)}` : null;
-        })
-        .filter(Boolean)
-        .join('\n');
-    
-      const prompt = `Analyze this new idea and provide initial feedback.
+    const prompt = `Analyze this new idea and provide initial feedback.
       
       Title: ${idea.title}
       Description: ${idea.description}
@@ -199,9 +178,9 @@ export async function POST(request: NextRequest) {
       Content Preview:
       ${contentPreview || '(No additional content provided)'}
       
-      Select 2-3 most relevant AI personas and provide their comments.`;
+      Select 2-3 most relevant AI personas and provide their comments.`
 
-    const response = await callGemini(prompt, systemPrompt, language)
+    const response = await callOpenAI(systemPrompt, prompt, language)
 
     const cleanedResponse = response
       .replace(/```json\n?/g, '')

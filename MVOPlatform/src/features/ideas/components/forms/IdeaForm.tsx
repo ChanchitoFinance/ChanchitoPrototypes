@@ -110,6 +110,13 @@ export function IdeaForm({
   )
   const dispatch = useAppDispatch()
 
+  // Load user credits when component mounts and user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      dispatch(loadUserCredits(user.id))
+    }
+  }, [isAuthenticated, user?.id])
+
   const ideaSchema = z.object({
     title: z.string().min(10, t('validation.title_min_length')),
     tags: z

@@ -532,7 +532,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           </motion.div>
         )}
 
-        {isOwner && ideaData && (
+        {/* {isOwner && ideaData && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -540,7 +540,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           >
             <AIPersonasEvaluation idea={ideaData} comments={comments} />
           </motion.div>
-        )}
+        )} */}
       </article>
 
       {/* Version Selection Modal */}
