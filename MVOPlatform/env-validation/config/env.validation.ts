@@ -49,6 +49,7 @@ export function validateEnvironmentVariables() {
       PAYPAL_MERCHANT_ID: process.env.PAYPAL_MERCHANT_ID,
       PAYPAL_ENABLE_FUNDING: process.env.PAYPAL_ENABLE_FUNDING,
       PAYPAL_DISABLE_FUNDING: process.env.PAYPAL_DISABLE_FUNDING,
+      OPENAI_ORG_ID: process.env.OPENAI_ORG_ID,
     }
 
     // Load schema from config directory

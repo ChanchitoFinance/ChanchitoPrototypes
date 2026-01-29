@@ -231,6 +231,10 @@ export function AIRiskFeedback({
                       ? t('ai_risk_feedback.view_analysis')
                       : t('ai_risk_feedback.receive_feedback')}
                   </span>
+                  {!feedback && (
+                    <span className="text-xs text-primary mt-1">
+                    </span>
+                  )}
                 </div>
                 {feedback && (
                   <motion.div
@@ -243,13 +247,6 @@ export function AIRiskFeedback({
               </>
             )}
           </div>
-          <Image
-            src="/ai-personas/v2/risk-highlighter.png"
-            alt="Risk Highlighter AI"
-            width={80}
-            height={80}
-            className="absolute -top-5 right-4 w-25 h-25"
-          />
         </button>
       </div>
 

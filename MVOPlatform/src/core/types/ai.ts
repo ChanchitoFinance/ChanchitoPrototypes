@@ -102,6 +102,14 @@ export type MarketSignalType =
   | 'geographic_fit'
   | 'timing'
   | 'economic_plausibility'
+  | 'existing_workarounds'
+  | 'competitors'
+  | 'social_trend'
+  | 'cost_per_attention'
+  | 'channel_fit'
+  | 'share_triggers'
+  | 'market_sophistication'
+  | 'objection_density'
 
 // Market Signal (Section 3)
 export interface MarketSignal {
