@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { clientEnv } from '@/env-validation/config/env'
+import { serverEnv } from '@/env-validation/config/env'
 import { ContentBlock } from '@/core/types/content'
 
-const GEMINI_API_KEY = clientEnv.geminiApiKey
-const GEMINI_MODEL = clientEnv.geminiModel
+const OPENAI_API_KEY = serverEnv.openaiApiKey
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
+const MINI_MODEL = 'gpt-4o-mini'
 
-async function callGemini(
-  prompt: string,
+async function callOpenAI(
   systemPrompt: string,
-  language: 'en' | 'es'
+  userPrompt: string,
+  language: 'en' | 'es',
+  maxTokens: number = 1024,
+  temperature: number = 0.7
 ): Promise<string> {
-  if (!GEMINI_API_KEY) {
-    throw new Error('Gemini API key not configured')
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI API key not configured')
   }
 
   const languageInstruction =
@@ -19,54 +22,32 @@ async function callGemini(
       ? '\n\nIMPORTANT: You MUST respond in Spanish (Español). All your feedback, suggestions, and warnings must be in Spanish.'
       : '\n\nIMPORTANT: You MUST respond in English. All your feedback, suggestions, and warnings must be in English.'
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: systemPrompt + languageInstruction + '\n\n' + prompt,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 1024,
-        },
-      }),
-    }
-  )
+  const response = await fetch(OPENAI_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: MINI_MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt + languageInstruction },
+        { role: 'user', content: userPrompt },
+      ],
+      max_tokens: maxTokens,
+      temperature,
+    }),
+  })
 
   if (!response.ok) {
-    const errorData = await response.json()
-    if (errorData.error?.code === 429) {
-      const isDailyLimit =
-        errorData.error?.message?.includes('daily') ||
-        errorData.error?.message?.includes('quota') ||
-        !errorData.error?.details?.find(
-          (detail: any) =>
-            detail['@type'] === 'type.googleapis.com/google.rpc.RetryInfo'
-        )
-
-      if (isDailyLimit) {
-        throw new Error('AI_DAILY_LIMIT_EXCEEDED')
-      }
+    if (response.status === 429) {
       throw new Error('AI_RATE_LIMIT_EXCEEDED')
     }
-    throw new Error(`Gemini API error: ${response.statusText}`)
+    throw new Error(`OpenAI API error: ${response.statusText}`)
   }
 
   const data = await response.json()
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+  return data.choices?.[0]?.message?.content || ''
 }
 
 export async function POST(request: NextRequest) {
@@ -142,8 +123,7 @@ export async function POST(request: NextRequest) {
       - When naming a risk, include the likely consequence (legal ambiguity, invites copycats, distorts feedback).
       - Prefer edits that improve problem clarity and testability without revealing proprietary execution details.
       - Encourage hypothesis framing when claims are absolute.
-      `;
-
+      `
 
     const prompt = `Analyze this draft post for pre-publication risks and signal quality issues.
 
@@ -154,21 +134,23 @@ export async function POST(request: NextRequest) {
     Anonymous posting: ${isAnonymous ? 'Yes' : 'No'}
 
     Content preview:
-    ${(content || [])
-      .slice(0, 8)
-      .map((b: any, i: number) => {
-        const t = (b?.text || b?.content || b?.value || '').toString().trim()
-        return t ? `Block ${i + 1}: ${t.slice(0, 320)}` : null
-      })
-      .filter(Boolean)
-      .join('\n') || '(No additional content provided)'}
+    ${
+      (content || [])
+        .slice(0, 8)
+        .map((b: any, i: number) => {
+          const t = (b?.text || b?.content || b?.value || '').toString().trim()
+          return t ? `Block ${i + 1}: ${t.slice(0, 320)}` : null
+        })
+        .filter(Boolean)
+        .join('\n') || '(No additional content provided)'
+    }
 
     Instructions:
     - Output MUST follow the exact format and word limit.
     - Only list high-impact issues. Omit anything minor or speculative.
-    - Provide concrete edits the founder can apply before posting to get cleaner external signal.`;
+    - Provide concrete edits the founder can apply before posting to get cleaner external signal.`
 
-    const feedback = await callGemini(prompt, systemPrompt, language)
+    const feedback = await callOpenAI(systemPrompt, prompt, language)
 
     const result = {
       persona: 'risk',

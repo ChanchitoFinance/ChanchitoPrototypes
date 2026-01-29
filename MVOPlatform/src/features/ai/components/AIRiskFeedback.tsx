@@ -23,9 +23,10 @@ import {
   useLocale,
 } from '@/shared/components/providers/I18nProvider'
 import { MarkdownRenderer } from '@/shared/components/ui/MarkdownRenderer'
-import { useAppSelector } from '@/core/lib/hooks'
+import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
 import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import Image from 'next/image'
+import { loadUserCredits } from '@/core/lib/slices/creditsSlice'
 
 interface AIRiskFeedbackProps {
   title: string
@@ -55,9 +56,11 @@ export function AIRiskFeedback({
   const [totalVersions, setTotalVersions] = useState(0)
   const [showCreditConfirm, setShowCreditConfirm] = useState(false)
 
+  const { user } = useAppSelector(state => state.auth)
   const { plan, dailyCredits, usedCredits } = useAppSelector(
     state => state.credits
   )
+  const dispatch = useAppDispatch()
   const remainingCredits =
     plan === 'innovator' ? Infinity : dailyCredits - usedCredits
   const hasCredits = remainingCredits > 0
@@ -185,8 +188,12 @@ export function AIRiskFeedback({
       <div className="relative">
         <button
           type="button"
-          onClick={() => {
+          onClick={async () => {
             if (!feedback) {
+              // Load latest credits before showing modal
+              if (user?.id) {
+                await dispatch(loadUserCredits(user.id))
+              }
               setShowCreditConfirm(true)
             } else {
               setIsExpanded(!isExpanded)
@@ -198,12 +205,12 @@ export function AIRiskFeedback({
             backgroundColor: 'var(--error)',
             color: 'var(--white)',
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={e => {
             if (!loading) {
               e.currentTarget.style.opacity = '0.9'
             }
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={e => {
             if (!loading) {
               e.currentTarget.style.opacity = '1'
             }
@@ -279,7 +286,9 @@ export function AIRiskFeedback({
               border: '1px solid var(--error)',
             }}
           >
-            <p className="text-sm" style={{ color: 'var(--error)' }}>{error}</p>
+            <p className="text-sm" style={{ color: 'var(--error)' }}>
+              {error}
+            </p>
             <button
               type="button"
               onClick={requestFeedback}
@@ -307,13 +316,22 @@ export function AIRiskFeedback({
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Shield className="w-6 h-6" style={{ color: 'var(--error)' }} />
-                <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                <h4
+                  className="font-semibold"
+                  style={{ color: 'var(--text-primary)' }}
+                >
                   {t('ai_risk_feedback.risk_analysis')}
                 </h4>
               </div>
               {totalVersions > 1 && (
-                <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  <History className="w-4 h-4" style={{ color: 'var(--error)' }} />
+                <div
+                  className="flex items-center gap-2 text-sm"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  <History
+                    className="w-4 h-4"
+                    style={{ color: 'var(--error)' }}
+                  />
                   <span>
                     {t('ai_risk_feedback.version')} {currentVersion}{' '}
                     {t('ai_risk_feedback.of')} {totalVersions}
@@ -322,14 +340,23 @@ export function AIRiskFeedback({
               )}
             </div>
 
-            <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(255, 148, 76, 0.1)', border: '1px solid var(--error)' }}>
+            <div
+              className="p-4 rounded-lg"
+              style={{
+                backgroundColor: 'rgba(255, 148, 76, 0.1)',
+                border: '1px solid var(--error)',
+              }}
+            >
               <MarkdownRenderer
                 content={feedback.feedback}
                 className="text-gray-800 dark:text-gray-200"
               />
             </div>
 
-            <div className="flex items-center justify-between pt-4" style={{ borderTop: '1px solid var(--border-color)' }}>
+            <div
+              className="flex items-center justify-between pt-4"
+              style={{ borderTop: '1px solid var(--border-color)' }}
+            >
               {totalVersions > 1 && (
                 <div className="flex items-center gap-2">
                   <button
@@ -343,12 +370,13 @@ export function AIRiskFeedback({
                       backgroundColor: 'var(--gray-100)',
                       color: 'var(--text-secondary)',
                     }}
-                    onMouseEnter={(e) => {
+                    onMouseEnter={e => {
                       if (currentVersion !== 1) {
-                        e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                        e.currentTarget.style.backgroundColor =
+                          'var(--hover-accent)'
                       }
                     }}
-                    onMouseLeave={(e) => {
+                    onMouseLeave={e => {
                       e.currentTarget.style.backgroundColor = 'var(--gray-100)'
                     }}
                   >
@@ -365,12 +393,13 @@ export function AIRiskFeedback({
                       backgroundColor: 'var(--gray-100)',
                       color: 'var(--text-secondary)',
                     }}
-                    onMouseEnter={(e) => {
+                    onMouseEnter={e => {
                       if (currentVersion !== totalVersions) {
-                        e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                        e.currentTarget.style.backgroundColor =
+                          'var(--hover-accent)'
                       }
                     }}
-                    onMouseLeave={(e) => {
+                    onMouseLeave={e => {
                       e.currentTarget.style.backgroundColor = 'var(--gray-100)'
                     }}
                   >
@@ -382,19 +411,25 @@ export function AIRiskFeedback({
               <div className="flex items-center gap-2 ml-auto">
                 <button
                   type="button"
-                  onClick={() => setShowCreditConfirm(true)}
+                  onClick={async () => {
+                    // Load latest credits before showing modal
+                    if (user?.id) {
+                      await dispatch(loadUserCredits(user.id))
+                    }
+                    setShowCreditConfirm(true)
+                  }}
                   disabled={loading}
                   className="px-4 py-2 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center gap-2"
                   style={{
                     backgroundColor: 'var(--error)',
                     color: 'var(--white)',
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={e => {
                     if (!loading) {
                       e.currentTarget.style.opacity = '0.85'
                     }
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={e => {
                     e.currentTarget.style.opacity = '1'
                   }}
                 >
@@ -413,10 +448,10 @@ export function AIRiskFeedback({
                     backgroundColor: 'var(--error)',
                     color: 'var(--white)',
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={e => {
                     e.currentTarget.style.opacity = '0.85'
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={e => {
                     e.currentTarget.style.opacity = '1'
                   }}
                 >
@@ -426,7 +461,10 @@ export function AIRiskFeedback({
               </div>
             </div>
 
-            <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
+            <p
+              className="text-xs text-center"
+              style={{ color: 'var(--text-secondary)' }}
+            >
               {t('ai_risk_feedback.advisory_note')}
             </p>
           </motion.div>

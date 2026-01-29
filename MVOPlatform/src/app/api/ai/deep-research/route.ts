@@ -5,7 +5,6 @@
  * - SerpAPI for web search (Google, Bing, Trends)
  * - OpenAI two-stage pipeline (gpt-4o-mini + gpt-4o) for analysis
  *
- * Replaces the previous Gemini-based hypothesis system.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
