@@ -16,6 +16,13 @@ export default function Home() {
 
   const slides = [
     {
+      headline: t('home.landing.slide0.headline'),
+      accentWord: t('home.landing.slide0.accent_word'),
+      subheadline: t('home.landing.slide0.subheadline'),
+      cta: t('home.landing.slide0.cta'),
+      background: 'url(/hero/hero0.png)',
+    },
+    {
       headline: t('home.landing.slide1.headline'),
       accentWord: t('home.landing.slide1.accent_word'),
       subheadline: t('home.landing.slide1.subheadline'),

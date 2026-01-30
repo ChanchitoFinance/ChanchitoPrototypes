@@ -331,7 +331,7 @@ export function Sidebar({
         </nav>
 
         {/* Bottom Items */}
-        <div className="p-2 space-y-1">
+        <div className="p-2 pb-20 md:pb-2 space-y-1">
           {bottomItems.map(item => {
             const Icon = item.icon
             return (
