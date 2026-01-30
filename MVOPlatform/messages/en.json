@@ -125,10 +125,12 @@
     "status_trending": "Trending",
     "status_validated": "Validated",
     "landing": {
-      "headline": "You don’t have to ",
-      "accent_word": "decide",
-      "subheadline": "yet. Waiting for external signal is rational. We help you reduce uncertainty before committing.",
-      "cta": "Decide before building",
+      "slide0": {
+        "headline": "You don’t have to decide ",
+        "accent_word": "yet",
+        "subheadline": "Waiting for external signal is rational. We help you reduce uncertainty before committing.",
+        "cta": "Decide before building"
+      },
       "slide1": {
         "headline": "Identify the ",
         "subheadline": "Surface liability, trust, and clarity risks to understand what makes this decision costly to reverse.",

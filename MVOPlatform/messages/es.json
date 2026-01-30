@@ -125,10 +125,12 @@
     "status_trending": "En Tendencia",
     "status_validated": "Validadas",
     "landing": {
-      "headline": "No tienes que ",
-      "accent_word": "decidir",
-      "subheadline": "todavía. Esperar señal externa es racional. Te ayudamos a reducir incertidumbre antes de comprometerte.",
-      "cta": "Decidir antes de construir",
+      "slide0": {
+        "headline": "No tienes que decidir ",
+        "accent_word": "todavía",
+        "subheadline": "Esperar señal externa es racional. Te ayudamos a reducir incertidumbre antes de comprometerte.",
+        "cta": "Decidir antes de construir"
+      },
       "slide1": {
         "headline": "Identifica el ",
         "subheadline": "Detecta riesgos de responsabilidad, confianza y claridad para entender qué hace esta decisión costosa de revertir.",
