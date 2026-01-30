@@ -1716,23 +1716,24 @@ export function IdeaForm({
             <Button
               type="button"
               variant="outline"
-              onClick={handleExport}
-              disabled={isSubmitting}
-              title={t('form.export_tooltip')}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              {t('actions.export')}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
               onClick={handleImportClick}
               disabled={isSubmitting}
               title={t('form.import_tooltip')}
             >
-              <Upload className="w-4 h-4 mr-2" />
+              <Download className="w-4 h-4 mr-2" />
               {t('actions.import')}
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleExport}
+              disabled={isSubmitting}
+              title={t('form.export_tooltip')}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {t('actions.export')}
+            </Button>
+
             <Button
               type="button"
               variant="outline"

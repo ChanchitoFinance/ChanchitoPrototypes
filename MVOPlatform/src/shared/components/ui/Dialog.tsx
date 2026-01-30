@@ -74,13 +74,13 @@ export function Dialog({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4"
             onClick={e => e.stopPropagation()}
           >
-            <div className="bg-background border border-border-color rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="bg-background border border-border-color rounded-t-xl sm:rounded-lg shadow-xl w-full sm:max-w-md max-h-[85vh] sm:h-auto flex flex-col overflow-hidden">
               {/* Header */}
               {title && (
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border-color">
                   <h3 className="text-lg font-semibold text-text-primary">
                     {title}
                   </h3>
@@ -93,30 +93,39 @@ export function Dialog({
                 </div>
               )}
 
-              {/* Message */}
-              <p className="text-text-secondary mb-6">{message}</p>
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                <p className="text-text-secondary mb-6 text-sm sm:text-base">
+                  {message}
+                </p>
+              </div>
 
               {/* Actions */}
-              <div className="flex gap-3 justify-end">
-                {type === 'confirm' && (
+              <div className="p-4 sm:p-6 border-t border-border-color bg-gray-50 sm:bg-transparent">
+                <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+                  {type === 'confirm' && (
+                    <Button
+                      onClick={onClose}
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto"
+                    >
+                      {cancelText || 'Cancel'}
+                    </Button>
+                  )}
                   <Button
-                    onClick={onClose}
-                    variant="outline"
+                    onClick={handleConfirm}
+                    variant={confirmVariant}
+                    size="sm"
+                    className={`w-full sm:w-auto ${
+                      type === 'confirm'
+                        ? '!bg-red-500 hover:!bg-red-600 !text-white !border-red-500 hover:!border-red-600'
+                        : ''
+                    }`}
                   >
-                    {cancelText || 'Cancel'}
+                    {confirmText || (type === 'confirm' ? 'Confirm' : 'OK')}
                   </Button>
-                )}
-                <Button
-                  onClick={handleConfirm}
-                  variant={confirmVariant}
-                  className={
-                    type === 'confirm'
-                      ? '!bg-red-500 hover:!bg-red-600 !text-white !border-red-500 hover:!border-red-600'
-                      : ''
-                  }
-                >
-                  {confirmText || (type === 'confirm' ? 'Confirm' : 'OK')}
-                </Button>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -125,4 +134,3 @@ export function Dialog({
     </AnimatePresence>
   )
 }
-

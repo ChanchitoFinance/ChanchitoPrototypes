@@ -22,6 +22,7 @@ import {
   DollarSign,
 } from 'lucide-react'
 import { UserMenu } from '@/shared/components/ui/UserMenu'
+import { TermsAcceptanceModal } from '@/shared/components/ui/TermsAcceptanceModal'
 
 interface SidebarProps {
   activeTab?: 'home' | 'foryou'
@@ -40,6 +41,7 @@ export function Sidebar({
   const t = useTranslations()
   const [internalIsMobileOpen, setInternalIsMobileOpen] = useState(false)
   const [sidebarHeight, setSidebarHeight] = useState('100vh')
+  const [showTermsModal, setShowTermsModal] = useState(false)
   const pathname = usePathname()
   // Use useMediaQuery for stable mobile detection that doesn't flicker during navigation
   const isMobile = useMediaQuery('(max-width: 767px)')
@@ -84,6 +86,16 @@ export function Sidebar({
       }
     }
   }, [isMobile, externalSetIsMobileOpen])
+
+  // Prevent body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isMobile && isMobileOpen) {
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = 'unset'
+      }
+    }
+  }, [isMobile, isMobileOpen])
 
   // Handle dynamic viewport height changes for mobile
   useEffect(() => {
@@ -209,186 +221,199 @@ export function Sidebar({
     },
   ]
 
-  const handleItemClick = (item: (typeof navItems)[0]) => {
-    if (item.onClick) {
-      item.onClick()
-    }
-    setIsMobileOpen(false)
-  }
-
   // Don't render sidebar on landing pages
   if (isLandingPage) {
     return null
   }
 
+  const handleTermsAccepted = () => {
+    setShowTermsModal(false)
+    dispatch(signInWithGoogle())
+  }
+
   return (
-    <aside
-      className={`flex-shrink-0 ${
-        isMobile
-          ? isMobileOpen
-            ? 'fixed left-0 top-16 w-64 z-[200] transition-all duration-300'
-            : 'w-0 overflow-hidden'
-          : 'w-[13.5rem]'
-      } shadow-lg md:shadow-none h-full`}
-      style={{
-        height: isMobile ? sidebarHeight : '100vh',
-        maxHeight: isMobile ? sidebarHeight : '100vh',
-      }}
-    >
-      <div className="h-full flex flex-col bg-background overflow-visible">
-        {/* Logo/Brand - Acts as back button on detail pages */}
-        <div className="p-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            {isDetailPage ? (
-              <button
-                onClick={handleBack}
-                className="text-xl font-semibold text-text-primary hover:text-primary-accent transition-colors cursor-pointer truncate flex-1 min-w-0"
-              >
-                {t('brand.name')}
-              </button>
-            ) : (
-              <Link
-                href={`/${currentLocale}/home`}
-                className="text-xl font-semibold text-text-primary truncate flex-1 min-w-0"
-              >
-                {t('brand.name')}
-              </Link>
-            )}
-            {isMobile && isMobileOpen && (
-              <button
-                onClick={() => setIsMobileOpen(false)}
-                className="p-1 rounded-md interactive-hover flex-shrink-0 ml-2"
-                aria-label="Close sidebar"
-              >
-                <X className="w-7 h-7 text-text-secondary" />
-              </button>
-            )}
+    <>
+      <TermsAcceptanceModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        onAccept={handleTermsAccepted}
+      />
+      <aside
+        className={`flex-shrink-0 ${
+          isMobile
+            ? isMobileOpen
+              ? 'fixed left-0 top-0 w-64 z-[200] transition-all duration-300'
+              : 'w-0 overflow-hidden'
+            : 'w-[13.5rem]'
+        } shadow-lg md:shadow-none h-full`}
+        style={{
+          height: isMobile ? sidebarHeight : '100vh',
+          maxHeight: isMobile ? sidebarHeight : '100vh',
+        }}
+      >
+        <div className="h-full flex flex-col bg-background overflow-visible">
+          {/* Logo/Brand - Acts as back button on detail pages */}
+          <div className="p-4 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              {isDetailPage ? (
+                <button
+                  onClick={handleBack}
+                  className="text-xl font-semibold text-text-primary hover:text-primary-accent transition-colors cursor-pointer truncate flex-1 min-w-0"
+                >
+                  {t('brand.name')}
+                </button>
+              ) : (
+                <Link
+                  href={`/${currentLocale}/home`}
+                  className="text-xl font-semibold text-text-primary truncate flex-1 min-w-0"
+                >
+                  {t('brand.name')}
+                </Link>
+              )}
+              {isMobile && isMobileOpen && (
+                <button
+                  onClick={() => setIsMobileOpen(false)}
+                  className="p-1 rounded-md interactive-hover flex-shrink-0 ml-2"
+                  aria-label="Close sidebar"
+                >
+                  <X className="w-7 h-7 text-text-secondary" />
+                </button>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Navigation Items */}
-        <nav className="flex-1 py-4 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <div className="space-y-1 px-2">
-            {navItems.map(item => {
-              const Icon = item.icon
-              const isActive = item.active || false
+          {/* Navigation Items */}
+          <nav className="flex-1 py-4 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="space-y-1 px-2">
+              {navItems.map(item => {
+                const Icon = item.icon
+                const isActive = item.active || false
 
-              // Handle home item with special logic
-              if (item.id === 'home') {
-                if (isDetailPage) {
-                  // On detail pages, home icon acts as back button
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={handleBack}
-                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
-                        isActive
-                          ? 'bg-primary-accent/10 text-primary-accent'
-                          : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
-                      }`}
-                    >
-                      <Icon className="w-7 h-7 flex-shrink-0" />
-                      <span className="text-sm font-medium">{item.label}</span>
-                    </button>
-                  )
-                } else if (isHomePage && onTabChange) {
-                  // On home page with tab change handler
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => onTabChange('home')}
-                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
-                        isActive
-                          ? 'bg-primary-accent/10 text-primary-accent'
-                          : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
-                      }`}
-                    >
-                      <Icon className="w-7 h-7 flex-shrink-0" />
-                      <span className="text-sm font-medium">{item.label}</span>
-                    </button>
-                  )
+                // Handle home item with special logic
+                if (item.id === 'home') {
+                  if (isDetailPage) {
+                    // On detail pages, home icon acts as back button
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={handleBack}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
+                          isActive
+                            ? 'bg-primary-accent/10 text-primary-accent'
+                            : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
+                        }`}
+                      >
+                        <Icon className="w-7 h-7 flex-shrink-0" />
+                        <span className="text-sm font-medium whitespace-nowrap">
+                          {item.label}
+                        </span>
+                      </button>
+                    )
+                  } else if (isHomePage && onTabChange) {
+                    // On home page with tab change handler
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => onTabChange('home')}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
+                          isActive
+                            ? 'bg-primary-accent/10 text-primary-accent'
+                            : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
+                        }`}
+                      >
+                        <Icon className="w-7 h-7 flex-shrink-0" />
+                        <span className="text-sm font-medium whitespace-nowrap">
+                          {item.label}
+                        </span>
+                      </button>
+                    )
+                  }
                 }
-              }
 
-              // Regular navigation items
+                // Regular navigation items
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    onClick={() => setIsMobileOpen(false)}
+                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
+                      isActive
+                        ? 'bg-primary-accent/10 text-primary-accent'
+                        : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
+                    }`}
+                  >
+                    <Icon className="w-7 h-7 flex-shrink-0" />
+                    <span className="text-sm font-medium whitespace-nowrap">
+                      {item.label}
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
+          </nav>
+
+          {/* Bottom Items */}
+          <div className="p-2 pb-4 space-y-1">
+            {bottomItems.map(item => {
+              const Icon = item.icon
               return (
                 <Link
                   key={item.id}
                   href={item.href}
                   onClick={() => setIsMobileOpen(false)}
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
-                    isActive
+                    item.active
                       ? 'bg-primary-accent/10 text-primary-accent'
                       : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
                   }`}
                 >
                   <Icon className="w-7 h-7 flex-shrink-0" />
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <span className="text-sm font-medium whitespace-nowrap">
+                    {item.label}
+                  </span>
                 </Link>
               )
             })}
-          </div>
-        </nav>
 
-        {/* Bottom Items */}
-        <div className="p-2 pb-20 md:pb-2 space-y-1">
-          {bottomItems.map(item => {
-            const Icon = item.icon
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                onClick={() => setIsMobileOpen(false)}
-                className={`w-full flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
-                  item.active
-                    ? 'bg-primary-accent/10 text-primary-accent'
-                    : 'text-text-secondary hover:bg-gray-100 hover:text-text-primary'
-                }`}
-              >
-                <Icon className="w-7 h-7 flex-shrink-0" />
-                <span className="text-sm font-medium">{item.label}</span>
-              </Link>
-            )
-          })}
-
-          {/* Auth Section */}
-          <div className="pt-0">
-            {isAuthenticated ? (
-              <div className="px-3 py-2.5">
-                <UserMenu
-                  user={{
-                    name: profile?.full_name || user?.email || 'User',
-                    email: user?.email || '',
-                    image:
-                      profile?.media_assets?.url ||
-                      user?.user_metadata?.avatar_url ||
-                      null,
+            {/* Auth Section */}
+            <div className="pt-0">
+              {isAuthenticated ? (
+                <div className="px-3 py-2.5">
+                  <UserMenu
+                    user={{
+                      name: profile?.full_name || user?.email || 'User',
+                      email: user?.email || '',
+                      image:
+                        profile?.media_assets?.url ||
+                        user?.user_metadata?.avatar_url ||
+                        null,
+                    }}
+                    onSignOut={() => dispatch(signOut())}
+                    showProfileLink={false}
+                    position="above"
+                    hasUnreadNotifications={hasUnreadNotifications}
+                    currentLocale={currentLocale}
+                  />
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowTermsModal(true)
+                    setIsMobileOpen(false)
                   }}
-                  onSignOut={() => dispatch(signOut())}
-                  showProfileLink={false}
-                  position="above"
-                  hasUnreadNotifications={hasUnreadNotifications}
-                  currentLocale={currentLocale}
-                />
-              </div>
-            ) : (
-              <button
-                onClick={() => {
-                  dispatch(signInWithGoogle())
-                  setIsMobileOpen(false)
-                }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-text-secondary hover:bg-gray-100 hover:text-text-primary`}
-              >
-                <LogIn className="w-7 h-7 flex-shrink-0" />
-                <span className="text-sm font-medium">
-                  {t('actions.sign_in')}
-                </span>
-              </button>
-            )}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-text-secondary hover:bg-gray-100 hover:text-text-primary`}
+                >
+                  <LogIn className="w-7 h-7 flex-shrink-0" />
+                  <span className="text-sm font-medium whitespace-nowrap">
+                    {t('actions.sign_in')}
+                  </span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   )
 }
 
@@ -411,7 +436,7 @@ export function MobileSidebarOverlay({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] md:hidden"
         />
       )}
     </AnimatePresence>
