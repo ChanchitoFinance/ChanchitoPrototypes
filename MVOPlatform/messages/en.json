@@ -125,10 +125,34 @@
     "status_trending": "Trending",
     "status_validated": "Validated",
     "landing": {
-      "headline": "You don't have to build ",
-      "accent_word": "yet",
-      "subheadline": "Waiting for signal is rational. We help you decide when to commit.",
-      "cta": "Decide before building"
+      "headline": "You don’t have to ",
+      "accent_word": "decide",
+      "subheadline": "yet. Waiting for external signal is rational. We help you reduce uncertainty before committing.",
+      "cta": "Decide before building",
+      "slide1": {
+        "headline": "Identify the ",
+        "subheadline": "Surface liability, trust, and clarity risks to understand what makes this decision costly to reverse.",
+        "accent_word": "risk",
+        "cta": "Assess risk"
+      },
+      "slide2": {
+        "headline": "Challenge your ",
+        "subheadline": "Independent perspectives and evidence question assumptions and expose tradeoffs before you move forward.",
+        "accent_word": "assumptions",
+        "cta": "Get external signal"
+      },
+      "slide3": {
+        "headline": "Turn signal into a ",
+        "subheadline": "See what’s solid, what’s still uncertain, and what needs more evidence before you commit.",
+        "accent_word": "decision",
+        "cta": "Reduce uncertainty"
+      },
+      "slide4": {
+        "headline": "Track decision ",
+        "subheadline": "Follow signal and evidence patterns to understand whether confidence is increasing or still insufficient.",
+        "accent_word": "confidence",
+        "cta": "View decision state"
+      }
     }
   },
   "browse": {
