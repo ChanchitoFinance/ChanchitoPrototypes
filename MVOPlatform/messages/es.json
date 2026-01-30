@@ -125,10 +125,34 @@
     "status_trending": "En Tendencia",
     "status_validated": "Validadas",
     "landing": {
-      "headline": "No tienes que construir ",
-      "accent_word": "todavía",
-      "subheadline": "Esperar la señal es racional. Te ayudamos a decidir cuándo comprometerte.",
-      "cta": "Decide antes de construir"
+      "headline": "No tienes que ",
+      "accent_word": "decidir",
+      "subheadline": "todavía. Esperar señal externa es racional. Te ayudamos a reducir incertidumbre antes de comprometerte.",
+      "cta": "Decidir antes de construir",
+      "slide1": {
+        "headline": "Identifica el ",
+        "subheadline": "Detecta riesgos de responsabilidad, confianza y claridad para entender qué hace esta decisión costosa de revertir.",
+        "accent_word": "riesgo",
+        "cta": "Evaluar riesgos"
+      },
+      "slide2": {
+        "headline": "Contrasta tus ",
+        "subheadline": "Perspectivas independientes y evidencia cuestionan supuestos y exponen tradeoffs antes de avanzar.",
+        "accent_word": "supuestos",
+        "cta": "Obtener señal externa"
+      },
+      "slide3": {
+        "headline": "Convierte la señal en una ",
+        "subheadline": "Ve qué es sólido, qué sigue siendo incierto y qué requiere más evidencia antes de comprometerte.",
+        "accent_word": "decisión",
+        "cta": "Reducir incertidumbre"
+      },
+      "slide4": {
+        "headline": "Mide el nivel de ",
+        "subheadline": "Sigue patrones de señal y evidencia para entender si la confianza está aumentando o sigue siendo insuficiente.",
+        "accent_word": "confianza",
+        "cta": "Ver estado de decisión"
+      }
     }
   },
   "browse": {
