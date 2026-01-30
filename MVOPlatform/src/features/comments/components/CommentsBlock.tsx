@@ -6,6 +6,7 @@ import { ArrowUp } from 'lucide-react'
 import { Comment } from '@/core/types/comment'
 import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
 import { deductCredits } from '@/core/lib/slices/creditsSlice'
+import { PERSONA_PANEL } from '@/core/constants/coinCosts'
 import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import { commentService } from '@/core/lib/services/commentService'
 import {
@@ -41,9 +42,8 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
   const [replyText, setReplyText] = useState<Map<string, string>>(new Map())
   const { user, profile } = useAppSelector(state => state.auth)
   const { theme } = useAppSelector(state => state.theme)
-  const { plan, dailyCredits, usedCredits } = useAppSelector(
-    state => state.credits
-  )
+  const { coinsBalance } = useAppSelector(state => state.credits)
+  const aiReplyCoinCost = PERSONA_PANEL
   const dispatch = useAppDispatch()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const newCommentRefs = useRef<Map<string, HTMLDivElement>>(new Map())
@@ -835,10 +835,10 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
           setPendingCommentData(null)
         }}
         onConfirm={handleCreditConfirm}
-        creditCost={1}
+        creditCost={aiReplyCoinCost}
         featureName="AI Persona mentions in comments"
-        hasCredits={plan === 'innovator' || dailyCredits - usedCredits >= 1}
-        isLastCredit={dailyCredits - usedCredits === 1}
+        hasCredits={coinsBalance >= aiReplyCoinCost}
+        isLastCredit={coinsBalance > 0 && coinsBalance <= aiReplyCoinCost}
         showNoButton={false}
       />
     </div>

@@ -21,6 +21,7 @@ import {
 import { AIPersonasRenderer } from '@/features/ai/components/AIPersonasRenderer'
 import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
 import { deductCredits } from '@/core/lib/slices/creditsSlice'
+import { PERSONA_PANEL, RE_RUN } from '@/core/constants/coinCosts'
 import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import Image from 'next/image'
 
@@ -42,17 +43,18 @@ export function AIPersonasEvaluation({
   const [currentVersion, setCurrentVersion] = useState(1)
   const [totalVersions, setTotalVersions] = useState(0)
   const [showCreditConfirm, setShowCreditConfirm] = useState(false)
+  const [confirmCost, setConfirmCost] = useState(PERSONA_PANEL)
 
   const { user } = useAppSelector(state => state.auth)
-  const { plan, dailyCredits, usedCredits } = useAppSelector(
-    state => state.credits
-  )
+  const { coinsBalance } = useAppSelector(state => state.credits)
   const dispatch = useAppDispatch()
 
-  const remainingCredits =
-    plan === 'innovator' ? Infinity : dailyCredits - usedCredits
-  const hasCredits = remainingCredits > 0
-  const isLastCredit = remainingCredits === 1
+  const coinCostInitial = PERSONA_PANEL
+  const coinCostReRun = RE_RUN
+  const hasCreditsInitial = coinsBalance >= coinCostInitial
+  const hasCreditsReRun = coinsBalance >= coinCostReRun
+  const isLastCoinInitial = coinsBalance > 0 && coinsBalance <= coinCostInitial
+  const isLastCoinReRun = coinsBalance > 0 && coinsBalance <= coinCostReRun
 
   useEffect(() => {
     const loadFeedback = async () => {
@@ -172,6 +174,7 @@ export function AIPersonasEvaluation({
         <button
           onClick={() => {
             if (!feedback) {
+              setConfirmCost(coinCostInitial)
               setShowCreditConfirm(true)
             } else {
               setIsExpanded(!isExpanded)
@@ -237,17 +240,17 @@ export function AIPersonasEvaluation({
           setShowCreditConfirm(false)
           try {
             await dispatch(
-              deductCredits({ userId: user?.id || '', amount: 1 })
+              deductCredits({ userId: user?.id || '', amount: confirmCost })
             ).unwrap()
             requestFeedback()
           } catch (error) {
-            console.error('Error deducting credits:', error)
+            console.error('Error deducting coins:', error)
           }
         }}
-        creditCost={1}
+        creditCost={confirmCost}
         featureName={t('ai_personas_evaluation.evaluation_title')}
-        hasCredits={hasCredits}
-        isLastCredit={isLastCredit}
+        hasCredits={confirmCost === coinCostInitial ? hasCreditsInitial : hasCreditsReRun}
+        isLastCredit={confirmCost === coinCostInitial ? isLastCoinInitial : isLastCoinReRun}
         showNoButton={false}
       />
 
@@ -268,7 +271,10 @@ export function AIPersonasEvaluation({
               {error}
             </p>
             <button
-              onClick={() => setShowCreditConfirm(true)}
+              onClick={() => {
+                setConfirmCost(coinCostReRun)
+                setShowCreditConfirm(true)
+              }}
               className="mt-2 text-sm hover:underline font-medium"
               style={{ color: 'var(--error)' }}
             >
@@ -388,7 +394,10 @@ export function AIPersonasEvaluation({
 
               <div className="flex items-center gap-2 ml-auto">
                 <button
-                  onClick={() => setShowCreditConfirm(true)}
+                  onClick={() => {
+                    setConfirmCost(coinCostReRun)
+                    setShowCreditConfirm(true)
+                  }}
                   disabled={loading}
                   className="px-4 py-2 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center gap-2"
                   style={{

@@ -13,7 +13,7 @@ CREATE TYPE idea_vote_type AS ENUM ('dislike', 'use', 'pay');
 CREATE TYPE comment_reaction_type AS ENUM ('upvote', 'downvote', 'helpful');
 CREATE TYPE media_type AS ENUM ('image', 'video', 'link');
 
--- Users table (extended)
+-- Users table (extended) - coins only; no plan (users just have coins)
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email VARCHAR(255) NOT NULL UNIQUE,
@@ -21,9 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
   role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
   username VARCHAR(255) UNIQUE,
   profile_media_id UUID,
-  plan VARCHAR(20) NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'premium', 'innovator')),
-  daily_credits_used INT NOT NULL DEFAULT 0,
-  last_credits_reset DATE NOT NULL DEFAULT CURRENT_DATE,
+  coins_balance INT NOT NULL DEFAULT 100,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -37,12 +35,12 @@ CREATE TABLE media_assets (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Payments table
+-- Payments table - plan_type = which product was bought (for receipts/analytics only)
 CREATE TABLE IF NOT EXISTS payments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   payment_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  plan_type VARCHAR(20) NOT NULL CHECK (plan_type IN ('free', 'pro', 'premium', 'innovator')),
+  plan_type VARCHAR(20) NOT NULL CHECK (plan_type IN ('starter', 'builder', 'operator')),
   amount DECIMAL(10,2) NOT NULL,
   currency VARCHAR(3) NOT NULL DEFAULT 'USD',
   payment_method VARCHAR(50) NOT NULL DEFAULT 'paypal',
@@ -170,8 +168,8 @@ BEGIN
     RETURNING id INTO media_id;
   END IF;
 
-  -- Insert user with profile_media_id if available
-  INSERT INTO public.users (id, email, full_name, role, username, profile_media_id, plan, daily_credits_used, last_credits_reset)
+  -- Insert user with profile_media_id if available - 100 free coins on signup
+  INSERT INTO public.users (id, email, full_name, role, username, profile_media_id, coins_balance)
   VALUES (
     NEW.id,
     NEW.email,
@@ -179,9 +177,7 @@ BEGIN
     'user',
     COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)),
     media_id,
-    'free',
-    0,
-    CURRENT_DATE
+    100
   );
   RETURN NEW;
 END;
@@ -191,28 +187,6 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
-
--- Function to reset daily credits and check plan renewals
-CREATE OR REPLACE FUNCTION reset_daily_credits_and_check_plans()
-RETURNS VOID AS $$
-BEGIN
-  -- Reset daily credits for all users where last reset was not today
-  UPDATE users
-  SET daily_credits_used = 0, last_credits_reset = CURRENT_DATE
-  WHERE last_credits_reset < CURRENT_DATE;
-
-  -- Check for plan renewals: if no payment in the last 30 days for paid plans, revert to free
-  UPDATE users
-  SET plan = 'free'
-  WHERE plan IN ('pro', 'premium', 'innovator')
-    AND NOT EXISTS (
-      SELECT 1 FROM payments
-      WHERE payments.user_id = users.id
-        AND payments.status = 'completed'
-        AND payments.payment_date >= CURRENT_DATE - INTERVAL '30 days'
-    );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =====================================================
 -- IDEA VERSIONING FUNCTIONS

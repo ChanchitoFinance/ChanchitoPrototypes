@@ -34,7 +34,7 @@ import { IdeaAnalytics } from './IdeaAnalytics'
 import { toast } from 'sonner'
 import { AIPersonasEvaluation } from '@/features/ai/components/AIPersonasEvaluation'
 import { AIDeepResearch } from '@/features/ai/components/AIDeepResearch'
-import { deductCredits, loadUserCredits } from '@/core/lib/slices/creditsSlice'
+import { loadUserCredits } from '@/core/lib/slices/creditsSlice'
 
 interface IdeaDetailProps {
   ideaId: string
@@ -63,9 +63,6 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   const commentsSectionRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const { isAuthenticated, user } = useAppSelector(state => state.auth)
-  const { dailyCredits, usedCredits, plan } = useAppSelector(
-    state => state.credits
-  )
 
   const handleBack = () => {
     // Get the previous path from sessionStorage (set when navigating to idea)
@@ -505,29 +502,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
               }
               content={ideaData.content || []}
               tags={ideaData.tags}
-              onRequestResearch={async () => {
-                if (!user) return
-
-                // Check credits (Deep Research costs 8 credits)
-                const hasEnoughCredits =
-                  plan === 'innovator' || dailyCredits - usedCredits >= 8
-                if (!hasEnoughCredits) {
-                  toast.error(
-                    'Insufficient credits. Deep Research requires 8 credits.'
-                  )
-                  return
-                }
-
-                // Deduct credits
-                try {
-                  await dispatch(
-                    deductCredits({ userId: user.id, amount: 8 })
-                  ).unwrap()
-                } catch (error) {
-                  console.error('Error deducting credits:', error)
-                  toast.error('Failed to process credits')
-                }
-              }}
+              onRequestResearch={undefined}
             />
           </motion.div>
         )}

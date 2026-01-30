@@ -149,14 +149,14 @@ export default function SettingsPage() {
           {/* Premium Plans */}
           <div className="card-base">
             <h2 className="text-lg font-semibold text-text-primary mb-4">
-              Subscription Plans
+              Coins
             </h2>
             <p className="text-sm text-text-secondary mb-4">
-              Upgrade your plan to unlock more AI features and credits
+              Get more coins to run analysis and use AI features
             </p>
             <Link href={`/${locale}/premium`}>
               <Button variant="primary" className="w-full">
-                View Plans & Upgrade
+                Get more coins
               </Button>
             </Link>
           </div>

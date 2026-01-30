@@ -23,7 +23,9 @@ import {
   useTranslations,
   useLocale,
 } from '@/shared/components/providers/I18nProvider'
-import { useAppSelector } from '@/core/lib/hooks'
+import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
+import { deductCredits } from '@/core/lib/slices/creditsSlice'
+import { DEEP_RESEARCH, RE_RUN } from '@/core/constants/coinCosts'
 import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import {
   MarketSnapshotSection,
@@ -61,19 +63,21 @@ export function AIDeepResearch({
   const [currentVersion, setCurrentVersion] = useState(1)
   const [totalVersions, setTotalVersions] = useState(0)
   const [showCreditConfirm, setShowCreditConfirm] = useState(false)
+  const [confirmCost, setConfirmCost] = useState(DEEP_RESEARCH)
   const [activeTab, setActiveTab] =
     useState<MarketValidationTab>('market_snapshot')
 
-  const { plan, dailyCredits, usedCredits } = useAppSelector(
-    state => state.credits
-  )
-  const remainingCredits =
-    plan === 'innovator' ? Infinity : dailyCredits - usedCredits
-  // Market validation costs 10 credits (updated from 8)
-  const creditCost = 10
-  const hasCredits = remainingCredits >= creditCost
-  const isLastCredits =
-    remainingCredits >= creditCost && remainingCredits < creditCost + 5
+  const dispatch = useAppDispatch()
+  const { user } = useAppSelector(state => state.auth)
+  const { coinsBalance } = useAppSelector(state => state.credits)
+  const creditCostInitial = DEEP_RESEARCH
+  const creditCostReRun = RE_RUN
+  const hasCreditsInitial = coinsBalance >= creditCostInitial
+  const hasCreditsReRun = coinsBalance >= creditCostReRun
+  const isLastCreditsInitial =
+    coinsBalance > 0 && coinsBalance <= creditCostInitial
+  const isLastCreditsReRun =
+    coinsBalance > 0 && coinsBalance <= creditCostReRun
 
   useEffect(() => {
     const loadResearch = async () => {
@@ -242,6 +246,7 @@ export function AIDeepResearch({
           type="button"
           onClick={() => {
             if (!research) {
+              setConfirmCost(creditCostInitial)
               setShowCreditConfirm(true)
             } else {
               setIsExpanded(!isExpanded)
@@ -290,17 +295,26 @@ export function AIDeepResearch({
         onClose={() => setShowCreditConfirm(false)}
         onConfirm={async () => {
           setShowCreditConfirm(false)
-          if (onRequestResearch) {
-            await onRequestResearch()
+          try {
+            await dispatch(
+              deductCredits({ userId: user?.id ?? '', amount: confirmCost })
+            ).unwrap()
+            if (onRequestResearch) onRequestResearch()
             requestResearch()
-          } else {
-            requestResearch()
+          } catch (error) {
+            console.error('Error deducting coins:', error)
           }
         }}
-        creditCost={creditCost}
+        creditCost={confirmCost}
         featureName={t('market_validation.feature_name')}
-        hasCredits={hasCredits}
-        isLastCredit={isLastCredits}
+        hasCredits={
+          confirmCost === creditCostInitial ? hasCreditsInitial : hasCreditsReRun
+        }
+        isLastCredit={
+          confirmCost === creditCostInitial
+            ? isLastCreditsInitial
+            : isLastCreditsReRun
+        }
         showNoButton={false}
       />
 
@@ -628,7 +642,10 @@ export function AIDeepResearch({
               <div className="flex items-center gap-2 ml-auto">
                 <button
                   type="button"
-                  onClick={() => setShowCreditConfirm(true)}
+                  onClick={() => {
+                    setConfirmCost(creditCostReRun)
+                    setShowCreditConfirm(true)
+                  }}
                   disabled={loading}
                   className="px-4 py-2 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center gap-2"
                   style={{

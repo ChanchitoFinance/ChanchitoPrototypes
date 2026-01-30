@@ -2,82 +2,37 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { supabase } from '@/core/lib/supabase'
 
 interface CreditsState {
-  plan: 'free' | 'pro' | 'premium' | 'innovator'
-  dailyCredits: number
-  usedCredits: number
-  lastReset: string // ISO date string
+  coinsBalance: number
   loading: boolean
   loaded: boolean
   error: string | null
 }
 
 const initialState: CreditsState = {
-  plan: 'free',
-  dailyCredits: 3,
-  usedCredits: 0,
-  lastReset: new Date().toISOString().split('T')[0],
+  coinsBalance: 0,
   loading: false,
   loaded: false,
   error: null,
 }
 
-const planCredits = {
-  free: 3,
-  pro: 50,
-  premium: 250,
-  innovator: -1, // Infinite
-}
-
-// Async thunk to load user credits from database
+// Async thunk to load user coins from database
 export const loadUserCredits = createAsyncThunk(
   'credits/loadUserCredits',
   async (userId: string) => {
     const { data, error } = await supabase
       .from('users')
-      .select('plan, daily_credits_used, last_credits_reset')
+      .select('coins_balance')
       .eq('id', userId)
       .single()
 
     if (error) throw error
 
-    const plan = data.plan as keyof typeof planCredits
-    const dailyCredits = planCredits[plan]
-    const usedCredits = data.daily_credits_used || 0
-    const lastReset =
-      data.last_credits_reset || new Date().toISOString().split('T')[0]
-
-    // Check if we need to reset credits (new day)
-    const today = new Date().toISOString().split('T')[0]
-    const needsReset = lastReset < today
-
-    if (needsReset) {
-      // Reset credits in database
-      await supabase
-        .from('users')
-        .update({
-          daily_credits_used: 0,
-          last_credits_reset: today,
-        })
-        .eq('id', userId)
-
-      return {
-        plan,
-        dailyCredits,
-        usedCredits: 0,
-        lastReset: today,
-      }
-    }
-
-    return {
-      plan,
-      dailyCredits,
-      usedCredits,
-      lastReset,
-    }
+    const coinsBalance = Math.max(0, Number(data?.coins_balance) ?? 0)
+    return { coinsBalance }
   }
 )
 
-// Async thunk to deduct credits
+// Async thunk to deduct coins
 export const deductCredits = createAsyncThunk(
   'credits/deductCredits',
   async (
@@ -85,60 +40,42 @@ export const deductCredits = createAsyncThunk(
     { getState }
   ) => {
     const state = getState() as { credits: CreditsState }
-
-    if (state.credits.plan === 'innovator') {
-      // Innovator have infinite credits
-      return { success: true }
+    if (state.credits.coinsBalance < amount) {
+      throw new Error('Insufficient coins')
     }
 
-    const remainingCredits =
-      state.credits.dailyCredits - state.credits.usedCredits
-    if (remainingCredits < amount) {
-      throw new Error('Insufficient credits')
-    }
+    const newBalance = state.credits.coinsBalance - amount
 
-    const newUsedCredits = state.credits.usedCredits + amount
-
-    // Update database
     const { error } = await supabase
       .from('users')
-      .update({ daily_credits_used: newUsedCredits })
+      .update({ coins_balance: newBalance })
       .eq('id', userId)
 
     if (error) throw error
 
-    return { newUsedCredits }
+    return { newBalance }
   }
 )
 
-// Async thunk to update plan
-export const updateUserPlan = createAsyncThunk(
-  'credits/updateUserPlan',
-  async ({
-    userId,
-    plan,
-  }: {
-    userId: string
-    plan: keyof typeof planCredits
-  }) => {
-    const today = new Date().toISOString().split('T')[0]
+// Add coins (e.g. after purchase) – API does this; client just reloads
+export const addCoins = createAsyncThunk(
+  'credits/addCoins',
+  async (
+    { userId, amount }: { userId: string; amount: number },
+    { getState }
+  ) => {
+    const state = getState() as { credits: CreditsState }
+    const currentBalance = state.credits.coinsBalance
+    const newBalance = currentBalance + amount
+
     const { error } = await supabase
       .from('users')
-      .update({
-        plan,
-        daily_credits_used: 0,
-        last_credits_reset: today,
-      })
+      .update({ coins_balance: newBalance })
       .eq('id', userId)
 
     if (error) throw error
 
-    return {
-      plan,
-      dailyCredits: planCredits[plan],
-      usedCredits: 0,
-      lastReset: today,
-    }
+    return { newBalance }
   }
 )
 
@@ -146,12 +83,11 @@ const creditsSlice = createSlice({
   name: 'credits',
   initialState,
   reducers: {
-    resetCredits: state => {
-      state.usedCredits = 0
-      state.lastReset = new Date().toISOString().split('T')[0]
-    },
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload
+    },
+    setCoinsBalance: (state, action: PayloadAction<number>) => {
+      state.coinsBalance = action.payload
     },
   },
   extraReducers: builder => {
@@ -163,28 +99,24 @@ const creditsSlice = createSlice({
       .addCase(loadUserCredits.fulfilled, (state, action) => {
         state.loading = false
         state.loaded = true
-        state.plan = action.payload.plan
-        state.dailyCredits = action.payload.dailyCredits
-        state.usedCredits = action.payload.usedCredits
-        state.lastReset = action.payload.lastReset
+        state.coinsBalance = action.payload.coinsBalance
       })
       .addCase(loadUserCredits.rejected, (state, action) => {
         state.loading = false
         state.error = action.error.message || 'Failed to load credits'
       })
       .addCase(deductCredits.fulfilled, (state, action) => {
-        if (action.payload.newUsedCredits !== undefined) {
-          state.usedCredits = action.payload.newUsedCredits
+        if (action.payload.newBalance !== undefined) {
+          state.coinsBalance = action.payload.newBalance
         }
       })
-      .addCase(updateUserPlan.fulfilled, (state, action) => {
-        state.plan = action.payload.plan
-        state.dailyCredits = action.payload.dailyCredits
-        state.usedCredits = action.payload.usedCredits
-        state.lastReset = action.payload.lastReset
+      .addCase(addCoins.fulfilled, (state, action) => {
+        if (action.payload.newBalance !== undefined) {
+          state.coinsBalance = action.payload.newBalance
+        }
       })
   },
 })
 
-export const { resetCredits, setError } = creditsSlice.actions
+export const { setError, setCoinsBalance } = creditsSlice.actions
 export default creditsSlice.reducer

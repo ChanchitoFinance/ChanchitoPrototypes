@@ -24,6 +24,8 @@ import {
 } from '@/shared/components/providers/I18nProvider'
 import { MarkdownRenderer } from '@/shared/components/ui/MarkdownRenderer'
 import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
+import { deductCredits } from '@/core/lib/slices/creditsSlice'
+import { RISK_HIGHLIGHTER } from '@/core/constants/coinCosts'
 import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import Image from 'next/image'
 import { loadUserCredits } from '@/core/lib/slices/creditsSlice'
@@ -57,14 +59,11 @@ export function AIRiskFeedback({
   const [showCreditConfirm, setShowCreditConfirm] = useState(false)
 
   const { user } = useAppSelector(state => state.auth)
-  const { plan, dailyCredits, usedCredits } = useAppSelector(
-    state => state.credits
-  )
+  const { coinsBalance } = useAppSelector(state => state.credits)
   const dispatch = useAppDispatch()
-  const remainingCredits =
-    plan === 'innovator' ? Infinity : dailyCredits - usedCredits
-  const hasCredits = remainingCredits > 0
-  const isLastCredit = remainingCredits === 1
+  const coinCost = RISK_HIGHLIGHTER
+  const hasCredits = coinsBalance >= coinCost
+  const isLastCredit = coinsBalance > 0 && coinsBalance <= coinCost
 
   const shouldShow = title.length >= 10 && content.length > 0
 
@@ -256,14 +255,17 @@ export function AIRiskFeedback({
         onClose={() => setShowCreditConfirm(false)}
         onConfirm={async () => {
           setShowCreditConfirm(false)
-          if (onRequestFeedback) {
-            await onRequestFeedback()
+          try {
+            await dispatch(
+              deductCredits({ userId: user?.id ?? '', amount: coinCost })
+            ).unwrap()
+            if (onRequestFeedback) await onRequestFeedback()
             requestFeedback()
-          } else {
-            requestFeedback()
+          } catch (error) {
+            console.error('Error deducting coins:', error)
           }
         }}
-        creditCost={1}
+        creditCost={coinCost}
         featureName={t('ai_risk_feedback.risk_analysis')}
         hasCredits={hasCredits}
         isLastCredit={isLastCredit}

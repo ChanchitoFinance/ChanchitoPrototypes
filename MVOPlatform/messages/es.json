@@ -99,6 +99,11 @@
     "less_than_or_equal": "Menor o igual que"
   },
   "auth": {
+    "welcome_title": "Bienvenido a MVO",
+    "subtitle": "Inicia sesión con Google para continuar",
+    "signing_in": "Iniciando sesión...",
+    "continue_google": "Continuar con Google",
+    "completing_sign_in": "Completando inicio de sesión...",
     "sign_in_required": "Inicio de Sesión Requerido",
     "sign_in_with_google": "Iniciar Sesión",
     "sign_in_description": "Por favor inicia sesión con tu cuenta para enviar una idea.",
@@ -367,7 +372,8 @@
     "file_size_exceeds_limit": "El tamaño del archivo excede el límite de 50MB",
     "upload_failed": "Error al subir",
     "max_tags_3": "Máximo 3 etiquetas permitidas",
-    "max_topics_2": "Máximo 2 categorías permitidas"
+    "max_topics_2": "Máximo 2 categorías permitidas",
+    "not_enough_coins": "No tienes suficientes monedas para esta acción. Por favor actualiza para obtener más monedas."
   },
   "form": {
     "create_idea": "Crear Idea",
@@ -497,6 +503,17 @@
   "premium": {
     "title": "Actualizar a Premium",
     "description": "Desbloquea funciones avanzadas",
+    "get_more_coins_title": "Obtener más monedas",
+    "get_more_coins_subtitle": "Ejecuta análisis. Gasta monedas para profundizar. Decide antes de construir.",
+    "get_coins_button": "Obtener {count} monedas",
+    "sign_in_to_buy": "Inicia sesión para comprar monedas",
+    "coins_no_expire": "Las monedas no expiran. Compra más cuando quieras.",
+    "most_popular": "Más popular",
+    "coins_label": "monedas",
+    "one_time": "pago único",
+    "secure_checkout_note": "Pago seguro • Monedas al instante",
+    "sign_in_to_continue": "Inicia sesión para ir al pago",
+    "billing_disclaimer": "Los pagos se procesan de forma segura. Las monedas están disponibles inmediatamente después de la compra.",
     "features": {
       "title": "Funciones Premium",
       "invite_members": "Invitar miembros por nombre de usuario o email",
@@ -507,6 +524,20 @@
       "description": "Todas las funciones premium incluidas"
     },
     "subscribe": "Suscribirse Ahora"
+  },
+  "checkout": {
+    "title": "Pagar",
+    "back": "Volver",
+    "order_summary": "Resumen del pedido",
+    "total": "Total",
+    "payment_method": "Método de pago",
+    "pay_with_paypal": "Completa tu compra de forma segura con PayPal.",
+    "secure_processing": "Procesamiento de pago seguro",
+    "coins_instant": "Las monedas se añaden a tu cuenta inmediatamente después del pago.",
+    "invalid_title": "Pago inválido",
+    "invalid_message": "Selecciona un paquete de monedas para continuar.",
+    "get_more_coins": "Obtener más monedas",
+    "coins_no_expire_note": "Las monedas no expiran. Compra única."
   },
   "admin": {
     "dashboard": {
@@ -602,59 +633,47 @@
     "dialog_title": "Comentarios Generados por IA",
     "question": "¿Te gustaría que tu idea reciba tres comentarios generados por IA dándote retroalimentación sobre tu idea?",
     "explanation": "Estos comentarios proporcionan perspectivas diversas de las AI Personas para ayudarte a validar y mejorar tu idea antes de que vaya al público.",
-    "yes": "Sí (1 crédito)",
+    "yes": "Sí (10 monedas)",
     "no": "No",
-    "no_credits_title": "No Hay Créditos Disponibles",
-    "no_credits_message": "No tienes créditos en este momento. Puedes esperar hasta mañana para que se restablezcan tus créditos diarios, o actualizar tu plan para obtener más créditos.",
-    "wait_or_upgrade": "Esperar o Actualizar"
+    "no_credits_title": "No hay monedas disponibles",
+    "no_credits_message": "No tienes suficientes monedas. Actualiza para obtener más monedas.",
+    "wait_or_upgrade": "Actualizar para más monedas"
   },
   "credits": {
     "remaining": "Créditos restantes",
-    "insufficient_title": "Créditos Insuficientes",
-    "insufficient_message": "Necesitas créditos para usar esta función. Actualiza tu plan para obtener más créditos.",
-    "upgrade_plan": "Actualizar Plan",
-    "plan_free": "Plan Gratuito",
-    "plan_pro": "Plan Pro",
-    "plan_premium": "Plan Premium",
-    "plan_innovator": "Plan Innovador",
-    "confirmation_title": "Confirmación de Créditos",
-    "confirmation_message": "Esto usará {cost} crédito(s) para {feature}. ¿Quieres continuar?",
-    "cost_display": "{cost} crédito(s)",
-    "last_credit_title": "Advertencia de Último Crédito",
-    "last_credit_message": "Este es tu último crédito diario. Después de usarlo, necesitarás esperar hasta mañana o actualizar tu plan para obtener más créditos."
+    "coins_remaining": "Monedas restantes",
+    "coins_unit": "monedas",
+    "loading": "Cargando monedas...",
+    "insufficient_title": "Monedas insuficientes",
+    "insufficient_message": "Necesitas monedas para usar esta función. Obtén más monedas para continuar.",
+    "insufficient_coins_modal": "Necesitas {cost} monedas para usar {feature}, pero solo tienes {count} monedas.",
+    "get_more_coins": "Obtener más monedas",
+    "confirmation_title": "Confirmación de créditos",
+    "confirmation_title_coins": "Confirmación de monedas",
+    "confirmation_message": "Esto usará {cost} monedas para {feature}. ¿Quieres continuar?",
+    "confirmation_message_coins": "Esto usará {cost} monedas para {feature}. ¿Quieres continuar?",
+    "cost_display": "{cost} monedas",
+    "cost_display_coins": "{cost} monedas",
+    "last_credit_title": "Última moneda",
+    "last_credit_message": "Esta es tu última moneda. Obtén más monedas para continuar.",
+    "last_coin_title": "Última moneda",
+    "last_coin_message": "Esta es tu última moneda. Obtén más monedas para continuar."
   },
   "plans": {
-    "free": {
-      "name": "Gratuito",
-      "description": "Funciones básicas con 3 créditos diarios",
-      "features": ["Funciones básicas de IA", "Soporte comunitario"]
+    "starter": {
+      "name": "Starter",
+      "description": "100 monedas",
+      "features": ["100 monedas", "Ejecutar análisis", "Gasta monedas para profundizar"]
     },
-    "pro": {
-      "name": "Pro",
-      "description": "Funciones avanzadas con 50 créditos diarios",
-      "features": [
-        "Funciones avanzadas de IA",
-        "Soporte prioritario",
-        "50 créditos diarios"
-      ]
+    "builder": {
+      "name": "Builder",
+      "description": "250 monedas",
+      "features": ["250 monedas", "Ejecutar análisis", "Gasta monedas para profundizar"]
     },
-    "premium": {
-      "name": "Premium",
-      "description": "Todas las funciones con 250 créditos diarios",
-      "features": [
-        "Todas las funciones Pro",
-        "250 créditos diarios",
-        "Analíticas avanzadas"
-      ]
-    },
-    "innovator": {
-      "name": "Innovador",
-      "description": "Créditos ilimitados para innovadores",
-      "features": [
-        "Todas las funciones Premium",
-        "Créditos ilimitados",
-        "Colaboración en equipo"
-      ]
+    "operator": {
+      "name": "Operator",
+      "description": "500 monedas",
+      "features": ["500 monedas", "Ejecutar análisis", "Gasta monedas para profundizar"]
     }
   },
   "payment": {
