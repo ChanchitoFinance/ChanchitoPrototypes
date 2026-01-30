@@ -2,10 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { Coins } from 'lucide-react'
-import {
-  useTranslations,
-  useLocale,
-} from '@/shared/components/providers/I18nProvider'
+import { useTranslations, useLocale } from '@/shared/components/providers/I18nProvider'
 import { useRouter } from 'next/navigation'
 
 interface CreditConfirmationModalProps {
@@ -47,39 +44,57 @@ export function CreditConfirmationModal({
           onClick={onClose}
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
+            initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-background p-6 rounded-lg shadow-xl max-w-md mx-4"
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="w-full max-w-md mx-4 card-white"
             onClick={e => e.stopPropagation()}
+            style={{
+              backgroundColor: 'var(--gray-100)',
+              borderColor: 'var(--border-color)',
+              boxShadow: 'var(--shadow-card)',
+            }}
           >
-            <h3 className="text-lg font-semibold text-text-primary mb-4">
-              {t('credits.confirmation_title')}
-            </h3>
+            <div className="spacing-card">
+              <h3 className="text-heading-3" style={{ fontSize: 'var(--font-size-xl)' }}>
+                {t('credits.confirmation_title_coins')}
+              </h3>
+            </div>
 
-            <div className="mb-4">
-              <p className="text-sm text-text-secondary mb-2">
-                {t('credits.confirmation_message')
+            <div className="spacing-card">
+              <p className="text-body" style={{ fontSize: 'var(--font-size-sm)' }}>
+                {t('credits.confirmation_message_coins')
                   .replace('{cost}', creditCost.toString())
                   .replace('{feature}', featureName)}
               </p>
-              <div className="flex items-center gap-2 text-sm text-text-primary">
-                <Coins className="w-4 h-4 text-error" />
-                <span>
-                  {t('credits.cost_display').replace(
-                    '{cost}',
-                    creditCost.toString()
-                  )}
+
+              <div
+                className="flex items-center gap-2 mt-3"
+                style={{ color: 'var(--text-primary)', fontSize: 'var(--font-size-sm)' }}
+              >
+                <Coins className="w-4 h-4" style={{ color: 'var(--error)' }} />
+                <span className="text-label" style={{ fontSize: 'var(--font-size-sm)' }}>
+                  {t('credits.cost_display_coins').replace('{cost}', creditCost.toString())}
                 </span>
               </div>
             </div>
 
             {!hasCredits && (
-              <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--error)', opacity: 0.1, border: '1px solid var(--error)' }}>
-                <h4 className="text-sm font-semibold text-error mb-2">
+              <div
+                className="spacing-card"
+                style={{
+                  backgroundColor: 'rgba(255, 148, 76, 0.10)',
+                  border: '2px solid var(--error)',
+                  borderRadius: 'var(--border-radius-md)',
+                  padding: 'var(--spacing-lg)',
+                }}
+              >
+                <h4 className="text-label" style={{ color: 'var(--text-primary)', marginBottom: 'var(--spacing-sm)' }}>
                   {t('credits.insufficient_title')}
                 </h4>
-                <p className="text-sm text-error" style={{ opacity: 0.9 }}>
+
+                <p className="text-body" style={{ fontSize: 'var(--font-size-sm)' }}>
                   {t('credits.insufficient_message')}{' '}
                   <button
                     type="button"
@@ -87,48 +102,102 @@ export function CreditConfirmationModal({
                       onClose()
                       router.push(`/${locale}/premium`)
                     }}
-                    className="text-error underline hover:opacity-80"
+                    className="font-medium hover:opacity-80"
+                    style={{
+                      color: 'var(--error)',
+                      textDecoration: 'underline',
+                      transition: 'opacity var(--transition-fast)',
+                    }}
                   >
-                    {t('credits.upgrade_plan')}
+                    {t('credits.get_more_coins')}
                   </button>
                 </p>
               </div>
             )}
 
             {hasCredits && isLastCredit && (
-              <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--error)', opacity: 0.1, border: '1px solid var(--error)' }}>
-                <h4 className="text-sm font-semibold text-error mb-2">
+              <div
+                className="spacing-card"
+                style={{
+                  backgroundColor: 'rgba(160, 123, 207, 0.12)',
+                  border: '2px solid var(--primary-accent)',
+                  borderRadius: 'var(--border-radius-md)',
+                  padding: 'var(--spacing-lg)',
+                }}
+              >
+                <h4 className="text-label" style={{ color: 'var(--text-primary)', marginBottom: 'var(--spacing-sm)' }}>
                   {t('credits.last_credit_title')}
                 </h4>
-                <p className="text-sm text-error" style={{ opacity: 0.9 }}>
-                  {t('credits.last_credit_message')}
+                <p className="text-body" style={{ fontSize: 'var(--font-size-sm)' }}>
+                  {t('credits.last_coin_message')}
                 </p>
               </div>
             )}
 
-            <div className="flex gap-3 justify-between">
+            <div className="flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm border border-border-color rounded-lg text-text-primary hover:bg-gray-50"
+                className="interactive-base"
+                style={{
+                  backgroundColor: 'var(--gray-100)',
+                  border: '2px solid var(--border-color)',
+                  color: 'var(--text-primary)',
+                  fontSize: 'var(--font-size-sm)',
+                  fontWeight: 'var(--font-weight-medium)',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.backgroundColor = 'var(--gray-50)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                }}
               >
                 {t('actions.cancel')}
               </button>
-              <div className="flex gap-3">
+
+              <div className="flex items-center gap-3">
                 {showNoButton && (
                   <button
                     type="button"
                     onClick={onNo || onClose}
-                    className="px-4 py-2 text-sm border border-border-color rounded-lg text-text-primary hover:bg-gray-50"
+                    className="interactive-base"
+                    style={{
+                      backgroundColor: 'var(--gray-100)',
+                      border: '2px solid var(--border-color)',
+                      color: 'var(--text-primary)',
+                      fontSize: 'var(--font-size-sm)',
+                      fontWeight: 'var(--font-weight-medium)',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.backgroundColor = 'var(--gray-50)'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                    }}
                   >
                     {t('actions.no')}
                   </button>
                 )}
+
                 <button
                   type="button"
                   onClick={onConfirm}
                   disabled={!hasCredits}
-                  className="px-4 py-2 text-sm bg-premium-cta text-white rounded-lg hover:bg-premium-cta/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="interactive-base disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: 'var(--premium-cta)',
+                    color: 'var(--white)',
+                    fontSize: 'var(--font-size-sm)',
+                    fontWeight: 'var(--font-weight-semibold)',
+                    border: '2px solid transparent',
+                  }}
+                  onMouseEnter={e => {
+                    if (!e.currentTarget.disabled) e.currentTarget.style.opacity = '0.9'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.opacity = '1'
+                  }}
                 >
                   {t('actions.yes')}
                 </button>

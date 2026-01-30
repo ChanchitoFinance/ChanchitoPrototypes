@@ -3,9 +3,15 @@ import { createClient } from '@supabase/supabase-js'
 import { clientEnv } from '@/env-validation/config/env'
 
 const planPrices = {
-  pro: 5,
-  premium: 20,
-  innovator: 100,
+  starter: 19,
+  builder: 49,
+  operator: 89,
+}
+
+const planCoins = {
+  starter: 100,
+  builder: 250,
+  operator: 500,
 }
 
 export async function POST(request: NextRequest) {
@@ -49,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!planPrices[plan as keyof typeof planPrices]) {
-      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid product' }, { status: 400 })
     }
 
     // Validate that the order was completed
@@ -61,21 +67,28 @@ export async function POST(request: NextRequest) {
     }
 
     const amount = planPrices[plan as keyof typeof planPrices]
+    const coinsToAdd = planCoins[plan as keyof typeof planCoins] ?? 0
 
-    // Update user plan and reset credits
+    // Get current coins_balance and add purchased coins
+    const { data: userRow } = await supabaseWithAuth
+      .from('users')
+      .select('coins_balance')
+      .eq('id', userId)
+      .single()
+
+    const currentCoins = Math.max(0, Number(userRow?.coins_balance) ?? 0)
+    const newCoinsBalance = currentCoins + coinsToAdd
+
+    // Update only coins_balance (no plan on user)
     const { error: userError } = await supabaseWithAuth
       .from('users')
-      .update({
-        plan,
-        daily_credits_used: 0,
-        last_credits_reset: new Date().toISOString().split('T')[0],
-      })
+      .update({ coins_balance: newCoinsBalance })
       .eq('id', userId)
 
     if (userError) {
-      console.error('Error updating user plan:', userError)
+      console.error('Error updating coins:', userError)
       return NextResponse.json(
-        { error: 'Failed to update user plan' },
+        { error: 'Failed to update coins' },
         { status: 500 }
       )
     }

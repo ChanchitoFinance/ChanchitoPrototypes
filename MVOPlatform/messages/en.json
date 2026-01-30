@@ -99,6 +99,11 @@
     "less_than_or_equal": "Less than or equal to"
   },
   "auth": {
+    "welcome_title": "Welcome to MVO",
+    "subtitle": "Sign in with Google to continue",
+    "signing_in": "Signing in...",
+    "continue_google": "Continue with Google",
+    "completing_sign_in": "Completing sign in...",
     "sign_in_required": "Sign In Required",
     "sign_in_with_google": "Sign In with Google",
     "sign_in_description": "Please sign in with your account to submit an idea.",
@@ -367,7 +372,8 @@
     "file_size_exceeds_limit": "File size exceeds 50MB limit",
     "upload_failed": "Upload failed",
     "max_tags_3": "Maximum 3 tags allowed",
-    "max_topics_2": "Maximum 2 topics allowed"
+    "max_topics_2": "Maximum 2 topics allowed",
+    "not_enough_coins": "You don't have enough coins for this action. Please upgrade to get more coins."
   },
   "form": {
     "create_idea": "Create Idea",
@@ -497,6 +503,17 @@
   "premium": {
     "title": "Upgrade to Premium",
     "description": "Unlock advanced features",
+    "get_more_coins_title": "Get more coins",
+    "get_more_coins_subtitle": "Run analysis. Spend coins to go deeper. Decide before you build.",
+    "get_coins_button": "Get {count} coins",
+    "sign_in_to_buy": "Sign in to buy coins",
+    "coins_no_expire": "Coins do not expire. Buy more anytime.",
+    "most_popular": "Most popular",
+    "coins_label": "coins",
+    "one_time": "one-time",
+    "secure_checkout_note": "Secure checkout • Instant coins",
+    "sign_in_to_continue": "Sign in to continue to checkout",
+    "billing_disclaimer": "Payments are processed securely. Coins are available immediately after purchase.",
     "features": {
       "title": "Premium Features",
       "invite_members": "Invite members by username or email",
@@ -507,6 +524,20 @@
       "description": "All premium features included"
     },
     "subscribe": "Subscribe Now"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "back": "Back",
+    "order_summary": "Order summary",
+    "total": "Total",
+    "payment_method": "Payment method",
+    "pay_with_paypal": "Complete your purchase securely with PayPal.",
+    "secure_processing": "Secure payment processing",
+    "coins_instant": "Coins added to your account immediately after payment.",
+    "invalid_title": "Invalid checkout",
+    "invalid_message": "Please select a coin package to continue.",
+    "get_more_coins": "Get more coins",
+    "coins_no_expire_note": "Coins do not expire. One-time purchase."
   },
   "admin": {
     "dashboard": {
@@ -602,59 +633,49 @@
     "dialog_title": "AI-Generated Comments",
     "question": "Would you like your idea to receive three AI-generated comments giving you feedback on your idea?",
     "explanation": "These comments provide diverse perspectives from AI personas to help validate and improve your idea before it goes public.",
-    "yes": "Yes (1 credit)",
+    "yes": "Yes (10 coins)",
     "no": "No",
-    "no_credits_title": "No Credits Available",
-    "no_credits_message": "You don't have credits right now. You can wait until tomorrow for your daily credits to reset, or upgrade your plan for more credits.",
-    "wait_or_upgrade": "Wait or Upgrade"
+    "no_credits_title": "No Coins Available",
+    "no_credits_message": "You don't have enough coins. Upgrade for more coins.",
+    "wait_or_upgrade": "Upgrade for more coins"
   },
   "credits": {
     "remaining": "Credits remaining",
-    "insufficient_title": "Insufficient Credits",
-    "insufficient_message": "You need credits to use this feature. Upgrade your plan to get more credits.",
-    "upgrade_plan": "Upgrade Plan",
-    "plan_free": "Free Plan",
-    "plan_pro": "Pro Plan",
-    "plan_premium": "Premium Plan",
-    "plan_innovator": "Innovator Plan",
+    "coins_remaining": "Coins remaining",
+    "coins_unit": "coins",
+    "loading": "Loading coins...",
+    "insufficient_title": "Insufficient coins",
+    "insufficient_message": "You need coins to use this feature. Get more coins to continue.",
+    "insufficient_coins_modal": "You need {cost} coins to use {feature}, but you only have {count} coins.",
+    "get_more_coins": "Get more coins",
     "confirmation_title": "Credit Confirmation",
-    "confirmation_message": "This will use {cost} credit(s) for {feature}. Do you want to continue?",
-    "cost_display": "{cost} credit(s)",
-    "last_credit_title": "Last Credit Warning",
-    "last_credit_message": "This is your last daily credit. After using it, you'll need to wait until tomorrow or upgrade your plan for more credits."
+    "confirmation_title_coins": "Coin confirmation",
+    "confirmation_message": "This will use {cost} coins for {feature}. Do you want to continue?",
+    "confirmation_message_coins": "This will use {cost} coins for {feature}. Do you want to continue?",
+    "cost_display": "{cost} coins",
+    "cost_display_coins": "{cost} coins",
+    "last_credit_title": "Last coin",
+    "last_credit_message": "This is your last coin. Get more coins to continue.",
+    "last_coin_title": "Last coin",
+    "last_coin_message": "This is your last coin. Get more coins to continue.",
+    "deduct_error": "Error deducting coins. Please try again.",
+    "deduct_success": "{cost} coins deducted successfully."
   },
   "plans": {
-    "free": {
-      "name": "Free",
-      "description": "Basic features with 3 daily credits",
-      "features": ["Basic AI features", "Community support"]
+    "starter": {
+      "name": "Starter",
+      "description": "100 coins",
+      "features": ["100 coins", "Run analysis", "Spend coins to go deeper"]
     },
-    "pro": {
-      "name": "Pro",
-      "description": "Advanced features with 50 daily credits",
-      "features": [
-        "Advanced AI features",
-        "Priority support",
-        "50 daily credits"
-      ]
+    "builder": {
+      "name": "Builder",
+      "description": "250 coins",
+      "features": ["250 coins", "Run analysis", "Spend coins to go deeper"]
     },
-    "premium": {
-      "name": "Premium",
-      "description": "All features with 250 daily credits",
-      "features": [
-        "All Pro features",
-        "250 daily credits",
-        "Advanced analytics"
-      ]
-    },
-    "innovator": {
-      "name": "Innovator",
-      "description": "Unlimited credits for innovators",
-      "features": [
-        "All Premium features",
-        "Unlimited credits",
-        "Team collaboration"
-      ]
+    "operator": {
+      "name": "Operator",
+      "description": "500 coins",
+      "features": ["500 coins", "Run analysis", "Spend coins to go deeper"]
     }
   },
   "payment": {

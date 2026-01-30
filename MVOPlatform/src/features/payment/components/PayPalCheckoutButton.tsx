@@ -14,15 +14,15 @@ declare global {
 }
 
 interface PayPalCheckoutButtonProps {
-  plan: 'pro' | 'premium' | 'innovator'
+  plan: 'starter' | 'builder' | 'operator'
   userId: string
   onSuccess?: () => void
 }
 
 const planPrices = {
-  pro: 5,
-  premium: 20,
-  innovator: 100,
+  starter: 19,
+  builder: 49,
+  operator: 89,
 }
 
 export function PayPalCheckoutButton({
@@ -71,7 +71,7 @@ export function PayPalCheckoutButton({
                     value: planPrices[plan].toFixed(2),
                     currency_code: 'USD',
                   },
-                  description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan Subscription`,
+                  description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} – coin package`,
                 },
               ],
             })

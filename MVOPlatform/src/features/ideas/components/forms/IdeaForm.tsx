@@ -34,6 +34,7 @@ import {
 import { AIRiskFeedback } from '../../../ai/components/AIRiskFeedback'
 import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
 import { deductCredits, loadUserCredits } from '@/core/lib/slices/creditsSlice'
+import { PERSONA_PANEL } from '@/core/constants/coinCosts'
 import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import { supabase } from '@/core/lib/supabase'
 import { ideaService } from '@/core/lib/services/ideaService'
@@ -106,10 +107,9 @@ export function IdeaForm({
   const importInputRef = useRef<HTMLInputElement>(null)
   const { profile, user } = useAppSelector(state => state.auth)
   const { isAuthenticated } = useAppSelector(state => state.auth)
-  const { plan, dailyCredits, usedCredits } = useAppSelector(
-    state => state.credits
-  )
+  const { coinsBalance } = useAppSelector(state => state.credits)
   const dispatch = useAppDispatch()
+  const aiCommentsCoinCost = PERSONA_PANEL
 
   // Load user credits when component mounts and user is authenticated
   useEffect(() => {
@@ -782,7 +782,7 @@ export function IdeaForm({
     // Deduct credits if AI comments are requested
     if (wantAIComments && user) {
       const hasEnoughCredits =
-        plan === 'innovator' || dailyCredits - usedCredits >= 1
+        coinsBalance >= aiCommentsCoinCost
       if (!hasEnoughCredits) {
         toast.error(t('ai_comments.no_credits_message'))
         setIsSubmitting(false)
@@ -791,7 +791,7 @@ export function IdeaForm({
       }
 
       try {
-        await dispatch(deductCredits({ userId: user.id, amount: 1 })).unwrap()
+        await dispatch(deductCredits({ userId: user.id, amount: aiCommentsCoinCost })).unwrap()
         // Reload credits to ensure UI is updated
         await dispatch(loadUserCredits(user.id))
       } catch (error) {
@@ -1678,10 +1678,10 @@ export function IdeaForm({
 
                   // Check credits
                   const hasEnoughCredits =
-                    plan === 'innovator' || dailyCredits - usedCredits >= 1
+                    coinsBalance >= aiCommentsCoinCost
                   if (!hasEnoughCredits) {
                     toast.error(
-                      'Insufficient credits. Upgrade your plan to continue using AI features.'
+                      'Insufficient coins. Get more coins to continue using AI features.'
                     )
                     return
                   }
@@ -1689,7 +1689,7 @@ export function IdeaForm({
                   // Deduct credits
                   try {
                     await dispatch(
-                      deductCredits({ userId: user.id, amount: 1 })
+                      deductCredits({ userId: user.id, amount: aiCommentsCoinCost })
                     ).unwrap()
                     // Now request the feedback
                     // This will be handled by the AIRiskFeedback component's internal requestFeedback
@@ -1778,10 +1778,10 @@ export function IdeaForm({
         onClose={() => setShowAICommentsDialog(false)}
         onConfirm={() => handleAICommentsChoice(true)}
         onNo={() => handleAICommentsChoice(false)}
-        creditCost={1}
+        creditCost={aiCommentsCoinCost}
         featureName={t('ai_comments.dialog_title')}
-        hasCredits={plan === 'innovator' || dailyCredits - usedCredits >= 1}
-        isLastCredit={dailyCredits - usedCredits === 1}
+        hasCredits={coinsBalance >= aiCommentsCoinCost}
+        isLastCredit={coinsBalance > 0 && coinsBalance <= aiCommentsCoinCost}
         showNoButton={true}
       />
     </div>

@@ -1,4 +1,6 @@
-INSERT INTO auth.users (id, email, email_confirmed_at, created_at, updated_at, raw_user_meta_data) VALUES
+-- Idempotent: skip auth.users that already exist (avoids duplicate key on re-run).
+INSERT INTO auth.users (id, email, email_confirmed_at, created_at, updated_at, raw_user_meta_data)
+VALUES
 ('550e8400-e29b-41d4-a716-446655440200', 'sarah.chen@example.com', NOW(), NOW(), NOW(), '{"full_name": "Sarah Chen", "username": "sarah_chen"}'),
 ('550e8400-e29b-41d4-a716-446655440201', 'michael.rodriguez@example.com', NOW(), NOW(), NOW(), '{"full_name": "Michael Rodriguez", "username": "michael_rodriguez"}'),
 ('550e8400-e29b-41d4-a716-446655440202', 'david.kim@example.com', NOW(), NOW(), NOW(), '{"full_name": "David Kim", "username": "david_kim"}'),
@@ -48,7 +50,67 @@ INSERT INTO auth.users (id, email, email_confirmed_at, created_at, updated_at, r
 ('550e8400-e29b-41d4-a716-446655440246', 'aqua.tech@example.com', NOW(), NOW(), NOW(), '{"full_name": "AquaTech", "username": "aqua_tech"}'),
 ('550e8400-e29b-41d4-a716-446655440247', 'art.ai@example.com', NOW(), NOW(), NOW(), '{"full_name": "ArtAI", "username": "art_ai"}'),
 ('550e8400-e29b-41d4-a716-446655440248', 'pet.tech@example.com', NOW(), NOW(), NOW(), '{"full_name": "PetTech", "username": "pet_tech"}'),
-('550e8400-e29b-41d4-a716-446655440249', 'med.ai@example.com', NOW(), NOW(), NOW(), '{"full_name": "MedAI", "username": "med_ai"}');
+('550e8400-e29b-41d4-a716-446655440249', 'med.ai@example.com', NOW(), NOW(), NOW(), '{"full_name": "MedAI", "username": "med_ai"}')
+ON CONFLICT (id) DO NOTHING;
+
+-- Sync public.users (schema: id, email, full_name, role, username, profile_media_id, coins_balance). Idempotent upsert.
+INSERT INTO public.users (id, email, full_name, role, username, profile_media_id, coins_balance)
+VALUES
+('550e8400-e29b-41d4-a716-446655440200', 'sarah.chen@example.com', 'Sarah Chen', 'user', 'sarah_chen', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440201', 'michael.rodriguez@example.com', 'Michael Rodriguez', 'user', 'michael_rodriguez', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440202', 'david.kim@example.com', 'David Kim', 'user', 'david_kim', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440203', 'daniel.anderson@example.com', 'Daniel Anderson', 'user', 'daniel_anderson', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440204', 'kevin.moore@example.com', 'Kevin Moore', 'user', 'kevin_moore', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440205', 'jessica.park@example.com', 'Jessica Park', 'user', 'jessica_park', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440206', 'carlos.mendez@example.com', 'Carlos Mendez', 'user', 'carlos_mendez', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440207', 'priya.sharma@example.com', 'Priya Sharma', 'user', 'priya_sharma', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440208', 'tom.wilson@example.com', 'Tom Wilson', 'user', 'tom_wilson', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440209', 'alex.chen@example.com', 'Alex Chen', 'user', 'alex_chen', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440210', 'emily.johnson@example.com', 'Emily Johnson', 'user', 'emily_johnson', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440211', 'james.wilson@example.com', 'James Wilson', 'user', 'james_wilson', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440212', 'chris.martinez@example.com', 'Chris Martinez', 'user', 'chris_martinez', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440213', 'alex.thompson@example.com', 'Alex Thompson', 'user', 'alex_thompson', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440214', 'jennifer.lee@example.com', 'Jennifer Lee', 'user', 'jennifer_lee', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440215', 'ryan.lewis@example.com', 'Ryan Lewis', 'user', 'ryan_lewis', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440216', 'brian.king@example.com', 'Brian King', 'user', 'brian_king', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440217', 'lisa.wang@example.com', 'Lisa Wang', 'user', 'lisa_wang', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440218', 'maria.garcia@example.com', 'Maria Garcia', 'user', 'maria_garcia', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440219', 'robert.taylor@example.com', 'Robert Taylor', 'user', 'robert_taylor', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440220', 'sam.lee@example.com', 'Sam Lee', 'user', 'sam_lee', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440221', 'elena.volkov@example.com', 'Dr. Elena Volkov', 'user', 'elena_volkov', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440222', 'raj.patel@example.com', 'Raj Patel', 'user', 'raj_patel', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440223', 'sophie.martin@example.com', 'Sophie Martin', 'user', 'sophie_martin', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440224', 'marcus.johnson@example.com', 'Marcus Johnson', 'user', 'marcus_johnson', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440225', 'yuki.tanaka@example.com', 'Yuki Tanaka', 'user', 'yuki_tanaka', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440226', 'emma.green@example.com', 'Emma Green', 'user', 'emma_green', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440227', 'david.kim2@example.com', 'David Kim', 'user', 'david_kim2', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440228', 'lucas.rivera@example.com', 'Lucas Rivera', 'user', 'lucas_rivera', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440229', 'isabella.rossi@example.com', 'Isabella Rossi', 'user', 'isabella_rossi', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440230', 'marco.chef@example.com', 'Chef Marco', 'user', 'marco_chef', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440231', 'sarah.chen2@example.com', 'Dr. Sarah Chen', 'user', 'sarah_chen2', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440232', 'ana.silva@example.com', 'Ana Silva', 'user', 'ana_silva', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440233', 'james.attorney@example.com', 'Attorney James', 'user', 'james_attorney', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440234', 'green.energy@example.com', 'Green Energy Co', 'user', 'green_energy', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440235', 'edutech.solutions@example.com', 'EduTech Solutions', 'user', 'edutech_solutions', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440236', 'garden.tech@example.com', 'Garden Tech', 'user', 'garden_tech', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440237', 'dr.wellness@example.com', 'Dr. Wellness', 'user', 'dr_wellness', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440238', 'chef.ai@example.com', 'Chef AI', 'user', 'chef_ai', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440239', 'secure.id@example.com', 'SecureID Inc', 'user', 'secure_id', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440240', 'ecosort@example.com', 'EcoSort', 'user', 'ecosort', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440241', 'ar.shop@example.com', 'AR Shop', 'user', 'ar_shop', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440242', 'finance.ai@example.com', 'FinanceAI', 'user', 'finance_ai', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440243', 'secure.home@example.com', 'SecureHome', 'user', 'secure_home', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440244', 'holotech@example.com', 'HoloTech', 'user', 'holotech', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440245', 'career.ai@example.com', 'CareerAI', 'user', 'career_ai', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440246', 'aqua.tech@example.com', 'AquaTech', 'user', 'aqua_tech', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440247', 'art.ai@example.com', 'ArtAI', 'user', 'art_ai', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440248', 'pet.tech@example.com', 'PetTech', 'user', 'pet_tech', NULL, 100),
+('550e8400-e29b-41d4-a716-446655440249', 'med.ai@example.com', 'MedAI', 'user', 'med_ai', NULL, 100)
+ON CONFLICT (id) DO UPDATE SET
+  email = EXCLUDED.email,
+  full_name = EXCLUDED.full_name,
+  username = EXCLUDED.username,
+  updated_at = NOW();
 
 INSERT INTO media_assets (id, type, url) VALUES
 ('550e8400-e29b-41d4-a716-446655440320', 'image', 'https://i.pinimg.com/736x/c5/25/79/c52579ef24e8579758053164837b33d2.jpg'),

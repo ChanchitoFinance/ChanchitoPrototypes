@@ -4,47 +4,49 @@ import Link from 'next/link'
 import { Button } from '@/shared/components/ui/Button'
 import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
+import { useLocale } from '@/shared/components/providers/I18nProvider'
 
 const plans = [
   {
     name: 'Free',
     price: '$0',
-    description: 'Get started with basic AI features',
-    features: ['3 daily credits', 'Basic AI features', 'Community support'],
+    description: '100 free coins on signup. Run analysis. Decide before you build.',
+    features: [
+      '100 coins on signup',
+      'Run analysis',
+      'Spend coins to go deeper',
+    ],
     cta: 'Get Started',
     popular: false,
   },
   {
-    name: 'Pro',
-    price: '$5',
-    description: 'Advanced features for growing businesses',
-    features: ['50 daily credits', 'Advanced AI features', 'Priority support'],
-    cta: 'Subscribe',
+    name: 'Starter',
+    price: '$19',
+    description: 'First serious test. One additional full idea or deeper iteration.',
+    features: ['100 coins', 'Run analysis', 'Spend coins to go deeper'],
+    cta: 'Get Starter',
     popular: true,
   },
   {
-    name: 'Premium',
-    price: '$20',
-    description: 'Maximum productivity with premium features',
-    features: ['250 daily credits', 'All Pro features', 'Advanced analytics'],
-    cta: 'Subscribe',
+    name: 'Builder',
+    price: '$49',
+    description: 'Active exploration. 2–4 ideas or deep iteration on 1–2.',
+    features: ['250 coins', 'Run analysis', 'Spend coins to go deeper'],
+    cta: 'Get Builder',
     popular: false,
   },
   {
-    name: 'Innovator',
-    price: '$100',
-    description: 'Unlimited access for innovation teams',
-    features: [
-      'Unlimited credits',
-      'All Premium features',
-      'Team collaboration',
-    ],
-    cta: 'Subscribe',
+    name: 'Operator',
+    price: '$89',
+    description: 'Portfolio thinking, comparisons, advisory work.',
+    features: ['500 coins', 'Run analysis', 'Spend coins to go deeper'],
+    cta: 'Get Operator',
     popular: false,
   },
 ]
 
 export function Pricing() {
+  const { locale } = useLocale()
   return (
     <section className="bg-background py-24">
       <div className="max-w-7xl mx-auto px-6">
@@ -57,7 +59,7 @@ export function Pricing() {
         >
           <h2 className="text-heading-1 mb-4">Pricing</h2>
           <p className="text-body-large max-w-2xl mx-auto">
-            Choose the plan that fits your needs
+            Run analysis. Spend coins to go deeper. Decide before you build.
           </p>
         </motion.div>
 
@@ -85,9 +87,6 @@ export function Pricing() {
               </div>
               <div className="text-4xl font-semibold text-text-primary mb-2">
                 {plan.price}
-                {plan.price !== '$0' && (
-                  <span className="text-lg text-text-secondary">/mo</span>
-                )}
               </div>
               <p className="text-sm text-text-secondary mb-6">
                 {plan.description}
@@ -103,7 +102,7 @@ export function Pricing() {
                 ))}
               </ul>
               <div className="mt-auto">
-                <Link href="/en/premium" className="block">
+                <Link href={`/${locale}/premium`} className="block">
                   <Button
                     variant={plan.popular ? 'primary' : 'outline'}
                     className="w-full"
