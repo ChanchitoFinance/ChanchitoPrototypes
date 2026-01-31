@@ -411,11 +411,13 @@ export function AIDeepResearch({
                   if (activeTab !== 'market_snapshot') {
                     e.currentTarget.style.backgroundColor =
                       'var(--hover-accent)'
+                    e.currentTarget.style.color = 'var(--white)'
                   }
                 }}
                 onMouseLeave={e => {
                   if (activeTab !== 'market_snapshot') {
                     e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                    e.currentTarget.style.color = 'var(--text-secondary)'
                   }
                 }}
               >
@@ -443,11 +445,13 @@ export function AIDeepResearch({
                   if (activeTab !== 'behavioral_hypotheses') {
                     e.currentTarget.style.backgroundColor =
                       'var(--hover-accent)'
+                    e.currentTarget.style.color = 'var(--white)'
                   }
                 }}
                 onMouseLeave={e => {
                   if (activeTab !== 'behavioral_hypotheses') {
                     e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                    e.currentTarget.style.color = 'var(--text-secondary)'
                   }
                 }}
               >
@@ -475,11 +479,13 @@ export function AIDeepResearch({
                   if (activeTab !== 'market_signals') {
                     e.currentTarget.style.backgroundColor =
                       'var(--hover-accent)'
+                    e.currentTarget.style.color = 'var(--white)'
                   }
                 }}
                 onMouseLeave={e => {
                   if (activeTab !== 'market_signals') {
                     e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                    e.currentTarget.style.color = 'var(--text-secondary)'
                   }
                 }}
               >
@@ -507,11 +513,13 @@ export function AIDeepResearch({
                   if (activeTab !== 'conflicts_gaps') {
                     e.currentTarget.style.backgroundColor =
                       'var(--hover-accent)'
+                    e.currentTarget.style.color = 'var(--white)'
                   }
                 }}
                 onMouseLeave={e => {
                   if (activeTab !== 'conflicts_gaps') {
                     e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                    e.currentTarget.style.color = 'var(--text-secondary)'
                   }
                 }}
               >
@@ -539,11 +547,13 @@ export function AIDeepResearch({
                   if (activeTab !== 'synthesis') {
                     e.currentTarget.style.backgroundColor =
                       'var(--hover-accent)'
+                    e.currentTarget.style.color = 'var(--white)'
                   }
                 }}
                 onMouseLeave={e => {
                   if (activeTab !== 'synthesis') {
                     e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                    e.currentTarget.style.color = 'var(--text-secondary)'
                   }
                 }}
               >
@@ -605,10 +615,12 @@ export function AIDeepResearch({
                       if (currentVersion !== 1) {
                         e.currentTarget.style.backgroundColor =
                           'var(--hover-accent)'
+                        e.currentTarget.style.color = 'var(--white)'
                       }
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                      e.currentTarget.style.color = 'var(--text-secondary)'
                     }}
                   >
                     {t('ai_deep_research.previous')}
@@ -628,10 +640,12 @@ export function AIDeepResearch({
                       if (currentVersion !== totalVersions) {
                         e.currentTarget.style.backgroundColor =
                           'var(--hover-accent)'
+                        e.currentTarget.style.color = 'var(--white)'
                       }
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.backgroundColor = 'var(--gray-100)'
+                      e.currentTarget.style.color = 'var(--text-secondary)'
                     }}
                   >
                     {t('ai_deep_research.next')}

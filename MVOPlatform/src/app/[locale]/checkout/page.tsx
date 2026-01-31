@@ -79,9 +79,23 @@ function CheckoutContent() {
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
-          <button
+        <button
+            type="button"
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-text-secondary hover:text-text-primary font-medium"
+            className="flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all"
+            style={{
+              backgroundColor: 'var(--primary-accent)',
+              color: 'var(--white)',
+              border: '2px solid transparent',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+              e.currentTarget.style.color = 'var(--white)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.backgroundColor = 'var(--primary-accent)'
+              e.currentTarget.style.color = 'var(--white)'
+            }}
           >
             <ArrowLeft className="w-5 h-5" />
             {t('checkout.back')}
