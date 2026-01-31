@@ -1070,6 +1070,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         )
         .eq('creator_id', user.id)
+        .eq('is_active_version', true)
         .order('created_at', { ascending: false })
         .range(offset, limit ? offset + limit - 1 : undefined)
 
@@ -1123,9 +1124,10 @@ class SupabaseIdeaService implements IIdeaService {
         comments!left (
           id
         )
-      `
+        `
       )
       .eq('creator_id', user.id)
+      .eq('is_active_version', true)
       .order('created_at', { ascending: false })
 
     if (error) throw error

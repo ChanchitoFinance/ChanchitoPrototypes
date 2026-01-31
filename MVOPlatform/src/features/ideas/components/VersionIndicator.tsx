@@ -70,7 +70,7 @@ export function VersionIndicator({
       )}
       {totalVersions && totalVersions > 1 && (
         <span className="text-gray-500 dark:text-gray-500">
-          / {totalVersions}
+          /{totalVersions}
         </span>
       )}
     </div>

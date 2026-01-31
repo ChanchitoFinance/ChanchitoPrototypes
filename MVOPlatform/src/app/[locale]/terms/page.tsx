@@ -257,7 +257,57 @@ export default function TermsPage() {
             </div>
           </section>
 
-          {/* 9. Transparency */}
+          {/* 9. Administrator Actions */}
+          <section className="space-y-4">
+            <h2 className="text-2xl font-semibold text-text-primary">
+              {t('terms.admin_actions.title')}
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium text-text-primary mb-2">
+                  {t('terms.admin_actions.discretion_title')}
+                </h3>
+                <p className="text-text-secondary leading-relaxed">
+                  {t('terms.admin_actions.discretion_content')}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-text-primary mb-2">
+                  {t('terms.admin_actions.enforcement_title')}
+                </h3>
+                <p className="text-text-secondary leading-relaxed">
+                  {t('terms.admin_actions.enforcement_content')}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 10. Prohibited Content */}
+          <section className="space-y-4">
+            <h2 className="text-2xl font-semibold text-text-primary">
+              {t('terms.prohibited_content.title')}
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium text-text-primary mb-2">
+                  {t('terms.prohibited_content.forbidden_title')}
+                </h3>
+                <p className="text-text-secondary leading-relaxed">
+                  {t('terms.prohibited_content.forbidden_content')}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-text-primary mb-2">
+                  {t('terms.prohibited_content.monitoring_title')}
+                </h3>
+                <p className="text-text-secondary leading-relaxed">
+                  {t('terms.prohibited_content.monitoring_content')}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 11. Transparency */}
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold text-text-primary">
               {t('terms.transparency.title')}
@@ -282,7 +332,7 @@ export default function TermsPage() {
             </div>
           </section>
 
-          {/* 10. Liability */}
+          {/* 12. Liability */}
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold text-text-primary">
               {t('terms.liability.title')}

@@ -138,11 +138,12 @@ export function getCardMedia(idea: {
   image?: string
   content?: ContentBlock[]
 }): IdeaMedia {
-  const contentMedia = getIdeaMedia(idea.content)
-
-  // Prioritize hero media, fallback to content media
-  return {
-    video: idea.video || contentMedia.video,
-    image: idea.image || contentMedia.image,
+  // Prioritize hero media, only get content media if needed
+  if (idea.video) {
+    return { video: idea.video }
   }
+  if (idea.image) {
+    return { image: idea.image }
+  }
+  return getIdeaMedia(idea.content)
 }
