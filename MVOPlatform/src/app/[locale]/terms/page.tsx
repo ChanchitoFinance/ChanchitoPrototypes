@@ -10,19 +10,6 @@ export default function TermsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border-color bg-background sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>{t('actions.back')}</span>
-          </button>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Title */}
@@ -51,11 +38,15 @@ export default function TermsPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary-accent mt-1">•</span>
-              <span>{t('terms.general_provisions.no_originality_guarantee')}</span>
+              <span>
+                {t('terms.general_provisions.no_originality_guarantee')}
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary-accent mt-1">•</span>
-              <span>{t('terms.general_provisions.publishing_responsibility')}</span>
+              <span>
+                {t('terms.general_provisions.publishing_responsibility')}
+              </span>
             </li>
           </ul>
         </section>
