@@ -273,7 +273,7 @@ export function MarketSignalsSection({ signals }: MarketSignalsSectionProps) {
                           className="text-xs pl-3"
                           style={{ color: 'var(--text-secondary)', borderLeft: '2px solid var(--primary-accent)' }}
                         >
-                          {snippet}
+                          <MarkdownRenderer content={snippet} className="text-xs" />
                         </li>
                       ))}
                     </ul>

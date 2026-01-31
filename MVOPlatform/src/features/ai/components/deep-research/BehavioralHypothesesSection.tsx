@@ -259,10 +259,10 @@ export function BehavioralHypothesesSection({
                                   {source.title}
                                 </a>
                                 {source.snippet && (
-                                  <p className="mt-1 text-xs flex items-start gap-1" style={{ color: 'var(--text-secondary)' }}>
+                                  <div className="mt-1 text-xs flex items-start gap-1" style={{ color: 'var(--text-secondary)' }}>
                                     <Quote className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                                    {source.snippet}
-                                  </p>
+                                    <MarkdownRenderer content={source.snippet} className="text-xs !mb-0" />
+                                  </div>
                                 )}
                                 <span
                                   className="inline-block mt-1 px-1.5 py-0.5 text-[10px] rounded"

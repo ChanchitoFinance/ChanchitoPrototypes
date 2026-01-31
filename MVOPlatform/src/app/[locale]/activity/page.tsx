@@ -73,13 +73,26 @@ export default function ActivityPage() {
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="mb-8">
               <div className="flex items-center gap-4 mb-6">
-                <Button
-                  variant="outline"
+              <button
+                  type="button"
                   onClick={() => router.back()}
-                  className="p-2"
+                  className="flex items-center justify-center p-2 rounded-md font-medium transition-all"
+                  style={{
+                    backgroundColor: 'var(--primary-accent)',
+                    color: 'var(--white)',
+                    border: '2px solid transparent',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                    e.currentTarget.style.color = 'var(--white)'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.backgroundColor = 'var(--primary-accent)'
+                    e.currentTarget.style.color = 'var(--white)'
+                  }}
                 >
                   <ArrowLeft className="w-4 h-4" />
-                </Button>
+                </button>
                 <div>
                   <h1 className="text-3xl font-bold text-text-primary">
                     {t('activity.title')}
@@ -733,13 +746,26 @@ export default function ActivityPage() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="mb-8">
             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-6">
-              <Button
-                variant="outline"
+            <button
+                type="button"
                 onClick={() => router.back()}
-                className="p-2 self-start"
+                className="flex items-center justify-center p-2 rounded-md font-medium transition-all self-start"
+                style={{
+                  backgroundColor: 'var(--primary-accent)',
+                  color: 'var(--white)',
+                  border: '2px solid transparent',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                  e.currentTarget.style.color = 'var(--white)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.backgroundColor = 'var(--primary-accent)'
+                  e.currentTarget.style.color = 'var(--white)'
+                }}
               >
                 <ArrowLeft className="w-4 h-4" />
-              </Button>
+              </button>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-text-primary">
                   {t('activity.title')}

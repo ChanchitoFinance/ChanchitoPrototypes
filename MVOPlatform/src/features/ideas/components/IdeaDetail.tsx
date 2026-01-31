@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { User, Calendar, ArrowLeft } from 'lucide-react'
+import { User, Calendar, ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { formatDate } from '@/core/lib/utils/date'
@@ -55,12 +55,14 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   const [versionGroup, setVersionGroup] = useState<IdeaVersionGroup | null>(
     null
   )
+  const [scrollArrowDirection, setScrollArrowDirection] = useState<'up' | 'down' | null>(null)
   const dispatch = useAppDispatch()
   const { currentIdea, userVotes, isVoting } = useAppSelector(
     state => state.ideas
   )
   const containerRef = useRef<HTMLDivElement>(null)
   const commentsSectionRef = useRef<HTMLDivElement>(null)
+  const mainContentRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const { isAuthenticated, user } = useAppSelector(state => state.auth)
 
@@ -264,6 +266,80 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     router.push(`/${locale}/edit/${versionId}`)
   }
 
+  // Scroll detection for showing/hiding arrows
+    // Scroll direction detection: show only up or down arrow based on scroll direction; hide after 2s idle or on click
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const lastScrollYRef = useRef<number>(0)
+  
+    const handleScroll = useCallback(() => {
+      const main = document.querySelector('main')
+      const scrollTop = main ? main.scrollTop : window.scrollY
+      const lastY = lastScrollYRef.current
+      const delta = scrollTop - lastY
+      lastScrollYRef.current = scrollTop
+  
+      // Minimum movement to decide direction (avoid jitter)
+      if (delta > 8) {
+        setScrollArrowDirection('down')
+      } else if (delta < -8) {
+        setScrollArrowDirection('up')
+      }
+  
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+      scrollTimeoutRef.current = setTimeout(() => {
+        setScrollArrowDirection(null)
+      }, 2000)
+    }, [])
+  
+    useEffect(() => {
+      const main = document.querySelector('main')
+      if (!main) return
+      lastScrollYRef.current = main.scrollTop
+      main.addEventListener('scroll', handleScroll, { passive: true })
+      return () => {
+        main.removeEventListener('scroll', handleScroll)
+        if (scrollTimeoutRef.current) {
+          clearTimeout(scrollTimeoutRef.current)
+        }
+      }
+    }, [handleScroll])
+
+    const scrollToTop = (e: React.MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setScrollArrowDirection(null)
+      requestAnimationFrame(() => {
+      const main = document.querySelector('main')
+      if (main) {
+        main.scrollTo({ top: 0, behavior: 'smooth' })
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    })
+  }
+
+  const scrollToBottom = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setScrollArrowDirection(null)
+    requestAnimationFrame(() => {
+      const main = document.querySelector('main')
+      if (main) {
+        main.scrollTo({
+          top: main.scrollHeight - main.clientHeight,
+          behavior: 'smooth',
+        })
+      } else {
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: 'smooth',
+        })
+      }
+    })
+  }
+
   // Use the original 'idea' state for ownership check, not 'ideaData'
   // because ideaData may come from Redux currentIdea which doesn't include creatorEmail after voting
   const isOwner =
@@ -287,20 +363,99 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     <div className="bg-background relative">
       {/* Back Button - Top Left, next to sidebar - fixed on scroll - Hidden on mobile */}
       <div className="fixed top-4 left-4 md:left-[272px] z-50 hidden md:block">
-        <Button
+        <button
+          type="button"
           onClick={handleBack}
-          variant="outline"
-          className="
-            !text-gray-400
-            !border-gray-400
-            px-3 py-2 md:px-4 md:py-2
-            backdrop-blur
-          "
+          className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 rounded-md font-medium transition-all backdrop-blur"
+          style={{
+            backgroundColor: 'var(--primary-accent)',
+            color: 'var(--white)',
+            border: '2px solid transparent',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+            e.currentTarget.style.color = 'var(--white)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.backgroundColor = 'var(--primary-accent)'
+            e.currentTarget.style.color = 'var(--white)'
+          }}
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden sm:inline ml-2">{t('actions.back')}</span>
-        </Button>
+        </button>
       </div>
+
+            {/* Scroll Arrows - only the arrow for current scroll direction; hide after click or 2s idle */}
+            <motion.div
+        initial={false}
+        animate={{
+          opacity: scrollArrowDirection ? 1 : 0,
+          x: scrollArrowDirection ? 0 : 20,
+        }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="fixed right-3 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3 sm:gap-4 pointer-events-none"
+        style={{ pointerEvents: scrollArrowDirection ? 'auto' : 'none' }}
+      >
+        {scrollArrowDirection === 'up' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+          >
+            <button
+              type="button"
+              onClick={scrollToTop}
+              className="flex items-center justify-center rounded-full transition-all backdrop-blur shadow-lg hover:shadow-xl touch-manipulation p-4 sm:p-3 md:p-4"
+              style={{
+                backgroundColor: 'var(--primary-accent)',
+                color: 'var(--white)',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                e.currentTarget.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = 'var(--primary-accent)'
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+              title={t('actions.scroll_to_top')}
+            >
+              <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+            </button>
+          </motion.div>
+        )}
+        {scrollArrowDirection === 'down' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+          >
+            <button
+              type="button"
+              onClick={scrollToBottom}
+              className="flex items-center justify-center rounded-full transition-all backdrop-blur shadow-lg hover:shadow-xl touch-manipulation p-4 sm:p-3 md:p-4"
+              style={{
+                backgroundColor: 'var(--primary-accent)',
+                color: 'var(--white)',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = 'var(--hover-accent)'
+                e.currentTarget.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = 'var(--primary-accent)'
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+              title={t('actions.scroll_to_bottom')}
+            >
+              <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+            </button>
+          </motion.div>
+        )}
+      </motion.div>
 
       {/* Hero Section - Main content at the top */}
       <div className="relative w-full bg-black">
