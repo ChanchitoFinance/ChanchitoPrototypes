@@ -12,25 +12,27 @@ import Link from 'next/link'
 
 interface TermsAcceptanceModalProps {
   isOpen: boolean
-  onClose: () => void
+  onClose?: () => void // Make optional since we removed cancel button
   onAccept: () => void
+  userEmail?: string // New optional property for user email
 }
 
 export function TermsAcceptanceModal({
   isOpen,
   onClose,
   onAccept,
+  userEmail,
 }: TermsAcceptanceModalProps) {
   const t = useTranslations()
   const { locale } = useLocale()
   const [isAccepted, setIsAccepted] = useState(false)
   const [showError, setShowError] = useState(false)
 
-  // Handle ESC key
+  // Prevent closing with ESC key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        onClose()
+        e.preventDefault()
       }
     }
 
@@ -44,7 +46,7 @@ export function TermsAcceptanceModal({
       document.removeEventListener('keydown', handleEscape)
       document.body.style.overflow = 'unset'
     }
-  }, [isOpen, onClose])
+  }, [isOpen])
 
   // Reset state when modal opens
   useEffect(() => {
@@ -78,7 +80,6 @@ export function TermsAcceptanceModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
           />
 
@@ -97,13 +98,6 @@ export function TermsAcceptanceModal({
                 <h3 className="text-lg sm:text-xl font-semibold text-text-primary">
                   {t('terms.modal_title')}
                 </h3>
-                <button
-                  onClick={onClose}
-                  className="text-text-secondary hover:text-text-primary transition-colors"
-                  aria-label="Close"
-                >
-                  <X className="w-5 h-5" />
-                </button>
               </div>
 
               {/* Content */}
@@ -172,14 +166,6 @@ export function TermsAcceptanceModal({
               {/* Actions */}
               <div className="p-4 sm:p-6 border-t border-border-color bg-gray-50 sm:bg-transparent">
                 <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
-                  <Button
-                    onClick={onClose}
-                    variant="outline"
-                    size="sm"
-                    className="w-full sm:w-auto"
-                  >
-                    {t('actions.cancel')}
-                  </Button>
                   <Button
                     onClick={handleContinue}
                     variant="primary"

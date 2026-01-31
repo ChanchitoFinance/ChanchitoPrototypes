@@ -60,9 +60,10 @@ BEGIN
             i.tags,
             (SELECT jsonb_build_object('username', pup.username, 'full_name', pup.full_name)
              FROM public_user_profiles pup WHERE pup.id = i.creator_id) AS creator
-        FROM ideas i
-        WHERE 1=1
-            AND (search_query IS NULL OR search_query = '' OR (
+         FROM ideas i
+         WHERE 1=1
+             AND i.is_active_version = TRUE
+             AND (search_query IS NULL OR search_query = '' OR (
                 i.title ILIKE '%' || search_query || '%' OR 
                 i.content->>'description' ILIKE '%' || search_query || '%' OR
                 EXISTS (SELECT 1 FROM jsonb_array_elements_text(i.tags) AS tag WHERE tag ILIKE '%' || search_query || '%')

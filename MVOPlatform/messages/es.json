@@ -111,17 +111,15 @@
     "sign_in_to_vote": "Por favor inicia sesión para votar",
     "sign_in_to_comment": "Por favor inicia sesión para comentar",
     "sign_in_required_alert": "Necesitas iniciar sesión para enviar tu idea. Tu idea ha sido guardada como borrador y estará disponible después de iniciar sesión.",
-    "welcome_title": "Bienvenido a MVO",
     "welcome_subtitle": "Inicia sesión con Google para continuar",
-    "continue_with_google": "Continuar con Google",
-    "signing_in": "Iniciando sesión..."
+    "continue_with_google": "Continuar con Google"
   },
   "terms": {
     "modal_title": "Términos y Condiciones",
     "modal_summary": "Al marcar esta casilla, aceptas que:\n\n(1) Tú eres responsable de lo que publicas y de tener derechos para publicarlo.\n\n(2) Conservas la propiedad de tu contenido pero nos otorgas una licencia para alojarlo y mostrarlo.\n\n(3) Entiendes que el contenido público puede ser visto por otros.\n\n(4) Aceptas nuestras reglas de la comunidad, política de reportes y sistema de moderación.",
     "read_full_terms": "Leer Términos y Condiciones completos",
     "accept_checkbox": "He leído y acepto los Términos y Condiciones",
-    "continue_button": "Continuar con Google",
+    "continue_button": "Continuar",
     "must_accept": "Debes aceptar los Términos y Condiciones para continuar",
     "page_title": "Términos, Reglas de la Comunidad y Política de Reportes",
     "last_updated": "Última Actualización: 30 de enero de 2026",
@@ -761,17 +759,29 @@
     "starter": {
       "name": "Starter",
       "description": "100 monedas",
-      "features": ["100 monedas", "Ejecutar análisis", "Gasta monedas para profundizar"]
+      "features": [
+        "100 monedas",
+        "Ejecutar análisis",
+        "Gasta monedas para profundizar"
+      ]
     },
     "builder": {
       "name": "Builder",
       "description": "250 monedas",
-      "features": ["250 monedas", "Ejecutar análisis", "Gasta monedas para profundizar"]
+      "features": [
+        "250 monedas",
+        "Ejecutar análisis",
+        "Gasta monedas para profundizar"
+      ]
     },
     "operator": {
       "name": "Operator",
       "description": "500 monedas",
-      "features": ["500 monedas", "Ejecutar análisis", "Gasta monedas para profundizar"]
+      "features": [
+        "500 monedas",
+        "Ejecutar análisis",
+        "Gasta monedas para profundizar"
+      ]
     }
   },
   "payment": {

@@ -18,20 +18,35 @@ export function LandingPage() {
   const pathname = usePathname()
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { isAuthenticated } = useAppSelector(state => state.auth)
+  const { isAuthenticated, user } = useAppSelector(state => state.auth)
   const currentLocale = pathname.startsWith('/es') ? 'es' : 'en'
   const [showTermsModal, setShowTermsModal] = useState(false)
 
-  // Redirect authenticated users to home page
+  // Check if terms are accepted after user is authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push(`/${currentLocale}/home`)
+    if (isAuthenticated && user?.email) {
+      const hasAcceptedTerms =
+        localStorage.getItem(`${user.email}_termsAccepted`) === 'true'
+      if (!hasAcceptedTerms) {
+        setShowTermsModal(true)
+      } else {
+        router.push(`/${currentLocale}/home`)
+      }
     }
-  }, [isAuthenticated, currentLocale, router])
+  }, [isAuthenticated, user, currentLocale, router])
+
+  const handleSignInClick = () => {
+    // Directly sign in without checking terms first
+    dispatch(signInWithGoogle())
+  }
 
   const handleTermsAccepted = () => {
     setShowTermsModal(false)
-    dispatch(signInWithGoogle())
+    // Store terms acceptance in localStorage for the current user
+    if (user?.email) {
+      const key = `${user.email}_termsAccepted`
+      localStorage.setItem(key, 'true')
+    }
   }
 
   return (
@@ -53,7 +68,7 @@ export function LandingPage() {
                 Home
               </Link>
               <button
-                onClick={() => setShowTermsModal(true)}
+                onClick={handleSignInClick}
                 className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
               >
                 Sign In
@@ -75,6 +90,7 @@ export function LandingPage() {
         isOpen={showTermsModal}
         onClose={() => setShowTermsModal(false)}
         onAccept={handleTermsAccepted}
+        userEmail={user?.email}
       />
     </>
   )

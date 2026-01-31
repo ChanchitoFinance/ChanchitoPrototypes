@@ -126,6 +126,18 @@ export const checkAuth = createAsyncThunk(
   }
 )
 
+// Helper function to check if terms are accepted for a specific email
+export const hasUserAcceptedTerms = (email: string): boolean => {
+  const key = `${email}_termsAccepted`
+  return localStorage.getItem(key) === 'true'
+}
+
+// Helper function to mark terms as accepted for a specific email
+export const setUserAcceptedTerms = (email: string): void => {
+  const key = `${email}_termsAccepted`
+  localStorage.setItem(key, 'true')
+}
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,

@@ -62,6 +62,17 @@ export function Sidebar({
   const { getUnreadCount } = useNotifications()
   const hasUnreadNotifications = getUnreadCount() > 0
 
+  // Check if terms are accepted after user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && user?.email) {
+      const hasAcceptedTerms =
+        localStorage.getItem(`${user.email}_termsAccepted`) === 'true'
+      if (!hasAcceptedTerms) {
+        setShowTermsModal(true)
+      }
+    }
+  }, [isAuthenticated, user])
+
   // Check if we're on a detail page that needs fixed sidebar
   const isDetailPage = pathname?.startsWith('/ideas/') && pathname !== '/ideas'
 
@@ -226,9 +237,18 @@ export function Sidebar({
     return null
   }
 
+  const handleSignInClick = () => {
+    // Directly sign in without checking terms first
+    dispatch(signInWithGoogle())
+  }
+
   const handleTermsAccepted = () => {
     setShowTermsModal(false)
-    dispatch(signInWithGoogle())
+    // Store terms acceptance in localStorage for the current user
+    if (user?.email) {
+      const key = `${user.email}_termsAccepted`
+      localStorage.setItem(key, 'true')
+    }
   }
 
   return (
@@ -237,6 +257,7 @@ export function Sidebar({
         isOpen={showTermsModal}
         onClose={() => setShowTermsModal(false)}
         onAccept={handleTermsAccepted}
+        userEmail={user?.email}
       />
       <aside
         className={`flex-shrink-0 ${
@@ -398,7 +419,7 @@ export function Sidebar({
               ) : (
                 <button
                   onClick={() => {
-                    setShowTermsModal(true)
+                    handleSignInClick()
                     setIsMobileOpen(false)
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-text-secondary hover:bg-gray-100 hover:text-text-primary`}

@@ -24,7 +24,7 @@ import { IdeaActions } from './IdeaActions'
 import { ContentRenderer } from './ContentRenderer'
 import { IdeaDetailSkeleton } from '@/shared/components/ui/Skeleton'
 import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
-import { getCardMedia, isUrlValid } from '@/core/lib/utils/media'
+import { getCardMedia, getIdeaMedia, isUrlValid } from '@/core/lib/utils/media'
 import {
   useTranslations,
   useLocale,
@@ -153,17 +153,28 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     if (!ideaData) return
 
     const checkMediaValidity = async () => {
-      const media = getCardMedia(ideaData)
+      // Prioritize hero media (which should be valid) and only check content media if hero media fails
       const validMedia: { video?: string; image?: string } = {}
 
-      if (media.video) {
-        const isValid = await isUrlValid(media.video)
-        if (isValid) validMedia.video = media.video
+      // Check hero video first (no need to validate, since it's stored as hero video)
+      if (ideaData.video) {
+        validMedia.video = ideaData.video
       }
-
-      if (media.image) {
-        const isValid = await isUrlValid(media.image)
-        if (isValid) validMedia.image = media.image
+      // Check hero image if no hero video (no need to validate)
+      else if (ideaData.image) {
+        validMedia.image = ideaData.image
+      }
+      // Only fall back to content media if hero media is not available
+      else {
+        const contentMedia = getIdeaMedia(ideaData.content)
+        if (contentMedia.video) {
+          const isValid = await isUrlValid(contentMedia.video)
+          if (isValid) validMedia.video = contentMedia.video
+        }
+        if (contentMedia.image) {
+          const isValid = await isUrlValid(contentMedia.image)
+          if (isValid) validMedia.image = contentMedia.image
+        }
       }
 
       setValidCardMedia(validMedia)

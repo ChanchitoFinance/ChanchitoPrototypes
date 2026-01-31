@@ -24,21 +24,27 @@ export default function AuthPage() {
   const { locale } = useLocale()
   const searchParams = useSearchParams()
   const dispatch = useAppDispatch()
-  const { loading, error, isAuthenticated, profile, initialized } =
+  const { loading, error, isAuthenticated, profile, initialized, user } =
     useAppSelector(state => state.auth)
   const [showTermsModal, setShowTermsModal] = useState(false)
 
   const returnUrl = searchParams?.get('returnUrl') || null
 
   useEffect(() => {
-    if (initialized && isAuthenticated && profile) {
-      router.replace(
-        isSafeReturnUrl(returnUrl)
-          ? decodeURIComponent(returnUrl)
-          : `/${locale}`
-      )
+    if (initialized && isAuthenticated && profile && user?.email) {
+      const hasAcceptedTerms =
+        localStorage.getItem(`${user.email}_termsAccepted`) === 'true'
+      if (!hasAcceptedTerms) {
+        setShowTermsModal(true)
+      } else {
+        router.replace(
+          isSafeReturnUrl(returnUrl)
+            ? decodeURIComponent(returnUrl)
+            : `/${locale}`
+        )
+      }
     }
-  }, [initialized, isAuthenticated, profile, router, locale, returnUrl])
+  }, [initialized, isAuthenticated, profile, user, router, locale, returnUrl])
 
   useEffect(() => {
     return () => {
@@ -47,14 +53,17 @@ export default function AuthPage() {
   }, [dispatch])
 
   const handleSignInClick = () => {
-    // Show terms modal first
-    setShowTermsModal(true)
+    // Directly sign in without checking terms first
+    dispatch(signInWithGoogle())
   }
 
   const handleTermsAccepted = () => {
-    // Close modal and proceed with sign-in
     setShowTermsModal(false)
-    dispatch(signInWithGoogle())
+    // Store terms acceptance in localStorage for the current user
+    if (user?.email) {
+      const key = `${user.email}_termsAccepted`
+      localStorage.setItem(key, 'true')
+    }
   }
 
   const handleTermsClose = () => {
@@ -93,6 +102,7 @@ export default function AuthPage() {
         isOpen={showTermsModal}
         onClose={handleTermsClose}
         onAccept={handleTermsAccepted}
+        userEmail={user?.email}
       />
     </>
   )
