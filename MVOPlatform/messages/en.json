@@ -116,13 +116,13 @@
   },
   "terms": {
     "modal_title": "Terms and Conditions",
-    "modal_summary": "By checking this box, you accept that:\n\n(1) You are responsible for what you publish and having the rights to publish it.\n\n(2) You retain ownership of your content but grant us a license to host and display it.\n\n(3) You understand public content can be viewed by others.\n\n(4) You agree to our community rules, reporting policy, and moderation system.",
+    "modal_summary": "By checking this box, you accept that:\n\n(1) You are responsible for what you publish and having the rights to publish it.\n\n(2) You retain ownership of your content but grant us a license to host and display it.\n\n(3) You understand public content can be viewed by others.\n\n(4) You agree to our community rules, reporting policy, and moderation system.\n\n(5) Administrators may take appropriate actions, including banning, against users who violate our rules or engage in misconduct.\n\n(6) Content involving sexual content, harm, drugs, illegal activities, or other prohibited material is strictly forbidden and will be monitored.",
     "read_full_terms": "Read full Terms and Conditions",
     "accept_checkbox": "I have read and accept the Terms and Conditions",
     "continue_button": "Continue",
     "must_accept": "You must accept the Terms and Conditions to continue",
     "page_title": "Terms, Community Rules & Reporting Policy",
-    "last_updated": "Last Updated: January 30, 2026",
+    "last_updated": "Last Updated: January 31, 2026",
     "general_provisions": {
       "title": "General Provisions",
       "user_responsibility": "You are responsible for what you publish and for having the rights to publish it.",
@@ -190,15 +190,29 @@
       "abuse_title": "8.2 Accounts Created for Abuse",
       "abuse_content": "Accounts created to copy, impersonate, or spam may be restricted or suspended immediately."
     },
+    "admin_actions": {
+      "title": "9. Administrator Actions",
+      "discretion_title": "9.1 Administrative Discretion",
+      "discretion_content": "Administrators have the right to take appropriate actions, at their discretion, against users who violate our terms of service, engage in misconduct, or pose a threat to the platform or community. This includes but is not limited to issuing warnings, limiting account functionality, suspending accounts, or permanently banning users.",
+      "enforcement_title": "9.2 Enforcement",
+      "enforcement_content": "Administrative actions are taken to maintain a safe, respectful, and compliant environment for all users. The platform reserves the right to act swiftly in cases of severe violations without prior warning."
+    },
+    "prohibited_content": {
+      "title": "10. Prohibited Content",
+      "forbidden_title": "10.1 Forbidden Material",
+      "forbidden_content": "Content involving sexual content, explicit material, harm, violence, drugs, illegal activities, hate speech, or other prohibited material is strictly forbidden on the platform.",
+      "monitoring_title": "10.2 Monitoring and Enforcement",
+      "monitoring_content": "All content published on the platform is subject to monitoring to ensure compliance with these terms. Prohibited content may be removed without notice, and users responsible for publishing such content may face account suspension or banning."
+    },
     "transparency": {
-      "title": "9. Transparency and Traceability",
+      "title": "11. Transparency and Traceability",
       "logs_title": "9.1 Internal Activity Logs",
       "logs_content": "We maintain technical logs (e.g., timestamps, versions, action logs) for security, abuse prevention, and resolving reports within the platform.",
       "limitation_title": "9.2 Limitation",
       "limitation_content": "These logs do not by themselves guarantee legal authorship, but they help manage compliance with internal rules and prevent abuse."
     },
     "liability": {
-      "title": "10. Limitation of Liability",
+      "title": "12. Limitation of Liability",
       "third_party_title": "10.1 Third-Party Content",
       "third_party_content": "The platform hosts third-party content. We are not responsible for content published by users nor for uses that third parties make of content outside the platform.",
       "commitment_title": "10.2 Reasonable Commitment",

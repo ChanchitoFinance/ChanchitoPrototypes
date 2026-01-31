@@ -116,13 +116,13 @@
   },
   "terms": {
     "modal_title": "Términos y Condiciones",
-    "modal_summary": "Al marcar esta casilla, aceptas que:\n\n(1) Tú eres responsable de lo que publicas y de tener derechos para publicarlo.\n\n(2) Conservas la propiedad de tu contenido pero nos otorgas una licencia para alojarlo y mostrarlo.\n\n(3) Entiendes que el contenido público puede ser visto por otros.\n\n(4) Aceptas nuestras reglas de la comunidad, política de reportes y sistema de moderación.",
+    "modal_summary": "Al marcar esta casilla, aceptas que:\n\n(1) Tú eres responsable de lo que publicas y de tener derechos para publicarlo.\n\n(2) Conservas la propiedad de tu contenido pero nos otorgas una licencia para alojarlo y mostrarlo.\n\n(3) Entiendes que el contenido público puede ser visto por otros.\n\n(4) Aceptas nuestras reglas de la comunidad, política de reportes y sistema de moderación.\n\n(5) Los administradores pueden tomar acciones apropiadas, incluyendo el bloqueo, contra usuarios que violen nuestras reglas o se involucren en conductas indebidas.\n\n(6) El contenido que involucre material sexual, daño, drogas, actividades ilegales u otro material prohibido está estrictamente prohibido y será monitoreado.",
     "read_full_terms": "Leer Términos y Condiciones completos",
     "accept_checkbox": "He leído y acepto los Términos y Condiciones",
     "continue_button": "Continuar",
     "must_accept": "Debes aceptar los Términos y Condiciones para continuar",
     "page_title": "Términos, Reglas de la Comunidad y Política de Reportes",
-    "last_updated": "Última Actualización: 30 de enero de 2026",
+    "last_updated": "Última Actualización: 31 de enero de 2026",
     "general_provisions": {
       "title": "Disposiciones Generales",
       "user_responsibility": "Tú eres responsable de lo que publicas y de tener derechos para publicarlo.",
@@ -190,15 +190,29 @@
       "abuse_title": "8.2 Cuentas Creadas para Abuso",
       "abuse_content": "Cuentas creadas para copiar, suplantar o hacer spam pueden ser restringidas o suspendidas inmediatamente."
     },
+    "admin_actions": {
+      "title": "9. Acciones de los Administradores",
+      "discretion_title": "9.1 Discreción Administrativa",
+      "discretion_content": "Los administradores tienen el derecho de tomar acciones apropiadas, a su discreción, contra usuarios que violen nuestros términos de servicio, se involucren en conductas indebidas o representen una amenaza para la plataforma o la comunidad. Esto incluye, pero no se limita a, emitir advertencias, limitar la funcionalidad de la cuenta, suspender cuentas o bloquear usuarios permanentemente.",
+      "enforcement_title": "9.2 Cumplimiento",
+      "enforcement_content": "Las acciones administrativas se toman para mantener un entorno seguro, respetuoso y conforme para todos los usuarios. La plataforma se reserva el derecho de actuar rápidamente en casos de violaciones graves sin previo aviso."
+    },
+    "prohibited_content": {
+      "title": "10. Contenido Prohibido",
+      "forbidden_title": "10.1 Material Prohibido",
+      "forbidden_content": "El contenido que involucre material sexual, material explícito, daño, violencia, drogas, actividades ilegales, discursos de odio u otro material prohibido está estrictamente prohibido en la plataforma.",
+      "monitoring_title": "10.2 Monitoreo y Cumplimiento",
+      "monitoring_content": "Todo el contenido publicado en la plataforma está sujeto a monitoreo para garantizar el cumplimiento de estos términos. El contenido prohibido puede ser eliminado sin previo aviso y los usuarios responsables de publicar dicho contenido pueden enfrentar la suspensión o bloqueo de su cuenta."
+    },
     "transparency": {
-      "title": "9. Transparencia y Trazabilidad",
+      "title": "11. Transparencia y Trazabilidad",
       "logs_title": "9.1 Registro Interno de Actividad",
       "logs_content": "Mantenemos registros técnicos (por ejemplo: timestamps, versiones, logs de acciones) para seguridad, prevención de abuso y resolución de reportes dentro de la plataforma.",
       "limitation_title": "9.2 Limitación",
       "limitation_content": "Estos registros no garantizan por sí solos autoría legal, pero ayudan a gestionar el cumplimiento de reglas internas y prevenir abusos."
     },
     "liability": {
-      "title": "10. Limitación de Responsabilidad",
+      "title": "12. Limitación de Responsabilidad",
       "third_party_title": "10.1 Contenido de Terceros",
       "third_party_content": "La plataforma aloja contenido de terceros. No somos responsables por el contenido publicado por usuarios ni por el uso que terceros hagan del contenido fuera de la plataforma.",
       "commitment_title": "10.2 Compromiso Razonable",
