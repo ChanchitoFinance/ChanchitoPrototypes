@@ -110,7 +110,105 @@
     "sign_in_to_upload": "Please sign in to upload an idea.",
     "sign_in_to_vote": "Please sign in to vote",
     "sign_in_to_comment": "Please sign in to comment",
-    "sign_in_required_alert": "You need to sign in to submit your idea. Your idea has been saved as a draft and will be available after you sign in."
+    "sign_in_required_alert": "You need to sign in to submit your idea. Your idea has been saved as a draft and will be available after you sign in.",
+    "welcome_title": "Welcome to MVO",
+    "welcome_subtitle": "Sign in with Google to continue",
+    "continue_with_google": "Continue with Google",
+    "signing_in": "Signing in..."
+  },
+  "terms": {
+    "modal_title": "Terms and Conditions",
+    "modal_summary": "By checking this box, you accept that:\n\n(1) You are responsible for what you publish and having the rights to publish it.\n\n(2) You retain ownership of your content but grant us a license to host and display it.\n\n(3) You understand public content can be viewed by others.\n\n(4) You agree to our community rules, reporting policy, and moderation system.",
+    "read_full_terms": "Read full Terms and Conditions",
+    "accept_checkbox": "I have read and accept the Terms and Conditions",
+    "continue_button": "Continue with Google",
+    "must_accept": "You must accept the Terms and Conditions to continue",
+    "page_title": "Terms, Community Rules & Reporting Policy",
+    "last_updated": "Last Updated: January 30, 2026",
+    "general_provisions": {
+      "title": "General Provisions",
+      "user_responsibility": "You are responsible for what you publish and for having the rights to publish it.",
+      "platform_license": "We don't claim ownership of your property, but you grant us a license to host, display, and distribute within the service.",
+      "no_originality_guarantee": "We do not guarantee originality (we are not judges of external authorship).",
+      "publishing_responsibility": "You are responsible for what you publish (and for having the rights to do so)."
+    },
+    "definitions": {
+      "title": "1. Definitions",
+      "content_def": "\"Content\": Ideas, texts, images, audio, comments, files, and any material that a user publishes or shares on the platform.",
+      "publish_def": "\"Publish\": Making Content visible to other users (public, followers, invitees, or private spaces).",
+      "attribution_def": "\"Attribution\": Visible mention of the original author and link to the original publication within the platform."
+    },
+    "ownership": {
+      "title": "2. Ownership and License",
+      "ownership_title": "2.1 Ownership",
+      "ownership_content": "You retain ownership of your Content. The platform does not claim ownership over the ideas or content you publish.",
+      "license_title": "2.2 Limited License to Operate the Service",
+      "license_content": "By publishing or sharing Content, you grant us a non-exclusive license to host, process, reproduce, display, and distribute it within the platform in order to operate and improve the service (e.g., showing it in feeds, allowing sharing according to your permissions, and maintaining backups).",
+      "deletion_title": "2.3 Deletion",
+      "deletion_content": "If you delete your Content, we will stop displaying it publicly; however, it may remain for a limited time in backups, technical logs, or where necessary for security, fraud prevention, or compliance."
+    },
+    "public_content": {
+      "title": "3. Public Publishing and Risks",
+      "exposure_title": "3.1 Public Content Implies Exposure",
+      "exposure_content": "If you publish Content with public visibility, you understand that other users can view it, comment on it, and that outside the platform, they could copy or share it. We cannot prevent or control uses outside the platform.",
+      "sensitive_title": "3.2 Recommendation for Sensitive Ideas",
+      "sensitive_content": "If an idea is sensitive, we recommend using private drafts or sharing only with invitees/private spaces before publishing publicly."
+    },
+    "user_responsibility": {
+      "title": "4. User Responsibility",
+      "content": "You are responsible for the Content you publish and for ensuring that you have the necessary rights, permissions, or authorizations."
+    },
+    "appropriation": {
+      "title": "5. Appropriation Within the Platform",
+      "prohibition_title": "5.1 Prohibition of Appropriation",
+      "prohibition_content": "It is not allowed to republish within the platform another user's content by passing it off as your own, without clear attribution, or using methods to hide the origin.",
+      "similar_title": "5.2 \"Very Similar\" Content",
+      "similar_content": "If we detect that a publication is very similar to a previous one, we may request attribution, limit its reach, or send it for review, especially if there is a report."
+    },
+    "disputes": {
+      "title": "6. Disputes and Internal Decisions",
+      "external_title": "6.1 External Disputes",
+      "external_content": "We do not resolve disputes about authorship or intellectual property that occur outside the platform, nor do we investigate external facts that we cannot reasonably verify.",
+      "internal_title": "6.2 Internal Decisions",
+      "internal_content": "The actions we take (reduce visibility, remove, sanction) are based on compliance with our internal rules and information available within the platform; they do not constitute a legal determination of rights."
+    },
+    "reports": {
+      "title": "7. Reports and Notice & Action",
+      "how_title": "7.1 How to Report",
+      "how_content": "Any user can report content for: appropriation/plagiarism within the platform, identity impersonation, rights infringement (copyright/trademark) when applicable, harassment, spam, or other rule violations.",
+      "include_title": "7.2 What a \"Copy\" Report Should Include",
+      "include_content": "For appropriation reports within the platform, required: link to the allegedly original publication (within the platform), link to the reported publication, brief explanation (why you believe it's a copy), optional: additional evidence.",
+      "temporary_title": "7.3 Temporary Measures During Review",
+      "temporary_content": "We may apply temporary measures such as: limiting reach (\"deboost\"), preventing edits, temporarily hiding, while we evaluate the case.",
+      "outcomes_title": "7.4 Possible Outcomes",
+      "outcomes_content": "After review, we may: take no action, request or impose attribution, limit distribution, remove content, or sanction the account.",
+      "appeal_title": "7.5 Appeal",
+      "appeal_content": "The affected user may request review/appeal by providing context or evidence."
+    },
+    "sanctions": {
+      "title": "8. Sanctions for Repeat Offenses",
+      "strikes_title": "8.1 Strike System",
+      "strikes_content": "If a user repeatedly engages in appropriation within the platform or ignores attribution requests, we may apply progressive sanctions: 1. warning, 2. limitations (publishing/reach), 3. temporary suspension, 4. permanent suspension.",
+      "abuse_title": "8.2 Accounts Created for Abuse",
+      "abuse_content": "Accounts created to copy, impersonate, or spam may be restricted or suspended immediately."
+    },
+    "transparency": {
+      "title": "9. Transparency and Traceability",
+      "logs_title": "9.1 Internal Activity Logs",
+      "logs_content": "We maintain technical logs (e.g., timestamps, versions, action logs) for security, abuse prevention, and resolving reports within the platform.",
+      "limitation_title": "9.2 Limitation",
+      "limitation_content": "These logs do not by themselves guarantee legal authorship, but they help manage compliance with internal rules and prevent abuse."
+    },
+    "liability": {
+      "title": "10. Limitation of Liability",
+      "third_party_title": "10.1 Third-Party Content",
+      "third_party_content": "The platform hosts third-party content. We are not responsible for content published by users nor for uses that third parties make of content outside the platform.",
+      "commitment_title": "10.2 Reasonable Commitment",
+      "commitment_content": "We are committed to offering privacy, reporting, and moderation tools, and to:",
+      "timestamps": "Immutable Timestamps: Each published idea generates a date and time record that serves as proof of prior existence against any copy.",
+      "version_history": "Version History: Allows the ideator to demonstrate the evolution of their thinking, from initial concept to refined or pivoted, maintaining a record of their authorship at each stage.",
+      "revision_history": "Visible Revision History: If an ideator pivots or refines their idea, the system must save and show (if the user desires) the evolution of the concept. This demonstrates that the user is the \"parent\" of the idea from conception."
+    }
   },
   "ideas": {
     "browse_ideas": "Browse Ideas",

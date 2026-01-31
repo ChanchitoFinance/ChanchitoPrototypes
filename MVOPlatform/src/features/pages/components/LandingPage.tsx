@@ -11,7 +11,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAppDispatch, useAppSelector } from '@/core/lib/hooks'
 import { signInWithGoogle } from '@/core/lib/slices/authSlice'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { TermsAcceptanceModal } from '@/shared/components/ui/TermsAcceptanceModal'
 
 export function LandingPage() {
   const pathname = usePathname()
@@ -19,6 +20,7 @@ export function LandingPage() {
   const dispatch = useAppDispatch()
   const { isAuthenticated } = useAppSelector(state => state.auth)
   const currentLocale = pathname.startsWith('/es') ? 'es' : 'en'
+  const [showTermsModal, setShowTermsModal] = useState(false)
 
   // Redirect authenticated users to home page
   useEffect(() => {
@@ -26,6 +28,11 @@ export function LandingPage() {
       router.push(`/${currentLocale}/home`)
     }
   }, [isAuthenticated, currentLocale, router])
+
+  const handleTermsAccepted = () => {
+    setShowTermsModal(false)
+    dispatch(signInWithGoogle())
+  }
 
   return (
     <>
@@ -46,7 +53,7 @@ export function LandingPage() {
                 Home
               </Link>
               <button
-                onClick={() => dispatch(signInWithGoogle())}
+                onClick={() => setShowTermsModal(true)}
                 className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
               >
                 Sign In
@@ -64,6 +71,11 @@ export function LandingPage() {
         <FAQ />
         <CTA />
       </div>
+      <TermsAcceptanceModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        onAccept={handleTermsAccepted}
+      />
     </>
   )
 }

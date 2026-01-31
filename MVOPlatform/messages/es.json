@@ -110,7 +110,105 @@
     "sign_in_to_upload": "Por favor inicia sesión con tu cuenta para subir una idea.",
     "sign_in_to_vote": "Por favor inicia sesión para votar",
     "sign_in_to_comment": "Por favor inicia sesión para comentar",
-    "sign_in_required_alert": "Necesitas iniciar sesión para enviar tu idea. Tu idea ha sido guardada como borrador y estará disponible después de iniciar sesión."
+    "sign_in_required_alert": "Necesitas iniciar sesión para enviar tu idea. Tu idea ha sido guardada como borrador y estará disponible después de iniciar sesión.",
+    "welcome_title": "Bienvenido a MVO",
+    "welcome_subtitle": "Inicia sesión con Google para continuar",
+    "continue_with_google": "Continuar con Google",
+    "signing_in": "Iniciando sesión..."
+  },
+  "terms": {
+    "modal_title": "Términos y Condiciones",
+    "modal_summary": "Al marcar esta casilla, aceptas que:\n\n(1) Tú eres responsable de lo que publicas y de tener derechos para publicarlo.\n\n(2) Conservas la propiedad de tu contenido pero nos otorgas una licencia para alojarlo y mostrarlo.\n\n(3) Entiendes que el contenido público puede ser visto por otros.\n\n(4) Aceptas nuestras reglas de la comunidad, política de reportes y sistema de moderación.",
+    "read_full_terms": "Leer Términos y Condiciones completos",
+    "accept_checkbox": "He leído y acepto los Términos y Condiciones",
+    "continue_button": "Continuar con Google",
+    "must_accept": "Debes aceptar los Términos y Condiciones para continuar",
+    "page_title": "Términos, Reglas de la Comunidad y Política de Reportes",
+    "last_updated": "Última Actualización: 30 de enero de 2026",
+    "general_provisions": {
+      "title": "Disposiciones Generales",
+      "user_responsibility": "Tú eres responsable de lo que publicas y de tener derechos para publicarlo.",
+      "platform_license": "No nos quedamos con tu propiedad, pero obtenemos licencia para alojar, mostrar, distribuir dentro del servicio.",
+      "no_originality_guarantee": "No garantizamos originalidad (no somos jueces de autoría externa).",
+      "publishing_responsibility": "Tú eres responsable de lo que publicas (y de tener derechos)."
+    },
+    "definitions": {
+      "title": "1. Definiciones",
+      "content_def": "\"Contenido\": Ideas, textos, imágenes, audio, comentarios, archivos y cualquier material que un usuario publique o comparta en la plataforma.",
+      "publish_def": "\"Publicar\": Hacer visible el Contenido a otros usuarios (público, seguidores, invitados o espacios privados).",
+      "attribution_def": "\"Atribución\": Mención visible del autor original y enlace a la publicación original dentro de la plataforma."
+    },
+    "ownership": {
+      "title": "2. Titularidad y Licencia",
+      "ownership_title": "2.1 Titularidad",
+      "ownership_content": "El usuario conserva la titularidad de su Contenido. La plataforma no reclama propiedad sobre las ideas o contenidos que publiques.",
+      "license_title": "2.2 Licencia Limitada para Operar el Servicio",
+      "license_content": "Al publicar o compartir Contenido, nos otorgas una licencia no exclusiva para alojarlo, procesarlo, reproducirlo, mostrarlo y distribuirlo dentro de la plataforma con el fin de operar y mejorar el servicio (por ejemplo: mostrarlo en el feed, permitir compartirlo según tus permisos, y mantener copias de seguridad).",
+      "deletion_title": "2.3 Eliminación",
+      "deletion_content": "Si eliminas tu Contenido, dejaremos de mostrarlo públicamente; sin embargo, puede permanecer por un tiempo limitado en copias de seguridad, registros técnicos o donde sea necesario por razones de seguridad, prevención de fraude o cumplimiento."
+    },
+    "public_content": {
+      "title": "3. Publicación Pública y Riesgos",
+      "exposure_title": "3.1 Contenido Público Implica Exposición",
+      "exposure_content": "Si publicas Contenido con visibilidad pública, entiendes que otros usuarios pueden verlo, comentarlo y que, fuera de la plataforma, podrían copiarlo o compartirlo. No podemos impedir ni controlar usos fuera de la plataforma.",
+      "sensitive_title": "3.2 Recomendación para Ideas Sensibles",
+      "sensitive_content": "Si una idea es sensible, te recomendamos usar borradores privados o compartir solo con invitados/espacios privados antes de publicarla en público."
+    },
+    "user_responsibility": {
+      "title": "4. Responsabilidad del Usuario",
+      "content": "Eres responsable del Contenido que publicas y de asegurarte de que tienes los derechos, permisos o autorizaciones necesarios."
+    },
+    "appropriation": {
+      "title": "5. Apropiación Dentro de la Plataforma",
+      "prohibition_title": "5.1 Prohibición de Apropiación",
+      "prohibition_content": "No está permitido republicar dentro de la plataforma contenido de otro usuario haciéndolo pasar como propio, sin atribución clara, o usando métodos para ocultar el origen.",
+      "similar_title": "5.2 Contenido \"Muy Similar\"",
+      "similar_content": "Si detectamos que una publicación es muy similar a otra previa, podemos pedir atribución, limitar su alcance o enviarla a revisión, especialmente si existe un reporte."
+    },
+    "disputes": {
+      "title": "6. Disputas y Decisiones Internas",
+      "external_title": "6.1 Disputas Fuera de la Plataforma",
+      "external_content": "No resolvemos disputas sobre autoría o propiedad intelectual que ocurran fuera de la plataforma, ni investigamos hechos externos que no podamos verificar razonablemente.",
+      "internal_title": "6.2 Decisiones Internas",
+      "internal_content": "Las acciones que tomamos (bajar visibilidad, remover, sancionar) se basan en el cumplimiento de nuestras reglas internas y en la información disponible dentro de la plataforma; no constituyen una determinación legal de derechos."
+    },
+    "reports": {
+      "title": "7. Reportes y Notice & Action",
+      "how_title": "7.1 Cómo Reportar",
+      "how_content": "Cualquier usuario puede reportar contenido por: apropiación/plagio dentro de la plataforma, suplantación de identidad, infracción de derechos (copyright/marca) cuando corresponda, acoso, spam u otras violaciones de reglas.",
+      "include_title": "7.2 Qué Debe Incluir un Reporte de \"Copia\"",
+      "include_content": "Para reportes de apropiación dentro de la plataforma, se requiere: enlace a la publicación presuntamente original (dentro de la plataforma), enlace a la publicación reportada, explicación breve (por qué crees que es copia), opcional: evidencia adicional.",
+      "temporary_title": "7.3 Medidas Temporales Durante Revisión",
+      "temporary_content": "Podemos aplicar medidas temporales como: limitar alcance (\"deboost\"), impedir ediciones, ocultar temporalmente, mientras evaluamos el caso.",
+      "outcomes_title": "7.4 Resultados Posibles",
+      "outcomes_content": "Tras revisar, podemos: no tomar acción, solicitar o imponer atribución, limitar distribución, remover el contenido, sancionar la cuenta.",
+      "appeal_title": "7.5 Apelación",
+      "appeal_content": "El usuario afectado puede solicitar revisión/apelación aportando contexto o evidencia."
+    },
+    "sanctions": {
+      "title": "8. Sanciones por Reincidencia",
+      "strikes_title": "8.1 Sistema de \"Strikes\"",
+      "strikes_content": "Si un usuario incurre repetidamente en apropiación dentro de la plataforma o ignora solicitudes de atribución, podemos aplicar sanciones progresivas: 1. advertencia, 2. limitaciones (publicación/alcance), 3. suspensión temporal, 4. suspensión definitiva.",
+      "abuse_title": "8.2 Cuentas Creadas para Abuso",
+      "abuse_content": "Cuentas creadas para copiar, suplantar o hacer spam pueden ser restringidas o suspendidas inmediatamente."
+    },
+    "transparency": {
+      "title": "9. Transparencia y Trazabilidad",
+      "logs_title": "9.1 Registro Interno de Actividad",
+      "logs_content": "Mantenemos registros técnicos (por ejemplo: timestamps, versiones, logs de acciones) para seguridad, prevención de abuso y resolución de reportes dentro de la plataforma.",
+      "limitation_title": "9.2 Limitación",
+      "limitation_content": "Estos registros no garantizan por sí solos autoría legal, pero ayudan a gestionar el cumplimiento de reglas internas y prevenir abusos."
+    },
+    "liability": {
+      "title": "10. Limitación de Responsabilidad",
+      "third_party_title": "10.1 Contenido de Terceros",
+      "third_party_content": "La plataforma aloja contenido de terceros. No somos responsables por el contenido publicado por usuarios ni por el uso que terceros hagan del contenido fuera de la plataforma.",
+      "commitment_title": "10.2 Compromiso Razonable",
+      "commitment_content": "Sí nos comprometemos a ofrecer herramientas de privacidad, reporte y moderación, y a:",
+      "timestamps": "Marcadores de Tiempo Inalterables: Cada idea publicada genera un registro de fecha y hora que sirve como prueba de existencia previa ante cualquier copia.",
+      "version_history": "Historial de Versiones: Permite al ideador demostrar la evolución de su pensamiento, desde el concepto inicial hasta el refinado o pivotado, manteniendo un registro de su autoría en cada etapa.",
+      "revision_history": "Historial de Revisiones Visible: Si un ideador pivota o refina su idea, el sistema debe guardar y mostrar (si el usuario lo desea) la evolución del concepto. Esto demuestra que el usuario es el \"padre\" de la idea desde su concepción."
+    }
   },
   "ideas": {
     "browse_ideas": "Explorar Ideas",
