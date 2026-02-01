@@ -4,7 +4,11 @@ import { useState, useEffect, startTransition } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAppSelector } from '@/core/lib/hooks'
-import { signInWithGoogle, signOut } from '@/core/lib/slices/authSlice'
+import {
+  signInWithGoogle,
+  signOut,
+  acceptTermsAndConditions,
+} from '@/core/lib/slices/authSlice'
 import { useAppDispatch } from '@/core/lib/hooks'
 import { useNotifications } from '@/features/notifications/hooks/useNotifications'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -61,6 +65,17 @@ export function Sidebar({
   const router = useRouter()
   const { getUnreadCount } = useNotifications()
   const hasUnreadNotifications = getUnreadCount() > 0
+
+  // Check if terms are accepted after user is authenticated
+  // Note: The terms modal is primarily shown in the auth page after login.
+  // This is a fallback check for edge cases where the user bypasses the auth page.
+  useEffect(() => {
+    if (isAuthenticated && profile) {
+      if (!profile.terms_and_conditions_accepted) {
+        setShowTermsModal(true)
+      }
+    }
+  }, [isAuthenticated, profile])
 
   // Check if we're on a detail page that needs fixed sidebar
   const isDetailPage = pathname?.startsWith('/ideas/') && pathname !== '/ideas'
@@ -226,9 +241,17 @@ export function Sidebar({
     return null
   }
 
-  const handleTermsAccepted = () => {
-    setShowTermsModal(false)
+  const handleSignInClick = () => {
+    // Directly sign in without checking terms first
     dispatch(signInWithGoogle())
+  }
+
+  const handleTermsAccepted = async () => {
+    if (user?.id) {
+      setShowTermsModal(false)
+      // Save terms acceptance to database
+      await dispatch(acceptTermsAndConditions(user.id))
+    }
   }
 
   return (
@@ -237,6 +260,7 @@ export function Sidebar({
         isOpen={showTermsModal}
         onClose={() => setShowTermsModal(false)}
         onAccept={handleTermsAccepted}
+        userEmail={user?.email}
       />
       <aside
         className={`flex-shrink-0 ${
@@ -398,7 +422,7 @@ export function Sidebar({
               ) : (
                 <button
                   onClick={() => {
-                    setShowTermsModal(true)
+                    handleSignInClick()
                     setIsMobileOpen(false)
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-text-secondary hover:bg-gray-100 hover:text-text-primary`}

@@ -10,7 +10,10 @@ import { Testimonials } from '@/features/landing/components/Testimonials'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAppDispatch, useAppSelector } from '@/core/lib/hooks'
-import { signInWithGoogle } from '@/core/lib/slices/authSlice'
+import {
+  signInWithGoogle,
+  acceptTermsAndConditions,
+} from '@/core/lib/slices/authSlice'
 import { useEffect, useState } from 'react'
 import { TermsAcceptanceModal } from '@/shared/components/ui/TermsAcceptanceModal'
 
@@ -18,20 +21,34 @@ export function LandingPage() {
   const pathname = usePathname()
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { isAuthenticated } = useAppSelector(state => state.auth)
+  const { isAuthenticated, user, profile } = useAppSelector(state => state.auth)
   const currentLocale = pathname.startsWith('/es') ? 'es' : 'en'
   const [showTermsModal, setShowTermsModal] = useState(false)
 
-  // Redirect authenticated users to home page
+  // Check if terms are accepted after user is authenticated
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && profile) {
+      if (!profile.terms_and_conditions_accepted) {
+        setShowTermsModal(true)
+      } else {
+        router.push(`/${currentLocale}/home`)
+      }
+    }
+  }, [isAuthenticated, profile, currentLocale, router])
+
+  const handleSignInClick = () => {
+    // Directly sign in without checking terms first
+    dispatch(signInWithGoogle())
+  }
+
+  const handleTermsAccepted = async () => {
+    if (user?.id) {
+      setShowTermsModal(false)
+      // Save terms acceptance to database
+      await dispatch(acceptTermsAndConditions(user.id))
+      // Navigate to home after accepting terms
       router.push(`/${currentLocale}/home`)
     }
-  }, [isAuthenticated, currentLocale, router])
-
-  const handleTermsAccepted = () => {
-    setShowTermsModal(false)
-    dispatch(signInWithGoogle())
   }
 
   return (
@@ -53,7 +70,7 @@ export function LandingPage() {
                 Home
               </Link>
               <button
-                onClick={() => setShowTermsModal(true)}
+                onClick={handleSignInClick}
                 className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
               >
                 Sign In
@@ -75,6 +92,7 @@ export function LandingPage() {
         isOpen={showTermsModal}
         onClose={() => setShowTermsModal(false)}
         onAccept={handleTermsAccepted}
+        userEmail={user?.email}
       />
     </>
   )
