@@ -4,7 +4,10 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import { useAppDispatch, useAppSelector } from '@/core/lib/hooks'
 import { IdeaForm } from '@/features/ideas/components/forms/IdeaForm'
-import { signInWithGoogle } from '@/core/lib/slices/authSlice'
+import {
+  signInWithGoogle,
+  acceptTermsAndConditions,
+} from '@/core/lib/slices/authSlice'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { TermsAcceptanceModal } from '@/shared/components/ui/TermsAcceptanceModal'
@@ -12,20 +15,17 @@ import { TermsAcceptanceModal } from '@/shared/components/ui/TermsAcceptanceModa
 export function IdeaUpload() {
   const t = useTranslations()
   const dispatch = useAppDispatch()
-  const { isAuthenticated, loading, initialized, user } = useAppSelector(
-    state => state.auth
-  )
+  const { isAuthenticated, loading, initialized, user, profile } =
+    useAppSelector(state => state.auth)
 
   // Check if terms are accepted after user is authenticated
   useEffect(() => {
-    if (isAuthenticated && user?.email) {
-      const hasAcceptedTerms =
-        localStorage.getItem(`${user.email}_termsAccepted`) === 'true'
-      if (!hasAcceptedTerms) {
+    if (isAuthenticated && profile) {
+      if (!profile.terms_and_conditions_accepted) {
         setShowTermsModal(true)
       }
     }
-  }, [isAuthenticated, user])
+  }, [isAuthenticated, profile])
   const router = useRouter()
   const [showTermsModal, setShowTermsModal] = useState(false)
 
@@ -48,12 +48,11 @@ export function IdeaUpload() {
     }
   }
 
-  const handleTermsAccepted = () => {
-    setShowTermsModal(false)
-    // Store terms acceptance in localStorage for the current user
-    if (user?.email) {
-      const key = `${user.email}_termsAccepted`
-      localStorage.setItem(key, 'true')
+  const handleTermsAccepted = async () => {
+    if (user?.id) {
+      setShowTermsModal(false)
+      // Save terms acceptance to database
+      await dispatch(acceptTermsAndConditions(user.id))
     }
   }
 

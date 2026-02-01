@@ -114,6 +114,34 @@
     "welcome_subtitle": "Inicia sesión con Google para continuar",
     "continue_with_google": "Continuar con Google"
   },
+  "onboarding": {
+    "modal_title": "Ayúdanos a Entender tu Camino",
+    "modal_subtitle": "Estas preguntas son opcionales y nos ayudan a mejorar tu experiencia",
+    "question_1": "¿Qué decisión estás tratando de tomar ahora mismo?",
+    "question_2": "¿Qué evidencia sientes que falta?",
+    "skip_button": "Omitir",
+    "continue_button": "Continuar",
+    "options": {
+      "decision": {
+        "build_at_all": "Si debo construir esto del todo",
+        "pivot": "Si debo pivotar / cambiar de dirección",
+        "people_pay": "Si la gente pagaría por esto",
+        "other": "Otro"
+      },
+      "evidence": {
+        "recognize_problem": "Si la gente reconoce esto como un problema real",
+        "urgency": "Si este problema es urgente o solo molesto",
+        "market_saturated": "Si el mercado ya está saturado",
+        "build_simply": "Si esto se puede construir de manera suficientemente simple",
+        "personal_bias": "Si estoy sesgado porque yo personalmente siento este problema",
+        "not_sure": "Aún no estoy seguro",
+        "other": "Otro"
+      }
+    },
+    "other_placeholder": "Por favor especifica (máx. 500 caracteres)",
+    "select_option": "Selecciona una opción",
+    "optional": "Opcional"
+  },
   "terms": {
     "modal_title": "Términos y Condiciones",
     "modal_summary": "Al marcar esta casilla, aceptas que:\n\n(1) Tú eres responsable de lo que publicas y de tener derechos para publicarlo.\n\n(2) Conservas la propiedad de tu contenido pero nos otorgas una licencia para alojarlo y mostrarlo.\n\n(3) Entiendes que el contenido público puede ser visto por otros.\n\n(4) Aceptas nuestras reglas de la comunidad, política de reportes y sistema de moderación.\n\n(5) Los administradores pueden tomar acciones apropiadas, incluyendo el bloqueo, contra usuarios que violen nuestras reglas o se involucren en conductas indebidas.\n\n(6) El contenido que involucre material sexual, daño, drogas, actividades ilegales u otro material prohibido está estrictamente prohibido y será monitoreado.",

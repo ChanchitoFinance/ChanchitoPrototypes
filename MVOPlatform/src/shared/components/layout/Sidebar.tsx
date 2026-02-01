@@ -4,7 +4,11 @@ import { useState, useEffect, startTransition } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAppSelector } from '@/core/lib/hooks'
-import { signInWithGoogle, signOut } from '@/core/lib/slices/authSlice'
+import {
+  signInWithGoogle,
+  signOut,
+  acceptTermsAndConditions,
+} from '@/core/lib/slices/authSlice'
 import { useAppDispatch } from '@/core/lib/hooks'
 import { useNotifications } from '@/features/notifications/hooks/useNotifications'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -63,15 +67,15 @@ export function Sidebar({
   const hasUnreadNotifications = getUnreadCount() > 0
 
   // Check if terms are accepted after user is authenticated
+  // Note: The terms modal is primarily shown in the auth page after login.
+  // This is a fallback check for edge cases where the user bypasses the auth page.
   useEffect(() => {
-    if (isAuthenticated && user?.email) {
-      const hasAcceptedTerms =
-        localStorage.getItem(`${user.email}_termsAccepted`) === 'true'
-      if (!hasAcceptedTerms) {
+    if (isAuthenticated && profile) {
+      if (!profile.terms_and_conditions_accepted) {
         setShowTermsModal(true)
       }
     }
-  }, [isAuthenticated, user])
+  }, [isAuthenticated, profile])
 
   // Check if we're on a detail page that needs fixed sidebar
   const isDetailPage = pathname?.startsWith('/ideas/') && pathname !== '/ideas'
@@ -242,12 +246,11 @@ export function Sidebar({
     dispatch(signInWithGoogle())
   }
 
-  const handleTermsAccepted = () => {
-    setShowTermsModal(false)
-    // Store terms acceptance in localStorage for the current user
-    if (user?.email) {
-      const key = `${user.email}_termsAccepted`
-      localStorage.setItem(key, 'true')
+  const handleTermsAccepted = async () => {
+    if (user?.id) {
+      setShowTermsModal(false)
+      // Save terms acceptance to database
+      await dispatch(acceptTermsAndConditions(user.id))
     }
   }
 

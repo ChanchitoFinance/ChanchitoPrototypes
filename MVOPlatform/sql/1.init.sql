@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS users (
   username VARCHAR(255) UNIQUE,
   profile_media_id UUID,
   coins_balance INT NOT NULL DEFAULT 100,
+  terms_and_conditions_accepted BOOLEAN NOT NULL DEFAULT FALSE,
+  onboarding_questions JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -169,7 +171,7 @@ BEGIN
   END IF;
 
   -- Insert user with profile_media_id if available - 100 free coins on signup
-  INSERT INTO public.users (id, email, full_name, role, username, profile_media_id, coins_balance)
+  INSERT INTO public.users (id, email, full_name, role, username, profile_media_id, coins_balance, terms_and_conditions_accepted, onboarding_questions)
   VALUES (
     NEW.id,
     NEW.email,
@@ -177,7 +179,9 @@ BEGIN
     'user',
     COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)),
     media_id,
-    100
+    100,
+    FALSE,
+    NULL
   );
   RETURN NEW;
 END;

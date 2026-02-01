@@ -114,6 +114,34 @@
     "welcome_subtitle": "Sign in with Google to continue",
     "continue_with_google": "Continue with Google"
   },
+  "onboarding": {
+    "modal_title": "Help Us Understand Your Journey",
+    "modal_subtitle": "These questions are optional and help us improve your experience",
+    "question_1": "What decision are you trying to make right now?",
+    "question_2": "What evidence do you feel is missing?",
+    "skip_button": "Skip",
+    "continue_button": "Continue",
+    "options": {
+      "decision": {
+        "build_at_all": "Whether to build this at all",
+        "pivot": "Whether to pivot / change direction",
+        "people_pay": "Whether people would pay for it",
+        "other": "Other"
+      },
+      "evidence": {
+        "recognize_problem": "Whether people recognize this as a real problem",
+        "urgency": "Whether this problem is urgent or just annoying",
+        "market_saturated": "Whether the market is already saturated",
+        "build_simply": "Whether this can be built simply enough",
+        "personal_bias": "Whether I'm biased because I personally feel this problem",
+        "not_sure": "I'm not sure yet",
+        "other": "Other"
+      }
+    },
+    "other_placeholder": "Please specify (max 500 characters)",
+    "select_option": "Select an option",
+    "optional": "Optional"
+  },
   "terms": {
     "modal_title": "Terms and Conditions",
     "modal_summary": "By checking this box, you accept that:\n\n(1) You are responsible for what you publish and having the rights to publish it.\n\n(2) You retain ownership of your content but grant us a license to host and display it.\n\n(3) You understand public content can be viewed by others.\n\n(4) You agree to our community rules, reporting policy, and moderation system.\n\n(5) Administrators may take appropriate actions, including banning, against users who violate our rules or engage in misconduct.\n\n(6) Content involving sexual content, harm, drugs, illegal activities, or other prohibited material is strictly forbidden and will be monitored.",

@@ -23,10 +23,14 @@ export default function AuthCallbackPage() {
         if (error) throw error
 
         if (data.session) {
+          // Store the return URL for later use after terms/onboarding
           const stored = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('authReturnUrl') : null
           if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('authReturnUrl')
-          const target = isSafeReturnUrl(stored) ? stored : `/${locale}`
-          router.replace(target)
+
+          // Always redirect to /auth to handle terms acceptance and onboarding
+          // The auth page will check the profile and show appropriate modals or redirect
+          const returnParam = stored && isSafeReturnUrl(stored) ? `?returnUrl=${encodeURIComponent(stored)}` : ''
+          router.replace(`/${locale}/auth${returnParam}`)
         } else {
           router.replace(`/${locale}/auth`)
         }

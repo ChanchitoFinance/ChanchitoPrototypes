@@ -126,17 +126,58 @@ export const checkAuth = createAsyncThunk(
   }
 )
 
-// Helper function to check if terms are accepted for a specific email
-export const hasUserAcceptedTerms = (email: string): boolean => {
-  const key = `${email}_termsAccepted`
-  return localStorage.getItem(key) === 'true'
-}
+// Update user's terms and conditions acceptance
+export const acceptTermsAndConditions = createAsyncThunk(
+  'auth/acceptTermsAndConditions',
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .update({ terms_and_conditions_accepted: true })
+        .eq('id', userId)
+        .select()
+        .single()
 
-// Helper function to mark terms as accepted for a specific email
-export const setUserAcceptedTerms = (email: string): void => {
-  const key = `${email}_termsAccepted`
-  localStorage.setItem(key, 'true')
-}
+      if (error) throw error
+
+      return data as UserProfile
+    } catch (error: unknown) {
+      console.error('Error accepting terms:', error)
+      if (error instanceof Error) {
+        return rejectWithValue(error.message)
+      }
+      return rejectWithValue('Unknown error')
+    }
+  }
+)
+
+// Update user's onboarding questions
+export const saveOnboardingQuestions = createAsyncThunk(
+  'auth/saveOnboardingQuestions',
+  async (
+    { userId, answers }: { userId: string; answers: Record<string, any> },
+    { rejectWithValue }
+  ) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .update({ onboarding_questions: answers })
+        .eq('id', userId)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      return data as UserProfile
+    } catch (error: unknown) {
+      console.error('Error saving onboarding questions:', error)
+      if (error instanceof Error) {
+        return rejectWithValue(error.message)
+      }
+      return rejectWithValue('Unknown error')
+    }
+  }
+)
 
 const authSlice = createSlice({
   name: 'auth',
@@ -182,6 +223,12 @@ const authSlice = createSlice({
         state.error = action.payload as string
         state.isAuthenticated = false
         state.initialized = true
+      })
+      .addCase(acceptTermsAndConditions.fulfilled, (state, action) => {
+        state.profile = action.payload
+      })
+      .addCase(saveOnboardingQuestions.fulfilled, (state, action) => {
+        state.profile = action.payload
       })
   },
 })

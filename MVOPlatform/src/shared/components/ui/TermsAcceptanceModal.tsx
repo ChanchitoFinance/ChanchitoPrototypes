@@ -57,10 +57,13 @@ export function TermsAcceptanceModal({
   }, [isOpen])
 
   const handleContinue = () => {
+    console.log('🔘 Continue button clicked in TermsAcceptanceModal')
     if (!isAccepted) {
+      console.log('❌ Checkbox not accepted')
       setShowError(true)
       return
     }
+    console.log('✅ Calling onAccept callback')
     onAccept()
   }
 

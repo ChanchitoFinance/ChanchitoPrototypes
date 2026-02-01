@@ -10,6 +10,8 @@ export interface UserProfile {
   media_assets?: {
     url: string
   }
+  terms_and_conditions_accepted: boolean
+  onboarding_questions?: Record<string, any> | null
   created_at: string
   updated_at: string
 }

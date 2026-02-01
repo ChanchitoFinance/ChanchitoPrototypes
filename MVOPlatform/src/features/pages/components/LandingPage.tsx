@@ -10,7 +10,10 @@ import { Testimonials } from '@/features/landing/components/Testimonials'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAppDispatch, useAppSelector } from '@/core/lib/hooks'
-import { signInWithGoogle } from '@/core/lib/slices/authSlice'
+import {
+  signInWithGoogle,
+  acceptTermsAndConditions,
+} from '@/core/lib/slices/authSlice'
 import { useEffect, useState } from 'react'
 import { TermsAcceptanceModal } from '@/shared/components/ui/TermsAcceptanceModal'
 
@@ -18,34 +21,33 @@ export function LandingPage() {
   const pathname = usePathname()
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { isAuthenticated, user } = useAppSelector(state => state.auth)
+  const { isAuthenticated, user, profile } = useAppSelector(state => state.auth)
   const currentLocale = pathname.startsWith('/es') ? 'es' : 'en'
   const [showTermsModal, setShowTermsModal] = useState(false)
 
   // Check if terms are accepted after user is authenticated
   useEffect(() => {
-    if (isAuthenticated && user?.email) {
-      const hasAcceptedTerms =
-        localStorage.getItem(`${user.email}_termsAccepted`) === 'true'
-      if (!hasAcceptedTerms) {
+    if (isAuthenticated && profile) {
+      if (!profile.terms_and_conditions_accepted) {
         setShowTermsModal(true)
       } else {
         router.push(`/${currentLocale}/home`)
       }
     }
-  }, [isAuthenticated, user, currentLocale, router])
+  }, [isAuthenticated, profile, currentLocale, router])
 
   const handleSignInClick = () => {
     // Directly sign in without checking terms first
     dispatch(signInWithGoogle())
   }
 
-  const handleTermsAccepted = () => {
-    setShowTermsModal(false)
-    // Store terms acceptance in localStorage for the current user
-    if (user?.email) {
-      const key = `${user.email}_termsAccepted`
-      localStorage.setItem(key, 'true')
+  const handleTermsAccepted = async () => {
+    if (user?.id) {
+      setShowTermsModal(false)
+      // Save terms acceptance to database
+      await dispatch(acceptTermsAndConditions(user.id))
+      // Navigate to home after accepting terms
+      router.push(`/${currentLocale}/home`)
     }
   }
 
