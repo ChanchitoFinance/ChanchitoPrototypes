@@ -22,6 +22,7 @@ export interface IdeaVotes {
 export interface Idea {
   id: string
   title: string
+  decision_making?: string
   description: string
   author: string
   score: number

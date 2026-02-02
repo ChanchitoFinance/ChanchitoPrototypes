@@ -73,6 +73,7 @@ CREATE TABLE ideas (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   creator_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
+  decision_making TEXT NOT NULL,
   status_flag idea_status_flag NOT NULL DEFAULT 'new',
   pivot_state pivot_state NOT NULL DEFAULT 'stable',
   anonymous BOOLEAN NOT NULL DEFAULT FALSE,

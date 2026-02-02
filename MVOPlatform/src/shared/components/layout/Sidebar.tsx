@@ -8,6 +8,7 @@ import {
   signInWithGoogle,
   signOut,
   acceptTermsAndConditions,
+  saveOnboardingQuestions,
 } from '@/core/lib/slices/authSlice'
 import { useAppDispatch } from '@/core/lib/hooks'
 import { useNotifications } from '@/features/notifications/hooks/useNotifications'
@@ -27,6 +28,7 @@ import {
 } from 'lucide-react'
 import { UserMenu } from '@/shared/components/ui/UserMenu'
 import { TermsAcceptanceModal } from '@/shared/components/ui/TermsAcceptanceModal'
+import { OnboardingQuestionsModal, OnboardingData } from '@/shared/components/ui/OnboardingQuestionsModal'
 
 interface SidebarProps {
   activeTab?: 'home' | 'foryou'
@@ -46,6 +48,7 @@ export function Sidebar({
   const [internalIsMobileOpen, setInternalIsMobileOpen] = useState(false)
   const [sidebarHeight, setSidebarHeight] = useState('100vh')
   const [showTermsModal, setShowTermsModal] = useState(false)
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false)
   const pathname = usePathname()
   // Use useMediaQuery for stable mobile detection that doesn't flicker during navigation
   const isMobile = useMediaQuery('(max-width: 767px)')
@@ -66,13 +69,25 @@ export function Sidebar({
   const { getUnreadCount } = useNotifications()
   const hasUnreadNotifications = getUnreadCount() > 0
 
-  // Check if terms are accepted after user is authenticated
-  // Note: The terms modal is primarily shown in the auth page after login.
+  // Check if terms are accepted and onboarding is completed after user is authenticated
+  // Note: These modals are primarily shown in the auth page after login.
   // This is a fallback check for edge cases where the user bypasses the auth page.
   useEffect(() => {
     if (isAuthenticated && profile) {
-      if (!profile.terms_and_conditions_accepted) {
+      const hasAcceptedTerms = profile.terms_and_conditions_accepted
+      const hasCompletedOnboarding =
+        profile.onboarding_questions !== null &&
+        profile.onboarding_questions !== undefined
+
+      if (!hasAcceptedTerms) {
         setShowTermsModal(true)
+        setShowOnboardingModal(false)
+      } else if (!hasCompletedOnboarding) {
+        setShowTermsModal(false)
+        setShowOnboardingModal(true)
+      } else {
+        setShowTermsModal(false)
+        setShowOnboardingModal(false)
       }
     }
   }, [isAuthenticated, profile])
@@ -251,6 +266,20 @@ export function Sidebar({
       setShowTermsModal(false)
       // Save terms acceptance to database
       await dispatch(acceptTermsAndConditions(user.id))
+      // The useEffect will automatically show onboarding modal after profile updates
+    }
+  }
+
+  const handleOnboardingComplete = async (answers: OnboardingData) => {
+    if (user?.id) {
+      setShowOnboardingModal(false)
+      // Save onboarding answers to database
+      await dispatch(
+        saveOnboardingQuestions({
+          userId: user.id,
+          answers: answers as Record<string, any>,
+        })
+      )
     }
   }
 
@@ -258,9 +287,12 @@ export function Sidebar({
     <>
       <TermsAcceptanceModal
         isOpen={showTermsModal}
-        onClose={() => setShowTermsModal(false)}
         onAccept={handleTermsAccepted}
         userEmail={user?.email}
+      />
+      <OnboardingQuestionsModal
+        isOpen={showOnboardingModal}
+        onComplete={handleOnboardingComplete}
       />
       <aside
         className={`flex-shrink-0 ${

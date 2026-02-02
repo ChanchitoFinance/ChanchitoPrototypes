@@ -48,6 +48,7 @@ import { aiCommentService } from '@/core/lib/services/aiCommentService'
 
 type IdeaFormData = {
   title: string
+  decision_making: string
   tags?: string
 }
 
@@ -120,6 +121,7 @@ export function IdeaForm({
 
   const ideaSchema = z.object({
     title: z.string().min(10, t('validation.title_min_length')),
+    decision_making: z.string().min(10, 'Please provide a decision you are trying to make (minimum 10 characters)'),
     tags: z
       .string()
       .optional()
@@ -160,7 +162,7 @@ export function IdeaForm({
           // Fetch idea from database
           const { data: dbData, error: dbError } = await supabase
             .from('ideas')
-            .select('id, title, content, anonymous, status_flag, image, video')
+            .select('id, title, decision_making, content, anonymous, status_flag, image, video')
             .eq('id', ideaId)
             .single()
 
@@ -175,6 +177,11 @@ export function IdeaForm({
 
         // Set title
         setValue('title', idea.title, { shouldValidate: false })
+
+        // Set decision_making
+        if (idea.decision_making) {
+          setValue('decision_making', idea.decision_making, { shouldValidate: false })
+        }
 
         // Set tags
         if (idea.tags && idea.tags.length > 0) {
@@ -873,6 +880,7 @@ export function IdeaForm({
       // Create the idea object
       const newIdea: Omit<Idea, 'id'> = {
         title: data.title,
+        decision_making: data.decision_making,
         description: description,
         author: author,
         score: 0, // New ideas start with 0 score
@@ -900,6 +908,7 @@ export function IdeaForm({
         // Create a new version from the existing idea
         resultIdea = await ideaService.createIdeaVersion(ideaId, {
           title: newIdea.title,
+          decision_making: newIdea.decision_making,
           description: newIdea.description,
           content: newIdea.content,
           image: newIdea.image,
@@ -911,6 +920,7 @@ export function IdeaForm({
         // Update existing idea
         resultIdea = await ideaService.updateIdea(ideaId, {
           title: newIdea.title,
+          decision_making: newIdea.decision_making,
           description: newIdea.description,
           content: newIdea.content,
           image: newIdea.image,
@@ -942,6 +952,7 @@ export function IdeaForm({
       // Reset all form fields after successful creation (only if not editing)
       if (!ideaId) {
         setValue('title', '')
+        setValue('decision_making', '')
         setValue('tags', '')
         setSelectedTags([])
         setContentBlocks([])
@@ -1492,6 +1503,24 @@ export function IdeaForm({
                   </div>
                 )}
               </div>
+            )}
+          </div>
+
+          {/* Decision Making Field */}
+          <div className="mb-8 pb-8 border-b border-border-color">
+            <label className="block text-sm font-medium text-text-primary mb-3">
+              {t('form.decision_making')} <span className="text-error">*</span>
+            </label>
+            <textarea
+              {...register('decision_making')}
+              placeholder={t('form.decision_making_placeholder')}
+              rows={3}
+              className="w-full px-4 py-3 bg-background border border-border-color rounded-lg text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary-accent focus:border-transparent resize-none"
+            />
+            {errors.decision_making && (
+              <p className="text-error text-sm mt-2">
+                {errors.decision_making.message}
+              </p>
             )}
           </div>
 
