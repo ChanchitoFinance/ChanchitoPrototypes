@@ -15,6 +15,7 @@ import { useMediaValidation } from '@/core/hooks/useMediaValidation'
 import { formatDate } from '@/core/lib/utils/date'
 import { ideaService } from '@/core/lib/services/ideaService'
 import { toast } from 'sonner'
+import { TagRenderer } from '@/shared/components/ui/TagRenderer'
 
 type IdeaCardVariant = 'interactive' | 'metrics' | 'admin'
 
@@ -130,18 +131,12 @@ export function IdeaCard({
       }))
     }
 
-    if (voteType === 'use' || voteType === 'dislike') {
-      setUserVote(prev => ({
-        ...prev,
-        use: voteType === 'use' ? !prev.use : false,
-        dislike: voteType === 'dislike' ? !prev.dislike : false,
-      }))
-    } else {
-      setUserVote(prev => ({
-        ...prev,
-        pay: !prev.pay,
-      }))
-    }
+    // Handle all vote types with exclusive logic
+    setUserVote(prev => ({
+      use: voteType === 'use' ? !prev.use : false,
+      dislike: voteType === 'dislike' ? !prev.dislike : false,
+      pay: voteType === 'pay' ? !prev.pay : false,
+    }))
 
     try {
       const updatedIdea = await ideaService.toggleVote(currentIdea.id, voteType)
@@ -162,6 +157,12 @@ export function IdeaCard({
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+
+    // If already in pay state, single click should unvote (not switch to like)
+    if (userVote.pay) {
+      handleVote('pay')
+      return
+    }
 
     likeClickCountRef.current += 1
 
@@ -455,68 +456,18 @@ export function IdeaCard({
       </div>
 
       {/* Tags - Right aligned, overlaying image bottom */}
-      {!showHoverOverlay &&
-        currentIdea.tags.length > 0 &&
-        (() => {
-          const maxCharsPerTag = 10
-          const truncateTag = (tag: string) =>
-            tag.length > maxCharsPerTag
-              ? tag.slice(0, maxCharsPerTag) + '...'
-              : tag
-
-          // Get first 3 tags with truncation
-          const displayTags = currentIdea.tags.slice(0, 3).map(truncateTag)
-
-          // Check if we need to show +1 indicator
-          // If there are 3 tags and the first 2 combined exceed 10 chars, show only 2 tags + "+1"
-          let tagsToShow = displayTags
-          let showPlusOne = false
-
-          if (currentIdea.tags.length >= 3) {
-            const firstTwoLength = displayTags[0].length + displayTags[1].length
-            if (firstTwoLength > 10) {
-              tagsToShow = displayTags.slice(0, 2)
-              showPlusOne = true
-            }
-          }
-
-          return (
-            <div
-              className="absolute flex flex-wrap gap-2 justify-end pointer-events-none"
-              style={{
-                right: '20px',
-                top: '145px',
-                maxWidth: '320px',
-              }}
-            >
-              {tagsToShow.map((tag, index) => (
-                <span
-                  key={currentIdea.tags[index]}
-                  className="font-bold px-2.5 py-1 rounded-md"
-                  style={{
-                    fontSize: '13px',
-                    backgroundColor: 'rgba(100, 100, 100, 0.8)',
-                    color: 'rgba(255, 255, 255, 0.9)',
-                  }}
-                >
-                  #{tag}
-                </span>
-              ))}
-              {showPlusOne && (
-                <span
-                  className="font-bold px-2.5 py-1 rounded-md"
-                  style={{
-                    fontSize: '13px',
-                    backgroundColor: 'rgba(100, 100, 100, 0.8)',
-                    color: 'rgba(255, 255, 255, 0.9)',
-                  }}
-                >
-                  +1
-                </span>
-              )}
-            </div>
-          )
-        })()}
+      {!showHoverOverlay && currentIdea.tags.length > 0 && (
+        <div
+          className="absolute flex flex-wrap gap-2 justify-end pointer-events-none"
+          style={{
+            right: '20px',
+            top: '145px',
+            maxWidth: '320px',
+          }}
+        >
+          <TagRenderer tags={currentIdea.tags} />
+        </div>
+      )}
 
       {/* Title */}
       <Link
