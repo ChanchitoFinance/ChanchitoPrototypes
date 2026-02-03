@@ -389,21 +389,44 @@ export function IdeaCard({
                       }}
                     />
 
-                    {/* Vote Percentages Text */}
+                    {/* Vote Percentages Text - Positioned individually on each bar */}
+                    {/* Like text */}
                     <div
-                      className="font-bold absolute text-white"
+                      className="font-bold absolute text-white flex items-center"
                       style={{
                         fontSize: '13px',
                         left: '26px',
-                        top: '84px',
-                        lineHeight: '1.3',
+                        top: '80px',
+                        height: '28px',
                       }}
                     >
-                      <div className="mb-4">{votePercentages.use}% Like</div>
-                      <div className="mb-4">
-                        {votePercentages.pay}% I'd pay for it
-                      </div>
-                      <div>{votePercentages.dislike}% Dislike</div>
+                      {votePercentages.use}% Like
+                    </div>
+
+                    {/* Pay text */}
+                    <div
+                      className="font-bold absolute text-white flex items-center"
+                      style={{
+                        fontSize: '13px',
+                        left: '26px',
+                        top: '118px',
+                        height: '28px',
+                      }}
+                    >
+                      {votePercentages.pay}% I'd pay for it
+                    </div>
+
+                    {/* Dislike text */}
+                    <div
+                      className="font-bold absolute text-white flex items-center"
+                      style={{
+                        fontSize: '13px',
+                        left: '26px',
+                        top: '156px',
+                        height: '28px',
+                      }}
+                    >
+                      {votePercentages.dislike}% Dislike
                     </div>
                   </>
                 )}
