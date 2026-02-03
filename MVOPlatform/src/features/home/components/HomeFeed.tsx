@@ -216,7 +216,7 @@ export function HomeFeed() {
   }, [isAuthenticated])
 
   return (
-    <main className="flex-1 w-full px-4 md:px-6 xl:px-8 py-8 max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1600px] mx-auto">
+    <main className="flex-1 w-full px-4 md:px-6 xl:px-8 py-24 max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1600px] mx-auto">
       {/* Descubre algo nuevo - Recent ideas */}
       <HorizontalScrollSection
         title={t('home.discover_new')}

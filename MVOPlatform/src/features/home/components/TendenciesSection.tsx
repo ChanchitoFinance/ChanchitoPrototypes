@@ -39,12 +39,12 @@ function VerticalList({
   return (
     <div
       className="flex-shrink-0"
-      style={{ width: listWidth, minWidth: '280px' }}
+      style={{ width: listWidth, minWidth: '240px', maxWidth: '300px' }}
     >
-      <h3 className="text-lg font-semibold text-text-primary mb-3 px-1">
+      <h3 className="text-lg font-semibold text-text-primary mb-2 px-1">
         {title}
       </h3>
-      <div className="h-[850px] xl:h-[900px] overflow-y-auto pr-2 space-y-4 scroll-smooth [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full">
+      <div className="h-[750px] xl:h-[800px] overflow-y-auto pr-2 space-y-32 scroll-smooth [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => (
               <div key={`skeleton-${i}`}>
@@ -156,7 +156,7 @@ export function TendenciesSection({
   const listWidthPercentage = `${100 / (visibleLists + 0.5)}%`
 
   return (
-    <section className="mb-8 md:mb-12">
+    <section className="mb-2 md:mb-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl md:text-2xl font-bold text-text-primary">
           {title}
@@ -191,7 +191,7 @@ export function TendenciesSection({
 
       <div
         ref={scrollContainerRef}
-        className="flex overflow-x-auto gap-4 pb-4 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="flex overflow-x-auto gap-1 md:gap-3 pb-3 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       >
         <VerticalList
           title={statusTitles.new}

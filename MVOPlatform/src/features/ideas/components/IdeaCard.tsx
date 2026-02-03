@@ -249,8 +249,8 @@ export function IdeaCard({
       onMouseLeave={onMouseLeave}
       style={{
         width: '100%',
-        maxWidth: '650px',
-        height: '430px',
+        maxWidth: '300px',
+        height: '280px',
         margin: '0 auto',
       }}
     >
@@ -272,7 +272,7 @@ export function IdeaCard({
         className="absolute idea-card-bg rounded-[12px]"
         style={{
           width: '100%',
-          height: '470px',
+          height: '400px',
           left: '0px',
           top: '10px',
         }}
@@ -283,7 +283,7 @@ export function IdeaCard({
         className="absolute rounded-[12px] overflow-hidden cursor-pointer"
         style={{
           width: '100%',
-          height: '220px',
+          height: '180px',
           left: '0px',
           top: '0px',
         }}
@@ -357,11 +357,11 @@ export function IdeaCard({
                     <div
                       className="absolute"
                       style={{
-                        width: `${Math.max(votePercentages.use * 4.5, 60)}px`,
+                        width: `${Math.min(Math.max(votePercentages.use * 4.5, 60), 260)}px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.use,
                         left: '20px',
-                        top: '80px',
+                        top: '65px',
                       }}
                     />
 
@@ -369,11 +369,11 @@ export function IdeaCard({
                     <div
                       className="absolute"
                       style={{
-                        width: `${Math.max(votePercentages.pay * 4.5, 60)}px`,
+                        width: `${Math.min(Math.max(votePercentages.pay * 4.5, 60), 260)}px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.pay,
                         left: '20px',
-                        top: '118px',
+                        top: '103px',
                       }}
                     />
 
@@ -381,11 +381,11 @@ export function IdeaCard({
                     <div
                       className="absolute"
                       style={{
-                        width: `${Math.max(votePercentages.dislike * 4.5, 60)}px`,
+                        width: `${Math.min(Math.max(votePercentages.dislike * 4.5, 60), 260)}px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.dislike,
                         left: '20px',
-                        top: '156px',
+                        top: '141px',
                       }}
                     />
 
@@ -396,7 +396,7 @@ export function IdeaCard({
                       style={{
                         fontSize: '13px',
                         left: '26px',
-                        top: '80px',
+                        top: '65px',
                         height: '28px',
                       }}
                     >
@@ -409,7 +409,7 @@ export function IdeaCard({
                       style={{
                         fontSize: '13px',
                         left: '26px',
-                        top: '118px',
+                        top: '103px',
                         height: '28px',
                       }}
                     >
@@ -422,7 +422,7 @@ export function IdeaCard({
                       style={{
                         fontSize: '13px',
                         left: '26px',
-                        top: '156px',
+                        top: '141px',
                         height: '28px',
                       }}
                     >
@@ -450,63 +450,68 @@ export function IdeaCard({
       </div>
 
       {/* Tags - Right aligned, overlaying image bottom */}
-      {!showHoverOverlay && currentIdea.tags.length > 0 && (() => {
-        const maxCharsPerTag = 10
-        const truncateTag = (tag: string) => tag.length > maxCharsPerTag ? tag.slice(0, maxCharsPerTag) + '...' : tag
+      {!showHoverOverlay &&
+        currentIdea.tags.length > 0 &&
+        (() => {
+          const maxCharsPerTag = 10
+          const truncateTag = (tag: string) =>
+            tag.length > maxCharsPerTag
+              ? tag.slice(0, maxCharsPerTag) + '...'
+              : tag
 
-        // Get first 3 tags with truncation
-        const displayTags = currentIdea.tags.slice(0, 3).map(truncateTag)
+          // Get first 3 tags with truncation
+          const displayTags = currentIdea.tags.slice(0, 3).map(truncateTag)
 
-        // Check if we need to show +1 indicator
-        // If there are 3 tags and the first 2 combined exceed 15 chars, show only 2 tags + "+1"
-        let tagsToShow = displayTags
-        let showPlusOne = false
+          // Check if we need to show +1 indicator
+          // If there are 3 tags and the first 2 combined exceed 10 chars, show only 2 tags + "+1"
+          let tagsToShow = displayTags
+          let showPlusOne = false
 
-        if (currentIdea.tags.length >= 3) {
-          const firstTwoLength = displayTags[0].length + displayTags[1].length
-          if (firstTwoLength > 15) {
-            tagsToShow = displayTags.slice(0, 2)
-            showPlusOne = true
+          if (currentIdea.tags.length >= 3) {
+            const firstTwoLength = displayTags[0].length + displayTags[1].length
+            if (firstTwoLength > 10) {
+              tagsToShow = displayTags.slice(0, 2)
+              showPlusOne = true
+            }
           }
-        }
 
-        return (
-          <div
-            className="absolute flex flex-wrap gap-2 justify-end pointer-events-none"
-            style={{
-              right: '20px',
-              top: '175px',
-              maxWidth: '320px',
-            }}
-          >
-            {tagsToShow.map((tag, index) => (
-              <span
-                key={currentIdea.tags[index]}
-                className="font-bold px-2.5 py-1 rounded-md"
-                style={{
-                  fontSize: '13px',
-                  backgroundColor: 'rgba(100, 100, 100, 0.8)',
-                  color: 'rgba(255, 255, 255, 0.9)',
-                }}
-              >
-                #{tag}
-              </span>
-            ))}
-            {showPlusOne && (
-              <span
-                className="font-bold px-2.5 py-1 rounded-md"
-                style={{
-                  fontSize: '13px',
-                  backgroundColor: 'rgba(100, 100, 100, 0.8)',
-                  color: 'rgba(255, 255, 255, 0.9)',
-                }}
-              >
-                +1
-              </span>
-            )}
-          </div>
-        )
-      })()}
+          return (
+            <div
+              className="absolute flex flex-wrap gap-2 justify-end pointer-events-none"
+              style={{
+                right: '20px',
+                top: '145px',
+                maxWidth: '320px',
+              }}
+            >
+              {tagsToShow.map((tag, index) => (
+                <span
+                  key={currentIdea.tags[index]}
+                  className="font-bold px-2.5 py-1 rounded-md"
+                  style={{
+                    fontSize: '13px',
+                    backgroundColor: 'rgba(100, 100, 100, 0.8)',
+                    color: 'rgba(255, 255, 255, 0.9)',
+                  }}
+                >
+                  #{tag}
+                </span>
+              ))}
+              {showPlusOne && (
+                <span
+                  className="font-bold px-2.5 py-1 rounded-md"
+                  style={{
+                    fontSize: '13px',
+                    backgroundColor: 'rgba(100, 100, 100, 0.8)',
+                    color: 'rgba(255, 255, 255, 0.9)',
+                  }}
+                >
+                  +1
+                </span>
+              )}
+            </div>
+          )
+        })()}
 
       {/* Title */}
       <Link
@@ -516,13 +521,13 @@ export function IdeaCard({
         style={{
           left: '16px',
           right: '16px',
-          top: '235px',
+          top: '195px',
         }}
       >
         <h2
           className="idea-card-text font-bold line-clamp-3"
           style={{
-            fontSize: '18px',
+            fontSize: '16px',
             lineHeight: '1.3',
           }}
         >
@@ -535,7 +540,7 @@ export function IdeaCard({
         className="absolute flex items-center gap-1.5"
         style={{
           left: '130px',
-          top: '344px',
+          top: '284px',
         }}
       >
         <MessageSquare className="w-4 h-4 idea-card-text" />
@@ -563,7 +568,7 @@ export function IdeaCard({
             } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={{
               left: '16px',
-              top: '332px',
+              top: '272px',
               width: '44px',
               height: '44px',
               backgroundColor: votedPay
@@ -596,7 +601,7 @@ export function IdeaCard({
             } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={{
               left: '72px',
-              top: '332px',
+              top: '272px',
               width: '44px',
               height: '44px',
               backgroundColor: BUTTON_COLORS.background,
@@ -619,9 +624,9 @@ export function IdeaCard({
       <p
         className="idea-card-text-secondary font-bold absolute"
         style={{
-          fontSize: '14px',
+          fontSize: '13px',
           left: '16px',
-          top: '390px',
+          top: '330px',
         }}
       >
         {currentIdea.anonymous
@@ -633,9 +638,9 @@ export function IdeaCard({
       <p
         className="idea-card-text-secondary font-bold absolute text-right"
         style={{
-          fontSize: '14px',
+          fontSize: '13px',
           right: '16px',
-          top: '390px',
+          top: '330px',
         }}
       >
         {formatDate(currentIdea.createdAt)}
