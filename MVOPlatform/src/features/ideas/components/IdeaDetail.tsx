@@ -582,6 +582,25 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
 
       {/* Article Content */}
       <article className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-12">
+        {/* Decision Making Question */}
+        {idea.decision_making && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="mb-8"
+          >
+            <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 md:p-6">
+              <h3 className="text-lg md:text-xl font-bold text-text-primary mb-2">
+                {t('ideas.decision_making_question')}
+              </h3>
+              <p className="text-text-primary text-base md:text-lg leading-relaxed">
+                {idea.decision_making}
+              </p>
+            </div>
+          </motion.div>
+        )}
+
         {/* Actions Bar */}
         <IdeaActions
           idea={ideaData}

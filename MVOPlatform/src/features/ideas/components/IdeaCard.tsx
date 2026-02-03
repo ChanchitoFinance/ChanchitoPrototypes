@@ -338,13 +338,18 @@ export function IdeaCard({
               <>
                 {/* Decision Making Question */}
                 <p
-                  className="font-bold absolute text-white"
+                  className="font-bold absolute text-white line-clamp-2"
                   style={{
                     fontSize: '16px',
                     left: '20px',
                     top: '15px',
                     right: '20px',
                     lineHeight: '1.3',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
                   }}
                 >
                   {currentIdea.decision_making}
@@ -357,7 +362,7 @@ export function IdeaCard({
                     <div
                       className="absolute"
                       style={{
-                        width: `${Math.min(Math.max(votePercentages.use * 4.5, 60), 260)}px`,
+                        width: `${Math.min(Math.max(votePercentages.use * 2.5, 60), 260)}px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.use,
                         left: '20px',
@@ -369,7 +374,7 @@ export function IdeaCard({
                     <div
                       className="absolute"
                       style={{
-                        width: `${Math.min(Math.max(votePercentages.pay * 4.5, 60), 260)}px`,
+                        width: `${Math.min(Math.max(votePercentages.pay * 2.5, 60), 260)}px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.pay,
                         left: '20px',
@@ -381,7 +386,7 @@ export function IdeaCard({
                     <div
                       className="absolute"
                       style={{
-                        width: `${Math.min(Math.max(votePercentages.dislike * 4.5, 60), 260)}px`,
+                        width: `${Math.min(Math.max(votePercentages.dislike * 2.5, 60), 260)}px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.dislike,
                         left: '20px',
