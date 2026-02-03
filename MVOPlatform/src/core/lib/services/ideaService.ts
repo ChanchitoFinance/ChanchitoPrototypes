@@ -23,6 +23,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -60,6 +61,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -100,6 +102,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -137,6 +140,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -185,6 +189,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -222,6 +227,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -258,6 +264,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -302,6 +309,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -339,6 +347,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -384,6 +393,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -425,6 +435,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -465,6 +476,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -550,6 +562,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -854,6 +867,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -1110,6 +1124,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -1326,6 +1341,7 @@ class SupabaseIdeaService implements IIdeaService {
     return {
       id: dbIdea.id,
       title: dbIdea.title,
+      decision_making: dbIdea.decision_making,
       description: description || '',
       author,
       score,

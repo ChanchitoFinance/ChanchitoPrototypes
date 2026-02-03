@@ -94,7 +94,7 @@ export function HorizontalScrollSection({
   const cardWidthPercentage = 100 / (currentVisibleCards + 0.5)
 
   return (
-    <section className="mb-8 md:mb-12">
+    <section className="mb-8 md:mb-16">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl md:text-2xl font-bold text-text-primary">
           {title}
@@ -129,7 +129,7 @@ export function HorizontalScrollSection({
 
       <div
         ref={scrollContainerRef}
-        className="flex overflow-x-auto gap-4 pb-4 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="flex overflow-x-auto gap-1 md:gap-4 pb-4 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] min-h-[480px]"
       >
         {loading
           ? Array.from({ length: currentVisibleCards + 1 }).map((_, i) => (
