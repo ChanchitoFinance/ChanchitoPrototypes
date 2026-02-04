@@ -636,31 +636,6 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
                     </div>
                   )}
 
-                  {/* Categories and Tags */}
-                  {idea.tags.length > 0 && (
-                    <div className="mb-8 bg-card rounded-lg p-6 border border-border">
-                      <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
-                        <Lightbulb className="w-6 h-6 text-yellow-500 flex-shrink-0" />
-                        <span>
-                          {translate(
-                            'activity.analytics.idea_analytics.top_categories',
-                            'Top Categories'
-                          )}
-                        </span>
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {idea.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="px-3 py-1 text-sm font-medium text-white bg-accent rounded-full"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   {/* Assessment Summary */}
                   <div className="bg-card rounded-lg p-6 border border-border">
                     <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">

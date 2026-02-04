@@ -363,7 +363,7 @@ export function IdeaCard({
                     <div
                       className="absolute"
                       style={{
-                        width: `${Math.min(Math.max(votePercentages.use * 2.5, 60), 260)}px`,
+                        width: `${votePercentages.use > 0 ? Math.min(Math.max(votePercentages.use * 2.5, 60), 260) : 4}px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.use,
                         left: '20px',
@@ -375,7 +375,7 @@ export function IdeaCard({
                     <div
                       className="absolute"
                       style={{
-                        width: `${Math.min(Math.max(votePercentages.pay * 2.5, 60), 260)}px`,
+                        width: `${votePercentages.pay > 0 ? Math.min(Math.max(votePercentages.pay * 2.5, 60), 260) : 4}px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.pay,
                         left: '20px',
@@ -387,7 +387,7 @@ export function IdeaCard({
                     <div
                       className="absolute"
                       style={{
-                        width: `${Math.min(Math.max(votePercentages.dislike * 2.5, 60), 260)}px`,
+                        width: `${votePercentages.dislike > 0 ? Math.min(Math.max(votePercentages.dislike * 2.5, 60), 260) : 4}px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.dislike,
                         left: '20px',

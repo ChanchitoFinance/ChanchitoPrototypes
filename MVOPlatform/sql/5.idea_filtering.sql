@@ -41,9 +41,10 @@ DECLARE
 BEGIN
     RETURN QUERY
     WITH filtered_ideas AS (
-        SELECT
+         SELECT
             i.id,
             i.title,
+            i.decision_making,
             i.status_flag,
             i.content,
             i.created_at,
@@ -205,6 +206,7 @@ SELECT jsonb_agg(
 jsonb_build_object(
 'id', s.id,
 'title', s.title,
+'decision_making', s.decision_making,
 'status_flag', s.status_flag,
 'content', s.content,
 'createdAt', s.created_at,

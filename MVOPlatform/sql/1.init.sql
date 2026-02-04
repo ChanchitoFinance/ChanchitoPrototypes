@@ -215,6 +215,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION create_idea_version(
   source_idea_id UUID,
   new_title VARCHAR(255) DEFAULT NULL,
+  new_decision_making TEXT DEFAULT NULL,
   new_content JSONB DEFAULT NULL
 )
 RETURNS UUID AS $$
@@ -237,6 +238,7 @@ BEGIN
   INSERT INTO ideas (
     creator_id,
     title,
+    decision_making,
     status_flag,
     pivot_state,
     anonymous,
@@ -247,6 +249,7 @@ BEGIN
   ) VALUES (
     source_idea.creator_id,
     COALESCE(new_title, source_idea.title),
+    COALESCE(new_decision_making, source_idea.decision_making),
     'new', -- New versions start fresh
     'stable',
     source_idea.anonymous,
@@ -309,7 +312,7 @@ CREATE TRIGGER trigger_initialize_idea_group
 
 -- Grant execute permissions on versioning functions
 GRANT EXECUTE ON FUNCTION get_next_version_number(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION create_idea_version(UUID, VARCHAR, JSONB) TO authenticated;
+GRANT EXECUTE ON FUNCTION create_idea_version(UUID, VARCHAR, TEXT, JSONB) TO authenticated;
 GRANT EXECUTE ON FUNCTION set_active_version(UUID) TO authenticated;
 
 -- ============================================================================

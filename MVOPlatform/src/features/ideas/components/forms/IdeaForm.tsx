@@ -121,7 +121,12 @@ export function IdeaForm({
 
   const ideaSchema = z.object({
     title: z.string().min(10, t('validation.title_min_length')),
-    decision_making: z.string().min(10, 'Please provide a decision you are trying to make (minimum 10 characters)'),
+    decision_making: z
+      .string()
+      .min(
+        10,
+        'Please provide a decision you are trying to make (minimum 10 characters)'
+      ),
     tags: z
       .string()
       .optional()
@@ -162,7 +167,9 @@ export function IdeaForm({
           // Fetch idea from database
           const { data: dbData, error: dbError } = await supabase
             .from('ideas')
-            .select('id, title, decision_making, content, anonymous, status_flag, image, video')
+            .select(
+              'id, title, decision_making, content, anonymous, status_flag, image, video'
+            )
             .eq('id', ideaId)
             .single()
 
@@ -180,7 +187,9 @@ export function IdeaForm({
 
         // Set decision_making
         if (idea.decision_making) {
-          setValue('decision_making', idea.decision_making, { shouldValidate: false })
+          setValue('decision_making', idea.decision_making, {
+            shouldValidate: false,
+          })
         }
 
         // Set tags
@@ -245,6 +254,9 @@ export function IdeaForm({
         // Restore form values
         if (parsed.title) {
           setValue('title', parsed.title)
+        }
+        if (parsed.decision_making) {
+          setValue('decision_making', parsed.decision_making)
         }
         if (parsed.tags && Array.isArray(parsed.tags)) {
           setSelectedTags(parsed.tags)
@@ -358,6 +370,7 @@ export function IdeaForm({
     // Try to save with video, but if it fails due to size, save without video
     const formDataWithVideo = {
       title: titleValue || '',
+      decision_making: watch('decision_making') || '',
       tags: selectedTags,
       contentBlocks: serializedBlocks,
       heroImage: heroImage,
@@ -369,6 +382,7 @@ export function IdeaForm({
     // Fallback: save without video if video is too large
     const formDataWithoutVideo = {
       title: titleValue || '',
+      decision_making: watch('decision_making') || '',
       tags: selectedTags,
       contentBlocks: serializedBlocks,
       heroImage: heroImage,
@@ -422,7 +436,15 @@ export function IdeaForm({
         }
       }
     }
-  }, [titleValue, selectedTags, contentBlocks, heroImage, heroVideo, heroCrop])
+  }, [
+    titleValue,
+    watch('decision_making'),
+    selectedTags,
+    contentBlocks,
+    heroImage,
+    heroVideo,
+    heroCrop,
+  ])
 
   const addTag = () => {
     const tag = tagInput.trim()
@@ -575,6 +597,7 @@ export function IdeaForm({
       version: 1,
       exportedAt: new Date().toISOString(),
       title: titleValue || '',
+      decision_making: watch('decision_making') || '',
       tags: selectedTags,
       contentBlocks: serializedContentBlocks,
       heroImage: heroImage,
@@ -636,6 +659,11 @@ export function IdeaForm({
       // Import title
       if (data.title) {
         setValue('title', data.title)
+      }
+
+      // Import decision making
+      if (data.decision_making) {
+        setValue('decision_making', data.decision_making)
       }
 
       // Import tags
@@ -747,7 +775,7 @@ export function IdeaForm({
     }
 
     // For new ideas or new versions, show AI comments dialog
-    if ((!ideaId || isNewVersion) && (wantAIComments && user)) {
+    if ((!ideaId || isNewVersion) && wantAIComments && user) {
       setShowAICommentsDialog(true)
       return
     }
@@ -788,8 +816,7 @@ export function IdeaForm({
 
     // Deduct credits if AI comments are requested
     if (wantAIComments && user) {
-      const hasEnoughCredits =
-        coinsBalance >= aiCommentsCoinCost
+      const hasEnoughCredits = coinsBalance >= aiCommentsCoinCost
       if (!hasEnoughCredits) {
         toast.error(t('ai_comments.no_credits_message'))
         setIsSubmitting(false)
@@ -798,7 +825,9 @@ export function IdeaForm({
       }
 
       try {
-        await dispatch(deductCredits({ userId: user.id, amount: aiCommentsCoinCost })).unwrap()
+        await dispatch(
+          deductCredits({ userId: user.id, amount: aiCommentsCoinCost })
+        ).unwrap()
         // Reload credits to ensure UI is updated
         await dispatch(loadUserCredits(user.id))
       } catch (error) {
@@ -1610,7 +1639,7 @@ export function IdeaForm({
               </div>
             </motion.label>
           </div>
-          
+
           {/* Generate AI Comments Option */}
           <div className="mb-6 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 transition-colors hover:border-accent/30 hover:bg-gray-50 dark:hover:bg-gray-800/50">
             <motion.label
@@ -1706,8 +1735,7 @@ export function IdeaForm({
                   if (!user) return
 
                   // Check credits
-                  const hasEnoughCredits =
-                    coinsBalance >= aiCommentsCoinCost
+                  const hasEnoughCredits = coinsBalance >= aiCommentsCoinCost
                   if (!hasEnoughCredits) {
                     toast.error(
                       'Insufficient coins. Get more coins to continue using AI features.'
@@ -1718,7 +1746,10 @@ export function IdeaForm({
                   // Deduct credits
                   try {
                     await dispatch(
-                      deductCredits({ userId: user.id, amount: aiCommentsCoinCost })
+                      deductCredits({
+                        userId: user.id,
+                        amount: aiCommentsCoinCost,
+                      })
                     ).unwrap()
                     // Now request the feedback
                     // This will be handled by the AIRiskFeedback component's internal requestFeedback
@@ -1777,6 +1808,7 @@ export function IdeaForm({
                 }
                 // Reset form values
                 setValue('title', '')
+                setValue('decision_making', '')
                 setValue('tags', '')
                 // Reset state
                 setContentBlocks([])

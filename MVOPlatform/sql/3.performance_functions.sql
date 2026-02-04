@@ -66,9 +66,10 @@ BEGIN
   END IF;
 
   -- Return updated idea with all computed fields
-  SELECT json_build_object(
+   SELECT json_build_object(
     'id', i.id,
     'title', i.title,
+    'decision_making', i.decision_making,
     'status_flag', i.status_flag,
     'content', i.content,
     'created_at', i.created_at,
