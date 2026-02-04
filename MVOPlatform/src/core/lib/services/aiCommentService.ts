@@ -1,6 +1,7 @@
 import { commentService } from './commentService'
 import { Idea } from '@/core/types/idea'
 import { Comment } from '@/core/types/comment'
+import { analyticsService } from './analyticsService'
 
 export const AI_PERSONA_NAMES: Record<string, string> = {
   technical: 'AI · The Architect',
@@ -79,6 +80,15 @@ class AICommentService {
           parentId
         )
 
+        // Track AI comment creation
+        analyticsService.trackCommentAdded({
+          ideaId: idea.id,
+          commentId: newComment.id,
+          commenterId: 'ai_system',
+          isAIComment: true,
+          isReply: !!parentId,
+        })
+
         commentIdMap[aiComment.personaKey] = newComment.id
       }
     } catch (error) {
@@ -147,6 +157,15 @@ class AICommentService {
           `/ai-personas/v2/${AI_PERSONA_IMAGES[aiResponse.personaKey]}.png`,
           parentId
         )
+
+        // Track AI response comment creation
+        analyticsService.trackCommentAdded({
+          ideaId: idea.id,
+          commentId: newComment.id,
+          commenterId: 'ai_system',
+          isAIComment: true,
+          isReply: true, // AI responses to mentions are always replies
+        })
 
         commentIdMap[aiResponse.personaKey] = newComment.id
       }

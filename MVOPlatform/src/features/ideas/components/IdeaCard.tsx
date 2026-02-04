@@ -16,6 +16,8 @@ import { formatDate } from '@/core/lib/utils/date'
 import { ideaService } from '@/core/lib/services/ideaService'
 import { toast } from 'sonner'
 import { TagRenderer } from '@/shared/components/ui/TagRenderer'
+import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
+import { useAnalytics } from '@/core/hooks/useAnalytics'
 
 type IdeaCardVariant = 'interactive' | 'metrics' | 'admin'
 
@@ -63,6 +65,7 @@ export function IdeaCard({
 }: IdeaCardProps) {
   const t = useTranslations()
   const { locale } = useLocale()
+  const { trackVote } = useAnalytics()
   const [currentIdea, setCurrentIdea] = useState(idea)
   const [isVoting, setIsVoting] = useState(false)
   const [showHoverOverlay, setShowHoverOverlay] = useState(false)
@@ -141,6 +144,9 @@ export function IdeaCard({
     try {
       const updatedIdea = await ideaService.toggleVote(currentIdea.id, voteType)
       setCurrentIdea(updatedIdea)
+      // Track vote analytics
+      trackVote(currentIdea.id, voteType, isRemovingVote)
+      // After successful vote, refresh the user votes to ensure consistency
       const updatedUserVotes = await ideaService.getUserVotes(currentIdea.id)
       setUserVote(updatedUserVotes)
     } catch (error) {

@@ -34,6 +34,7 @@ import {
   ConflictsGapsSection,
   SynthesisNextStepsSection,
 } from './deep-research'
+import { useAnalytics } from '@/core/hooks/useAnalytics'
 
 interface AIDeepResearchProps {
   ideaId: string
@@ -70,6 +71,7 @@ export function AIDeepResearch({
   const dispatch = useAppDispatch()
   const { user } = useAppSelector(state => state.auth)
   const { coinsBalance } = useAppSelector(state => state.credits)
+  const { trackAIFeature } = useAnalytics()
   const creditCostInitial = DEEP_RESEARCH
   const creditCostReRun = RE_RUN
   const hasCreditsInitial = coinsBalance >= creditCostInitial
@@ -162,6 +164,11 @@ export function AIDeepResearch({
       setResearch(result)
       setIsExpanded(true)
       setActiveTab('market_snapshot')
+
+      // Track AI feature usage (with version info for comparing AI effectiveness)
+      trackAIFeature(ideaId, 'deep_research', confirmCost, {
+        versionNumber: ideaVersionNumber,
+      })
 
       const marketValidationResults =
         await ideaService.getMarketValidationByIdeaId(ideaId, ideaVersionNumber)
