@@ -24,6 +24,7 @@ import { deductCredits } from '@/core/lib/slices/creditsSlice'
 import { PERSONA_PANEL, RE_RUN } from '@/core/constants/coinCosts'
 import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import Image from 'next/image'
+import { useAnalytics } from '@/core/hooks/useAnalytics'
 
 interface AIPersonasEvaluationProps {
   idea: Idea
@@ -48,6 +49,7 @@ export function AIPersonasEvaluation({
   const { user } = useAppSelector(state => state.auth)
   const { coinsBalance } = useAppSelector(state => state.credits)
   const dispatch = useAppDispatch()
+  const { trackAIFeature } = useAnalytics()
 
   const coinCostInitial = PERSONA_PANEL
   const coinCostReRun = RE_RUN
@@ -117,6 +119,12 @@ export function AIPersonasEvaluation({
 
       setFeedback(result)
       setIsExpanded(true)
+
+      // Track AI feature usage (with version info for comparing AI effectiveness)
+      trackAIFeature(idea.id, 'personas_evaluation', confirmCost, {
+        versionNumber: idea.versionNumber,
+        ideaGroupId: idea.ideaGroupId,
+      })
 
       const aiPersonasEvaluation =
         await ideaService.getAIPersonasEvaluationByIdeaId(

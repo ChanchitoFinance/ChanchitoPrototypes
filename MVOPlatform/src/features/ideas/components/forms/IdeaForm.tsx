@@ -48,6 +48,7 @@ import { ContentBlock } from '@/core/types/content'
 import { isUrlValid } from '@/core/lib/utils/media'
 import { toast } from 'sonner'
 import { aiCommentService } from '@/core/lib/services/aiCommentService'
+import { useAnalytics } from '@/core/hooks/useAnalytics'
 
 type IdeaFormData = {
   title: string
@@ -121,6 +122,7 @@ export function IdeaForm({
   const { coinsBalance } = useAppSelector(state => state.credits)
   const dispatch = useAppDispatch()
   const aiCommentsCoinCost = PERSONA_PANEL
+  const { trackIdeaCreated, trackIdeaUpdated, trackAIFeature } = useAnalytics()
 
   // Load user credits when component mounts and user is authenticated
   useEffect(() => {
@@ -991,8 +993,20 @@ export function IdeaForm({
           tags: newIdea.tags,
           anonymous: newIdea.anonymous,
         })
+        // Track new version created (with version info for comparing across iterations)
+        trackIdeaCreated({
+          ideaId: resultIdea.id,
+          hasVideo: !!newIdea.video,
+          hasImage: !!newIdea.image,
+          tags: newIdea.tags,
+          isAnonymous: newIdea.anonymous ?? false,
+          isVersion: true,
+          requestedAIComments: wantAIComments,
+          versionNumber: resultIdea.versionNumber,
+          ideaGroupId: resultIdea.ideaGroupId,
+        })
       } else if (ideaId) {
-        // Update existing idea
+        // Update existing idea (EDIT mode)
         resultIdea = await ideaService.updateIdea(ideaId, {
           title: newIdea.title,
           decision_making: newIdea.decision_making,
@@ -1004,9 +1018,30 @@ export function IdeaForm({
           anonymous: newIdea.anonymous,
           status_flag: newIdea.status_flag,
         })
+        // Track edit event (with version info for analyzing iteration impact)
+        trackIdeaUpdated({
+          ideaId: resultIdea.id,
+          hasVideo: !!newIdea.video,
+          hasImage: !!newIdea.image,
+          tags: newIdea.tags,
+          versionNumber: resultIdea.versionNumber,
+          ideaGroupId: resultIdea.ideaGroupId,
+        })
       } else {
         // Create new idea
         resultIdea = await ideaService.createIdea(newIdea)
+        // Track new idea created (first version)
+        trackIdeaCreated({
+          ideaId: resultIdea.id,
+          hasVideo: !!newIdea.video,
+          hasImage: !!newIdea.image,
+          tags: newIdea.tags,
+          isAnonymous: newIdea.anonymous ?? false,
+          isVersion: false,
+          requestedAIComments: wantAIComments,
+          versionNumber: 1,
+          ideaGroupId: resultIdea.ideaGroupId || resultIdea.id,
+        })
       }
 
       setSubmitProgress('Finalizing...')
@@ -1046,6 +1081,11 @@ export function IdeaForm({
           user.id,
           locale as 'en' | 'es'
         )
+        // Track AI comments feature usage (with version info for comparing AI effectiveness)
+        trackAIFeature(resultIdea.id, 'ai_comments', aiCommentsCoinCost, {
+          versionNumber: resultIdea.versionNumber,
+          ideaGroupId: resultIdea.ideaGroupId,
+        })
       }
 
       // Call onSuccess callback if provided, otherwise redirect

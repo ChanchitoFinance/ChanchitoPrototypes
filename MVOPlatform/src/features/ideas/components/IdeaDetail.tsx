@@ -36,6 +36,7 @@ import { AIPersonasEvaluation } from '@/features/ai/components/AIPersonasEvaluat
 import { AIDeepResearch } from '@/features/ai/components/AIDeepResearch'
 import { loadUserCredits } from '@/core/lib/slices/creditsSlice'
 import { TagRenderer } from '@/shared/components/ui/TagRenderer'
+import { useIdeaViewTracking, useAnalytics } from '@/core/hooks/useAnalytics'
 
 interface IdeaDetailProps {
   ideaId: string
@@ -66,6 +67,17 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   const mainContentRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const { isAuthenticated, user } = useAppSelector(state => state.auth)
+  const { trackShare } = useAnalytics()
+
+  // Track idea view on mount (with version info)
+  useIdeaViewTracking(
+    ideaId,
+    idea?.creatorEmail ? user?.email === idea.creatorEmail ? user?.id : undefined : undefined,
+    comments.some(c => c.content?.startsWith('AI ·')),
+    false, // hasDeepResearch - would need to check from analytics
+    idea?.versionNumber,
+    idea?.ideaGroupId
+  )
 
   const handleBack = () => {
     // Get the previous path from sessionStorage (set when navigating to idea)
@@ -636,7 +648,11 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <CommentsBlock ideaId={ideaId} />
+          <CommentsBlock 
+            ideaId={ideaId} 
+            versionNumber={idea?.versionNumber}
+            ideaGroupId={idea?.ideaGroupId}
+          />
         </motion.div>
 
         {/* Version History Panel - Only show for idea owner with multiple versions */}
