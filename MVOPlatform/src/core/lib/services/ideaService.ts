@@ -23,6 +23,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -60,6 +61,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -100,6 +102,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -137,6 +140,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -185,6 +189,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -222,6 +227,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -258,6 +264,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -302,6 +309,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -339,6 +347,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -384,6 +393,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -425,6 +435,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -465,6 +476,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -550,6 +562,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -729,6 +742,7 @@ class SupabaseIdeaService implements IIdeaService {
       return {
         id: ideaJson.id,
         title: ideaJson.title,
+        decision_making: ideaJson.decision_making,
         description: description || '',
         author:
           ideaJson.creator?.username ||
@@ -854,6 +868,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -1053,6 +1068,7 @@ class SupabaseIdeaService implements IIdeaService {
           `
           id,
           title,
+          decision_making,
           status_flag,
           content,
           created_at,
@@ -1110,6 +1126,7 @@ class SupabaseIdeaService implements IIdeaService {
         `
         id,
         title,
+        decision_making,
         status_flag,
         content,
         created_at,
@@ -1326,6 +1343,7 @@ class SupabaseIdeaService implements IIdeaService {
     return {
       id: dbIdea.id,
       title: dbIdea.title,
+      decision_making: dbIdea.decision_making,
       description: description || '',
       author,
       score,
@@ -1386,6 +1404,7 @@ class SupabaseIdeaService implements IIdeaService {
     return {
       id: rpcResult.id,
       title: rpcResult.title,
+      decision_making: rpcResult.decision_making,
       description: description || '',
       author: 'Anonymous', // RPC doesn't include user data
       score: rpcResult.score || 0,
@@ -1429,6 +1448,7 @@ class SupabaseIdeaService implements IIdeaService {
       .insert({
         creator_id: user.id,
         title: ideaData.title,
+        decision_making: ideaData.decision_making,
         content: {
           blocks: finalContent,
           hero_image: ideaData.image,
@@ -1459,6 +1479,8 @@ class SupabaseIdeaService implements IIdeaService {
     // Build update object
     const updateData: any = {}
     if (updates.title !== undefined) updateData.title = updates.title
+    if (updates.decision_making !== undefined)
+      updateData.decision_making = updates.decision_making
     if (updates.status_flag !== undefined)
       updateData.status_flag = updates.status_flag
     if (updates.anonymous !== undefined)
@@ -1590,6 +1612,7 @@ class SupabaseIdeaService implements IIdeaService {
     const { data, error } = await supabase.rpc('create_idea_version', {
       source_idea_id: sourceIdeaId,
       new_title: updates?.title || null,
+      new_decision_making: updates?.decision_making || null,
       new_content: newContent,
     })
 

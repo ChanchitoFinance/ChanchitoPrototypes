@@ -53,40 +53,23 @@ BEGIN
     AND vote_type = p_vote_type::idea_vote_type
   LIMIT 1;
 
-  -- Handle use/dislike votes (mutually exclusive)
-  IF p_vote_type = 'use' OR p_vote_type = 'dislike' THEN
-    -- Delete any existing use/dislike votes first
-    DELETE FROM idea_votes
-    WHERE idea_id = p_idea_id 
-      AND voter_id = v_user_id
-      AND vote_type IN ('use'::idea_vote_type, 'dislike'::idea_vote_type);
+  -- All votes are mutually exclusive - delete any existing votes first
+  DELETE FROM idea_votes
+  WHERE idea_id = p_idea_id 
+    AND voter_id = v_user_id;
     
-    -- If clicking same vote type, don't insert (toggle off)
-    -- If clicking different type or no vote existed, insert new vote
-    IF v_existing_vote IS NULL THEN
-      INSERT INTO idea_votes (idea_id, voter_id, vote_type)
-      VALUES (p_idea_id, v_user_id, p_vote_type::idea_vote_type);
-    END IF;
-    
-  -- Handle pay votes (independent, can coexist with use/dislike)
-  ELSIF p_vote_type = 'pay' THEN
-    IF v_existing_vote IS NOT NULL THEN
-      -- Remove pay vote (toggle off)
-      DELETE FROM idea_votes
-      WHERE idea_id = p_idea_id 
-        AND voter_id = v_user_id
-        AND vote_type = 'pay'::idea_vote_type;
-    ELSE
-      -- Add pay vote
-      INSERT INTO idea_votes (idea_id, voter_id, vote_type)
-      VALUES (p_idea_id, v_user_id, 'pay'::idea_vote_type);
-    END IF;
+  -- If clicking same vote type, don't insert (toggle off)
+  -- If clicking different type or no vote existed, insert new vote
+  IF v_existing_vote IS NULL THEN
+    INSERT INTO idea_votes (idea_id, voter_id, vote_type)
+    VALUES (p_idea_id, v_user_id, p_vote_type::idea_vote_type);
   END IF;
 
   -- Return updated idea with all computed fields
-  SELECT json_build_object(
+   SELECT json_build_object(
     'id', i.id,
     'title', i.title,
+    'decision_making', i.decision_making,
     'status_flag', i.status_flag,
     'content', i.content,
     'created_at', i.created_at,

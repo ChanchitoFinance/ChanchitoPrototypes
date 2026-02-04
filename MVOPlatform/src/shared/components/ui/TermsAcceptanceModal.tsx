@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from './Button'
-import { X } from 'lucide-react'
+import { X, CheckCircle2 } from 'lucide-react'
 import {
   useTranslations,
   useLocale,
@@ -107,9 +107,24 @@ export function TermsAcceptanceModal({
               <div className="flex-1 overflow-y-auto p-4 sm:p-6">
                 {/* Summary */}
                 <div className="mb-6">
-                  <p className="text-text-secondary mb-4 leading-relaxed whitespace-pre-line text-sm sm:text-base">
-                    {t('terms.modal_summary')}
+                  <p className="text-text-secondary mb-4 leading-relaxed text-sm sm:text-base">
+                    {t('terms.modal_intro')}
                   </p>
+
+                  {/* Terms list with icons */}
+                  <ul className="space-y-3 mb-4">
+                    {t('terms.modal_items')
+                      .split('\n')
+                      .filter((item: string) => item.trim())
+                      .map((item: string, index: number) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--primary-accent)' }} />
+                          <span className="text-text-secondary text-sm sm:text-base leading-relaxed">
+                            {item.trim()}
+                          </span>
+                        </li>
+                      ))}
+                  </ul>
 
                   {/* Link to full terms */}
                   <Link

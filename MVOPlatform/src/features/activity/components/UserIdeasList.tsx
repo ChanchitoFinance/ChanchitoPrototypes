@@ -137,8 +137,8 @@ export function UserIdeasList() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4 md:space-y-0">
+    <div className="space-y-12">
+      <div className="space-y-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <div>
             <h2 className="text-xl font-semibold text-text-primary">
@@ -189,7 +189,7 @@ export function UserIdeasList() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-32">
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
@@ -204,13 +204,15 @@ export function UserIdeasList() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-40 pb-24">
           {sortedIdeas.map(idea => (
             <IdeaCard
               key={idea.id}
               idea={idea}
               variant="interactive"
               initialUserVotes={idea.userVotes}
+              router={router}
+              locale={locale}
             />
           ))}
         </div>

@@ -133,13 +133,13 @@ export async function POST(request: NextRequest) {
     Content blocks: ${content.length} blocks
     Anonymous posting: ${isAnonymous ? 'Yes' : 'No'}
 
-    Content preview:
+    Content blocks:
     ${
       (content || [])
-        .slice(0, 8)
+        .slice(0, 12)
         .map((b: any, i: number) => {
           const t = (b?.text || b?.content || b?.value || '').toString().trim()
-          return t ? `Block ${i + 1}: ${t.slice(0, 320)}` : null
+          return t ? `Block ${i + 1}: ${t.slice(0, 1500)}` : null
         })
         .filter(Boolean)
         .join('\n') || '(No additional content provided)'

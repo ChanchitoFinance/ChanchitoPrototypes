@@ -81,22 +81,25 @@ export function HorizontalScrollSection({
   const scroll = (direction: 'left' | 'right') => {
     const container = scrollContainerRef.current
     if (container) {
-      const cardWidth = container.clientWidth / currentVisibleCards
-      const scrollAmount = cardWidth * (currentVisibleCards - 0.5)
-      container.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      })
+      // Get actual card width by checking first child (since cards have fixed min-width)
+      const firstCard = container.firstChild as HTMLElement
+      if (firstCard) {
+        const cardWidth = firstCard.offsetWidth
+        container.scrollBy({
+          left: direction === 'left' ? -cardWidth : cardWidth,
+          behavior: 'smooth',
+        })
+      }
     }
   }
 
-  // Calculate card width based on visible cards (showing partial card to indicate scroll)
-  const cardWidthPercentage = 100 / (currentVisibleCards + 0.5)
+  // Calculate card width based on visible cards (full width for better visibility)
+  const cardWidthPercentage = 100 / currentVisibleCards
 
   return (
-    <section className="mb-8 md:mb-12">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl md:text-2xl font-bold text-text-primary">
+    <section className="mb-2">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg md:text-2xl font-bold text-text-primary">
           {title}
         </h2>
         <div className="flex gap-2">
@@ -129,14 +132,14 @@ export function HorizontalScrollSection({
 
       <div
         ref={scrollContainerRef}
-        className="flex overflow-x-auto gap-4 pb-4 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="flex overflow-x-auto gap-1 md:gap-3 pb-3 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] h-[310px] md:h-[420px]"
       >
         {loading
           ? Array.from({ length: currentVisibleCards + 1 }).map((_, i) => (
               <div
                 key={`skeleton-${i}`}
                 className="flex-shrink-0"
-                style={{ width: `${cardWidthPercentage}%`, minWidth: '280px' }}
+                style={{ width: '100%', minWidth: '240px', maxWidth: '300px' }}
               >
                 <IdeaCardSkeleton />
               </div>
@@ -145,7 +148,7 @@ export function HorizontalScrollSection({
               <motion.div
                 key={idea.id}
                 className="flex-shrink-0"
-                style={{ width: `${cardWidthPercentage}%`, minWidth: '280px' }}
+                style={{ width: '100%', minWidth: '240px', maxWidth: '320px' }}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}

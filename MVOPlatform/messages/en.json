@@ -144,7 +144,8 @@
   },
   "terms": {
     "modal_title": "Terms and Conditions",
-    "modal_summary": "By checking this box, you accept that:\n\n(1) You are responsible for what you publish and having the rights to publish it.\n\n(2) You retain ownership of your content but grant us a license to host and display it.\n\n(3) You understand public content can be viewed by others.\n\n(4) You agree to our community rules, reporting policy, and moderation system.\n\n(5) Administrators may take appropriate actions, including banning, against users who violate our rules or engage in misconduct.\n\n(6) Content involving sexual content, harm, drugs, illegal activities, or other prohibited material is strictly forbidden and will be monitored.",
+    "modal_intro": "By checking this box, you accept that:",
+    "modal_items": "You are responsible for what you publish and having the rights to publish it.\nYou retain ownership of your content but grant us a license to host and display it.\nYou understand public content can be viewed by others.\nYou agree to our community rules, reporting policy, and moderation system.\nAdministrators may take appropriate actions, including banning, against users who violate our rules or engage in misconduct.\nContent involving sexual content, harm, drugs, illegal activities, or other prohibited material is strictly forbidden and will be monitored.",
     "read_full_terms": "Read full Terms and Conditions",
     "accept_checkbox": "I have read and accept the Terms and Conditions",
     "continue_button": "Continue",
@@ -255,7 +256,8 @@
     "discover_ideas": "Discover and vote on validated business ideas",
     "for_you_title": "For You",
     "for_you_subtitle": "Ideas curated just for you",
-    "new_ideas": "New Ideas"
+    "new_ideas": "New Ideas",
+    "decision_making_question": "Decision Making Question"
   },
   "home": {
     "discover_new": "Discover Something New",
@@ -517,6 +519,8 @@
     "create_idea": "Create Idea",
     "edit_idea": "Edit Idea",
     "enter_title": "Enter your idea title...",
+    "decision_making": "What's the decision you're trying to make?",
+    "decision_making_placeholder": "e.g., Should I pivot from B2C to B2B? Should I build this feature first?",
     "add_tags_hint": "Add tags below to categorize your idea",
     "required": "Required",
     "tags": "Tags",

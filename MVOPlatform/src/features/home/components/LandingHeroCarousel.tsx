@@ -42,7 +42,9 @@ export function LandingHeroCarousel({ slides }: { slides: HeroSlide[] }) {
   const slide = slides[current]
   const imageSlide = slides[displayedImageIndex]
   const imageUrl = parseBackgroundUrl(imageSlide?.background)
-  const fullBgUrl = slide?.fullBackground ? parseBackgroundUrl(imageSlide?.background) : null
+  const fullBgUrl = slide?.fullBackground
+    ? parseBackgroundUrl(imageSlide?.background)
+    : null
   const isFullBackground = Boolean(slide?.fullBackground)
   const accentColor = slide?.accentColor ?? 'var(--primary-accent)'
 
@@ -109,8 +111,10 @@ export function LandingHeroCarousel({ slides }: { slides: HeroSlide[] }) {
 
   return (
     <section
-      className="relative py-24 min-h-screen flex items-center overflow-hidden"
-      style={{ backgroundColor: isFullBackground ? 'transparent' : 'var(--background)' }}
+      className="relative py-4 sm:py-8 lg:py-24 min-h-screen flex items-center overflow-hidden"
+      style={{
+        backgroundColor: isFullBackground ? 'transparent' : 'var(--background)',
+      }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -119,7 +123,10 @@ export function LandingHeroCarousel({ slides }: { slides: HeroSlide[] }) {
         <>
           <div
             className="absolute inset-0 bg-cover bg-center transition-opacity duration-300 ease-out"
-            style={{ backgroundImage: `url(${fullBgUrl})`, opacity: imageOpacity }}
+            style={{
+              backgroundImage: `url(${fullBgUrl})`,
+              opacity: imageOpacity,
+            }}
             aria-hidden
           />
           <div className="absolute inset-0 bg-black/55" aria-hidden />
@@ -131,7 +138,7 @@ export function LandingHeroCarousel({ slides }: { slides: HeroSlide[] }) {
           <button
             type="button"
             onClick={() => go(-1)}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full border border-[var(--border-color)] bg-[var(--background)]/80 hover:bg-[var(--gray-100)] text-[var(--text-primary)] transition-colors"
+            className="absolute left-4 top-1/3 -translate-y-1/2 z-20 p-2 rounded-full border border-[var(--border-color)] bg-[var(--background)]/80 hover:bg-[var(--gray-100)] text-[var(--text-primary)] transition-colors sm:top-1/2"
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-8 h-8" />
@@ -139,7 +146,7 @@ export function LandingHeroCarousel({ slides }: { slides: HeroSlide[] }) {
           <button
             type="button"
             onClick={() => go(1)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full border border-[var(--border-color)] bg-[var(--background)]/80 hover:bg-[var(--gray-100)] text-[var(--text-primary)] transition-colors"
+            className="absolute right-4 top-1/3 -translate-y-1/2 z-20 p-2 rounded-full border border-[var(--border-color)] bg-[var(--background)]/80 hover:bg-[var(--gray-100)] text-[var(--text-primary)] transition-colors sm:top-1/2"
             aria-label="Next slide"
           >
             <ChevronRight className="w-8 h-8" />
@@ -149,16 +156,21 @@ export function LandingHeroCarousel({ slides }: { slides: HeroSlide[] }) {
 
       <div
         className={`relative z-10 w-full max-w-[95vw] lg:max-w-7xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-12 sm:gap-14 md:gap-10 ${
-          isFullBackground ? 'pl-6 pr-4 md:pl-12 lg:pl-16 justify-start' : 'pl-6 pr-4 md:pl-8 md:pr-6'
+          isFullBackground
+            ? 'pl-6 pr-4 md:pl-12 lg:pl-16 justify-start'
+            : 'pl-6 pr-4 md:pl-8 md:pr-6'
         }`}
       >
         {!isFullBackground && imageUrl && (
-          <div className="flex-shrink-0 w-full md:w-[68%] lg:w-[72%] flex items-center justify-center md:justify-start min-h-[50vh] sm:min-h-[420px] md:min-h-[560px] lg:min-h-[640px] order-first md:-ml-10 lg:-ml-24 xl:-ml-32">
+          <div className="flex-shrink-0 w-full md:w-[68%] lg:w-[72%] flex items-center justify-center md:justify-start min-h-[30vh] sm:min-h-[350px] md:min-h-[560px] lg:min-h-[640px] order-first md:-ml-10 lg:-ml-24 xl:-ml-32">
             <div
               className="w-full max-w-[95vw] sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl aspect-[4/3] md:aspect-[3/2] rounded-lg overflow-hidden bg-no-repeat bg-center transition-opacity duration-200 ease-out"
               style={{
                 backgroundImage: `url(${imageUrl})`,
-                backgroundSize: '70%',
+                backgroundSize:
+                  typeof window !== 'undefined' && window.innerWidth < 768
+                    ? '100%'
+                    : '70%',
                 opacity: imageOpacity,
               }}
               role="img"
@@ -174,16 +186,18 @@ export function LandingHeroCarousel({ slides }: { slides: HeroSlide[] }) {
               : 'md:-ml-32 lg:-ml-32 xl:-ml-32 md:mt-24 lg:mt-32 xl:mt-40'
           }`}
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-[var(--text-primary)] mb-8 break-words [text-wrap:balance]">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--text-primary)] mb-6 sm:mb-8 break-words [text-wrap:balance]">
             {slide.headline}
             {slide.accentWord && (
-              <span style={{ color: slide.accentColor ?? 'var(--primary-accent)' }}>
+              <span
+                style={{ color: slide.accentColor ?? 'var(--primary-accent)' }}
+              >
                 {slide.accentWord}
               </span>
             )}
             .
           </h1>
-          <p className="text-xl md:text-2xl text-[var(--text-secondary)] mb-10 break-words">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-[var(--text-secondary)] mb-8 sm:mb-10 break-words">
             {slide.subheadline}
           </p>
         </div>
@@ -191,7 +205,9 @@ export function LandingHeroCarousel({ slides }: { slides: HeroSlide[] }) {
 
       {/* Dots: elevated, same style as HeroCarousel */}
       {total > 1 && (
-        <div className="absolute bottom-20 md:bottom-12 left-1/2 -translate-x-1/2 flex gap-2 z-10">          {slides.map((_, i) => (
+        <div className="absolute bottom-20 sm:bottom-36 md:bottom-28 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {' '}
+          {slides.map((_, i) => (
             <button
               key={i}
               type="button"

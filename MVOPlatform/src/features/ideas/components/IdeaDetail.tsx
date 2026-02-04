@@ -35,6 +35,7 @@ import { toast } from 'sonner'
 import { AIPersonasEvaluation } from '@/features/ai/components/AIPersonasEvaluation'
 import { AIDeepResearch } from '@/features/ai/components/AIDeepResearch'
 import { loadUserCredits } from '@/core/lib/slices/creditsSlice'
+import { TagRenderer } from '@/shared/components/ui/TagRenderer'
 
 interface IdeaDetailProps {
   ideaId: string
@@ -472,7 +473,10 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
       <div className="relative w-full bg-black">
         {/* Media Section */}
         {validCardMedia.video ? (
-          <div ref={containerRef} className="relative w-full aspect-video">
+          <div
+            ref={containerRef}
+            className="relative w-full aspect-video sm:aspect-video md:aspect-video lg:aspect-video xl:aspect-video 2xl:aspect-video [@media(max-width:640px)]:aspect-[9/16]"
+          >
             <video
               ref={videoPlayerRef}
               src={validCardMedia.video}
@@ -499,7 +503,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
             />
           </div>
         ) : validCardMedia.image ? (
-          <div className="relative w-full aspect-video">
+          <div className="relative w-full aspect-video sm:aspect-video md:aspect-video lg:aspect-video xl:aspect-video 2xl:aspect-video [@media(max-width:640px)]:aspect-[9/16]">
             <Image
               src={validCardMedia.image}
               alt={idea.title}
@@ -509,7 +513,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
             />
           </div>
         ) : (
-          <div className="relative w-full aspect-video bg-gradient-to-br from-accent/20 via-background to-accent/10 flex items-center justify-center">
+          <div className="relative w-full aspect-video sm:aspect-video md:aspect-video lg:aspect-video xl:aspect-video 2xl:aspect-video [@media(max-width:640px)]:aspect-[9/16] bg-gradient-to-br from-accent/20 via-background to-accent/10 flex items-center justify-center">
             {/* Title hidden on mobile to avoid duplication with overlay */}
             <div className="text-center px-4 sm:px-6 max-w-2xl hidden md:block">
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary mb-4 break-words">
@@ -523,14 +527,11 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-4 sm:p-6 md:p-12">
           <div className="max-w-4xl mx-auto">
             <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
-              {idea.tags.map(tag => (
-                <span
-                  key={tag}
-                  className="px-2 sm:px-3 py-1 text-xs font-medium text-white bg-white/20 backdrop-blur-sm rounded-full"
-                >
-                  #{tag}
-                </span>
-              ))}
+              <TagRenderer
+                tags={idea.tags}
+                tagClassName="bg-gray-800/80 text-gray-100"
+                showHash={true}
+              />
             </div>
             <div className="flex items-center gap-3 mb-3 sm:mb-4">
               <h1
@@ -582,6 +583,25 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
 
       {/* Article Content */}
       <article className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-12">
+        {/* Decision Making Question */}
+        {idea.decision_making && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="mb-8"
+          >
+            <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 md:p-6">
+              <h3 className="text-lg md:text-xl font-bold text-text-primary mb-2">
+                {t('ideas.decision_making_question')}
+              </h3>
+              <p className="text-text-primary text-base md:text-lg leading-relaxed">
+                {idea.decision_making}
+              </p>
+            </div>
+          </motion.div>
+        )}
+
         {/* Actions Bar */}
         <IdeaActions
           idea={ideaData}

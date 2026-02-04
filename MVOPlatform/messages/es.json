@@ -144,7 +144,8 @@
   },
   "terms": {
     "modal_title": "Términos y Condiciones",
-    "modal_summary": "Al marcar esta casilla, aceptas que:\n\n(1) Tú eres responsable de lo que publicas y de tener derechos para publicarlo.\n\n(2) Conservas la propiedad de tu contenido pero nos otorgas una licencia para alojarlo y mostrarlo.\n\n(3) Entiendes que el contenido público puede ser visto por otros.\n\n(4) Aceptas nuestras reglas de la comunidad, política de reportes y sistema de moderación.\n\n(5) Los administradores pueden tomar acciones apropiadas, incluyendo el bloqueo, contra usuarios que violen nuestras reglas o se involucren en conductas indebidas.\n\n(6) El contenido que involucre material sexual, daño, drogas, actividades ilegales u otro material prohibido está estrictamente prohibido y será monitoreado.",
+    "modal_intro": "Al marcar esta casilla, aceptas que:",
+    "modal_items": "Tú eres responsable de lo que publicas y de tener derechos para publicarlo.\nConservas la propiedad de tu contenido pero nos otorgas una licencia para alojarlo y mostrarlo.\nEntiendes que el contenido público puede ser visto por otros.\nAceptas nuestras reglas de la comunidad, política de reportes y sistema de moderación.\nLos administradores pueden tomar acciones apropiadas, incluyendo el bloqueo, contra usuarios que violen nuestras reglas o se involucren en conductas indebidas.\nEl contenido que involucre material sexual, daño, drogas, actividades ilegales u otro material prohibido está estrictamente prohibido y será monitoreado.",
     "read_full_terms": "Leer Términos y Condiciones completos",
     "accept_checkbox": "He leído y acepto los Términos y Condiciones",
     "continue_button": "Continuar",
@@ -255,7 +256,8 @@
     "discover_ideas": "Descubre y vota por ideas de negocio validadas",
     "for_you_title": "Para Ti",
     "for_you_subtitle": "Ideas curadas especialmente para ti",
-    "new_ideas": "Nuevas Ideas"
+    "new_ideas": "Nuevas Ideas",
+    "decision_making_question": "Pregunta de Toma de Decisiones"
   },
   "home": {
     "discover_new": "Descubre Algo Nuevo",
@@ -517,6 +519,8 @@
     "create_idea": "Crear Idea",
     "edit_idea": "Editar Idea",
     "enter_title": "Ingresa el título de tu idea...",
+    "decision_making": "¿Cuál es la decisión que intentas tomar?",
+    "decision_making_placeholder": "ej., ¿Debería pivotar de B2C a B2B? ¿Debería construir esta función primero?",
     "add_tags_hint": "Agrega etiquetas abajo para categorizar tu idea",
     "required": "Requerido",
     "tags": "Etiquetas",
