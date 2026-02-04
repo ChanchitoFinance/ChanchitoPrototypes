@@ -110,7 +110,7 @@ body {
 }
 
 /* Light theme overrides */
-body.light-theme {
+html.light {
   --background: var(--light-background);
   --text-primary: var(--light-text-primary);
   --text-secondary: var(--light-text-secondary);
@@ -224,7 +224,7 @@ a {
   }
 
   /* Dark theme overrides - no border needed */
-  body:not(.light-theme) .light-theme-card {
+  html.dark .light-theme-card {
     border: none;
     background-color: transparent;
   }
@@ -461,7 +461,7 @@ a {
     background-color: #000000;
   }
 
-  body.light-theme .idea-card-bg {
+  html.light .idea-card-bg {
     background-color: #ffffff;
     border: 1px solid var(--light-card-border);
   }
@@ -470,7 +470,7 @@ a {
     color: #ffffff;
   }
 
-  body.light-theme .idea-card-text {
+  html.light .idea-card-text {
     color: var(--light-text-primary);
   }
 
@@ -478,7 +478,7 @@ a {
     color: rgba(255, 255, 255, 0.8);
   }
 
-  body.light-theme .idea-card-text-secondary {
+  html.light .idea-card-text-secondary {
     color: var(--light-text-secondary);
   }
 
@@ -486,7 +486,7 @@ a {
     color: rgba(255, 255, 255, 0.7);
   }
 
-  body.light-theme .idea-card-text-muted {
+  html.light .idea-card-text-muted {
     color: rgba(17, 17, 17, 0.6);
   }
 
