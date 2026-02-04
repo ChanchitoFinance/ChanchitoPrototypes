@@ -244,8 +244,8 @@ export function IdeaCard({
   return (
     <div
       ref={cardRef}
-      className={`relative idea-card-responsive ${isAdmin ? 'cursor-pointer group' : ''}`}
-      onClick={isAdmin ? handleCardClick : undefined}
+      className={`relative idea-card-responsive ${onDelete ? 'cursor-pointer group' : ''}`}
+      onClick={onDelete ? handleCardClick : undefined}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       style={{
@@ -255,7 +255,7 @@ export function IdeaCard({
         margin: '0 auto',
       }}
     >
-      {isAdmin && onDelete && (
+      {onDelete && (
         <button
           onClick={e => {
             e.stopPropagation()

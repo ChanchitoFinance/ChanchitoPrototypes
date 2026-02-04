@@ -413,7 +413,7 @@ export function BrowseDashboard({ isAdmin = false }) {
                 <IdeaCard
                   key={idea.id}
                   idea={idea}
-                  variant={isAdmin ? 'admin' : 'interactive'}
+                  variant="interactive"
                   locale={locale}
                   router={router}
                   initialUserVotes={idea.userVotes}

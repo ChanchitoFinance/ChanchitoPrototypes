@@ -463,7 +463,6 @@ a {
 
   html.light .idea-card-bg {
     background-color: #ffffff;
-    border: 1px solid var(--light-card-border);
   }
 
   .idea-card-text {
