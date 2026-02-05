@@ -19,14 +19,17 @@ import {
   AI_PERSONA_HANDLES,
 } from '@/core/lib/services/aiCommentService'
 import { ideaService } from '@/core/lib/services/ideaService'
+import { useAnalytics } from '@/core/hooks/useAnalytics'
 
 interface CommentsBlockProps {
   ideaId: string
+  versionNumber?: number
+  ideaGroupId?: string
 }
 
 const MAX_COMMENT_LENGTH = 3000
 
-export function CommentsBlock({ ideaId }: CommentsBlockProps) {
+export function CommentsBlock({ ideaId, versionNumber, ideaGroupId }: CommentsBlockProps) {
   const t = useTranslations()
   const { locale } = useLocale()
   const [comments, setComments] = useState<Comment[]>([])
@@ -45,6 +48,7 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
   const { coinsBalance } = useAppSelector(state => state.credits)
   const aiReplyCoinCost = PERSONA_PANEL
   const dispatch = useAppDispatch()
+  const { trackComment, trackAIFeature } = useAnalytics()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const newCommentRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false)
@@ -314,6 +318,12 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
         )
       }
 
+      // Track the user comment (with version info)
+      trackComment(ideaId, newCommentData.id, false, !!pendingCommentData.parentId, undefined, {
+        versionNumber,
+        ideaGroupId,
+      })
+
       const idea = await ideaService.getIdeaById(ideaId)
       if (idea) {
         await aiCommentService.handleMentionedPersonas(
@@ -324,6 +334,11 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
           user?.id || '',
           locale as 'en' | 'es'
         )
+        // Track AI comments feature usage for mentions (with version info)
+        trackAIFeature(ideaId, 'ai_comments', aiReplyCoinCost, {
+          versionNumber: idea.versionNumber,
+          ideaGroupId: idea.ideaGroupId,
+        })
       }
 
       // Refresh comments
@@ -474,6 +489,12 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
         parentId
       )
 
+      // Track user reply comment (with version info)
+      trackComment(ideaId, newReplyData.id, false, true, undefined, {
+        versionNumber,
+        ideaGroupId,
+      })
+
       const updatedComments = await commentService.getComments(ideaId)
 
       // Re-apply user vote information
@@ -590,6 +611,12 @@ export function CommentsBlock({ ideaId }: CommentsBlockProps) {
         authorImage,
         undefined // Always undefined for main comments
       )
+
+      // Track user main comment (with version info)
+      trackComment(ideaId, newCommentData.id, false, false, undefined, {
+        versionNumber,
+        ideaGroupId,
+      })
 
       const updatedComments = await commentService.getComments(ideaId)
 

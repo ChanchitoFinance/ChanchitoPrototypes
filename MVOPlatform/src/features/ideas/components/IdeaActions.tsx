@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
 import { toast } from 'sonner'
+import { useAnalytics } from '@/core/hooks/useAnalytics'
 
 interface IdeaActionsProps {
   idea: Idea
@@ -55,6 +56,7 @@ export function IdeaActions({
   showVersionBadge = false,
 }: IdeaActionsProps) {
   const t = useTranslations()
+  const { trackShare } = useAnalytics()
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -64,13 +66,16 @@ export function IdeaActions({
           text: idea.description,
           url: window.location.href,
         })
+        // Track share event
+        trackShare(idea.id, 'native')
         // Show success feedback
         toast.success(t('actions.share_success'))
       } catch (error) {
-        if (error.name !== 'AbortError') {
+        if ((error as Error).name !== 'AbortError') {
           console.error('Error sharing:', error)
           // Fallback to clipboard
           navigator.clipboard.writeText(window.location.href)
+          trackShare(idea.id, 'clipboard')
           toast.success(t('actions.link_copied'))
         }
         // If user canceled, don't show any message
@@ -78,6 +83,7 @@ export function IdeaActions({
     } else {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href)
+      trackShare(idea.id, 'clipboard')
       toast.success(t('actions.link_copied'))
     }
   }
