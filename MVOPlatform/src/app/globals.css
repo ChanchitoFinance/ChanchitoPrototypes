@@ -503,4 +503,30 @@ a {
       transform-origin: top center;
     }
   }
+
+  /* Idea card hover animation */
+  .idea-card-responsive {
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+  }
+
+  @media (min-width: 641px) {
+    .idea-card-responsive:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 8px 24px rgba(160, 123, 207, 0.3);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .idea-card-responsive:hover {
+      transform: scale(0.87) translateY(-6px);
+      box-shadow: 0 6px 20px rgba(160, 123, 207, 0.25);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .idea-card-responsive:hover {
+      transform: scale(0.77) translateY(-5px);
+      box-shadow: 0 4px 16px rgba(160, 123, 207, 0.2);
+    }
+  }
 }

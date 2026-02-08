@@ -76,7 +76,11 @@ export interface IIdeaService {
 
   getVersionGroup(ideaId: string): Promise<IdeaVersionGroup | null>
 
-  toggleVote(ideaId: string, voteType: 'dislike' | 'use' | 'pay'): Promise<Idea>
+  toggleVote(
+    ideaId: string,
+    voteType: 'dislike' | 'use' | 'pay',
+    originalIdea?: Idea
+  ): Promise<Idea>
 
   getUserVote(ideaId: string): Promise<'dislike' | 'use' | 'pay' | null>
 

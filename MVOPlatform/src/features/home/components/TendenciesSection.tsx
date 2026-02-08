@@ -36,10 +36,34 @@ function VerticalList({
   onIdeaHover,
   listWidth,
 }: VerticalListProps) {
+  const [minMaxWidth, setMinMaxWidth] = useState({
+    minWidth: '240px',
+    maxWidth: '300px',
+  })
+
+  useEffect(() => {
+    const calculateWidth = () => {
+      if (typeof window !== 'undefined') {
+        setMinMaxWidth({
+          minWidth: window.innerWidth < 768 ? '100%' : '240px',
+          maxWidth: window.innerWidth < 768 ? '100%' : '300px',
+        })
+      }
+    }
+
+    calculateWidth()
+    window.addEventListener('resize', calculateWidth)
+    return () => window.removeEventListener('resize', calculateWidth)
+  }, [])
+
   return (
     <div
       className="flex-shrink-0"
-      style={{ width: listWidth, minWidth: '240px', maxWidth: '300px' }}
+      style={{
+        width: listWidth,
+        minWidth: minMaxWidth.minWidth,
+        maxWidth: minMaxWidth.maxWidth,
+      }}
     >
       <h3 className="text-lg font-semibold text-text-primary mb-2 px-1">
         {title}
@@ -152,8 +176,22 @@ export function TendenciesSection({
     validated: t('home.status_validated'),
   }
 
-  // Calculate list width based on visible lists (showing partial to indicate scroll)
-  const listWidthPercentage = `${100 / (visibleLists + 0.5)}%`
+  // Calculate list width - full width on mobile, percentage on larger screens
+  const [listWidth, setListWidth] = useState('')
+
+  useEffect(() => {
+    const calculateListWidth = () => {
+      if (typeof window !== 'undefined') {
+        const width =
+          window.innerWidth < 768 ? '100%' : `${100 / (visibleLists + 0.5)}%`
+        setListWidth(width)
+      }
+    }
+
+    calculateListWidth()
+    window.addEventListener('resize', calculateListWidth)
+    return () => window.removeEventListener('resize', calculateListWidth)
+  }, [visibleLists])
 
   return (
     <section className="mb-2 md:mb-6">
@@ -198,28 +236,28 @@ export function TendenciesSection({
           ideas={ideasByStatus.new}
           loading={loading}
           onIdeaHover={onIdeaHover}
-          listWidth={listWidthPercentage}
+          listWidth={listWidth}
         />
         <VerticalList
           title={statusTitles.active_discussion}
           ideas={ideasByStatus.active_discussion}
           loading={loading}
           onIdeaHover={onIdeaHover}
-          listWidth={listWidthPercentage}
+          listWidth={listWidth}
         />
         <VerticalList
           title={statusTitles.trending}
           ideas={ideasByStatus.trending}
           loading={loading}
           onIdeaHover={onIdeaHover}
-          listWidth={listWidthPercentage}
+          listWidth={listWidth}
         />
         <VerticalList
           title={statusTitles.validated}
           ideas={ideasByStatus.validated}
           loading={loading}
           onIdeaHover={onIdeaHover}
-          listWidth={listWidthPercentage}
+          listWidth={listWidth}
         />
       </div>
     </section>

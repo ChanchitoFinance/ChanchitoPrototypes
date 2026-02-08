@@ -909,7 +909,8 @@ class SupabaseIdeaService implements IIdeaService {
 
   async toggleVote(
     ideaId: string,
-    voteType: 'dislike' | 'use' | 'pay'
+    voteType: 'dislike' | 'use' | 'pay',
+    originalIdea?: Idea
   ): Promise<Idea> {
     const {
       data: { user },
@@ -922,6 +923,12 @@ class SupabaseIdeaService implements IIdeaService {
     // Map the result back to Idea format
     const updatedIdea = this.mapRpcResultToIdea(result)
     if (!updatedIdea) throw new Error('Idea not found')
+
+    // Preserve author information from original idea if available
+    if (originalIdea) {
+      updatedIdea.author = originalIdea.author
+      updatedIdea.creatorEmail = originalIdea.creatorEmail
+    }
 
     return updatedIdea
   }

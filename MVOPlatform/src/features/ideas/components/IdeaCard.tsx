@@ -3,7 +3,14 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { MessageSquare, ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
+import {
+  MessageSquare,
+  ChevronUp,
+  ChevronDown,
+  Trash2,
+  Eye,
+  EyeOff,
+} from 'lucide-react'
 import {
   useLocale,
   useTranslations,
@@ -66,6 +73,8 @@ export function IdeaCard({
   const [currentIdea, setCurrentIdea] = useState(idea)
   const [isVoting, setIsVoting] = useState(false)
   const [showHoverOverlay, setShowHoverOverlay] = useState(false)
+  const [showMobileStats, setShowMobileStats] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const [userVote, setUserVote] = useState<{
     use: boolean
     dislike: boolean
@@ -84,6 +93,16 @@ export function IdeaCard({
   const { isAuthenticated } = useAppSelector(state => state.auth)
   const validCardMedia = useMediaValidation(currentIdea)
   const effectiveLocale = propLocale || locale
+
+  // Detect if we're on mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   useEffect(() => {
     setCurrentIdea(idea)
@@ -139,7 +158,11 @@ export function IdeaCard({
     }))
 
     try {
-      const updatedIdea = await ideaService.toggleVote(currentIdea.id, voteType)
+      const updatedIdea = await ideaService.toggleVote(
+        currentIdea.id,
+        voteType,
+        currentIdea
+      )
       setCurrentIdea(updatedIdea)
       const updatedUserVotes = await ideaService.getUserVotes(currentIdea.id)
       setUserVote(updatedUserVotes)
@@ -207,12 +230,36 @@ export function IdeaCard({
   }
 
   const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on a button
     if ((e.target as HTMLElement).closest('button')) {
       return
     }
+    // Don't navigate if clicking on the title link
+    if ((e.target as HTMLElement).closest('a')) {
+      return
+    }
+    // Navigate to idea details
+    if (typeof window !== 'undefined') {
+      const scrollContainer = document.querySelector(
+        'main > div.overflow-y-auto'
+      ) as HTMLElement
+      const scrollY = scrollContainer
+        ? scrollContainer.scrollTop
+        : window.scrollY
+
+      sessionStorage.setItem('previousPath', window.location.pathname)
+      sessionStorage.setItem('previousScrollPosition', scrollY.toString())
+    }
     if (router && effectiveLocale) {
       router.push(`/${effectiveLocale}/ideas/${currentIdea.id}`)
+    } else if (typeof window !== 'undefined') {
+      window.location.href = `/${effectiveLocale}/ideas/${currentIdea.id}`
     }
+  }
+
+  const toggleMobileStats = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setShowMobileStats(!showMobileStats)
   }
 
   // Calculate vote percentages
@@ -242,15 +289,25 @@ export function IdeaCard({
   const votedPay = userVote.pay
 
   return (
-    <div
+    <motion.div
       ref={cardRef}
-      className={`relative idea-card-responsive ${onDelete ? 'cursor-pointer group' : ''}`}
-      onClick={onDelete ? handleCardClick : undefined}
+      className={`relative idea-card-responsive cursor-pointer group`}
+      onClick={handleCardClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      whileHover={{
+        scale: 1.02,
+        y: -8,
+        boxShadow: '0 8px 24px rgba(160, 123, 207, 0.3)',
+        transition: { duration: 0.3, ease: 'easeOut' },
+      }}
+      initial={{
+        scale: 1,
+        y: 0,
+      }}
       style={{
         width: '100%',
-        maxWidth: '300px',
+        maxWidth: '100%',
         height: '280px',
         margin: '0 auto',
       }}
@@ -261,7 +318,7 @@ export function IdeaCard({
             e.stopPropagation()
             onDelete()
           }}
-          className="absolute top-3 right-3 z-20 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+          className="absolute top-3 right-3 z-50 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
           title={t('admin.dashboard.delete_idea')}
         >
           <Trash2 className="w-4 h-4" />
@@ -289,22 +346,26 @@ export function IdeaCard({
           top: '0px',
         }}
         onMouseEnter={() => {
-          console.log(
-            'Mouse enter - decision_making:',
-            currentIdea.decision_making
-          )
-          setShowHoverOverlay(true)
+          if (!isMobile) {
+            setShowHoverOverlay(true)
+          }
         }}
         onMouseLeave={() => {
-          console.log('Mouse leave')
-          setShowHoverOverlay(false)
+          if (!isMobile) {
+            setShowHoverOverlay(false)
+          }
+        }}
+        onTouchStart={e => {
+          if (isMobile && !(e.target as HTMLElement).closest('button')) {
+            e.stopPropagation()
+          }
         }}
       >
         {validCardMedia.video ? (
           <video
             ref={videoRef}
             src={validCardMedia.video}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${showHoverOverlay ? 'opacity-40' : 'opacity-100'}`}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${showHoverOverlay || (isMobile && showMobileStats) ? 'opacity-40' : 'opacity-100'}`}
             loop
             muted
             playsInline
@@ -314,32 +375,63 @@ export function IdeaCard({
           <img
             src={validCardMedia.image}
             alt={currentIdea.title}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${showHoverOverlay ? 'opacity-40' : 'opacity-100'}`}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${showHoverOverlay || (isMobile && showMobileStats) ? 'opacity-40' : 'opacity-100'}`}
             loading="lazy"
           />
         ) : (
           <div
-            className={`w-full h-full bg-gradient-to-br from-blue-400 to-purple-400 transition-opacity duration-300 ${showHoverOverlay ? 'opacity-40' : 'opacity-100'}`}
+            className={`w-full h-full bg-gradient-to-br from-blue-400 to-purple-400 transition-opacity duration-300 ${showHoverOverlay || (isMobile && showMobileStats) ? 'opacity-40' : 'opacity-100'}`}
           />
         )}
 
+        {/* Mobile Stats Toggle Button */}
+        {isMobile && currentIdea.decision_making && (
+          <button
+            onClick={toggleMobileStats}
+            className="absolute z-30 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-1.5 rounded-md transition-all duration-200 shadow-sm"
+            style={{
+              right: '8px',
+              top: '8px',
+            }}
+            title={
+              showMobileStats
+                ? t('actions.hide_stats')
+                : t('actions.show_stats')
+            }
+          >
+            {showMobileStats ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
+          </button>
+        )}
+
         {/* Hover Overlay with Decision Making Question and Vote Stats */}
-        {showHoverOverlay && (
+        {(showHoverOverlay || (isMobile && showMobileStats)) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="absolute inset-0 pointer-events-none z-20"
+            className="absolute inset-0 z-20"
             style={{
-              backgroundColor: 'rgba(0, 0, 0, 0.85)',
+              backgroundColor: 'rgba(0, 0, 0, 0.55)',
+              backdropFilter: 'blur(2px)',
+              pointerEvents: 'auto',
+            }}
+            onClick={e => {
+              // Allow clicking on the overlay to navigate to idea
+              if (!(e.target as HTMLElement).closest('button')) {
+                handleCardClick(e)
+              }
             }}
           >
             {currentIdea.decision_making ? (
               <>
-                {/* Decision Making Question */}
+                {/* Decision Making Question - Clickable */}
                 <p
-                  className="font-bold absolute text-white line-clamp-2"
+                  className="font-bold absolute text-white line-clamp-2 cursor-pointer hover:underline"
                   style={{
                     fontSize: '16px',
                     left: '20px',
@@ -351,6 +443,10 @@ export function IdeaCard({
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical',
+                  }}
+                  onClick={e => {
+                    e.stopPropagation()
+                    handleCardClick(e)
                   }}
                 >
                   {currentIdea.decision_making}
@@ -456,18 +552,20 @@ export function IdeaCard({
       </div>
 
       {/* Tags - Right aligned, overlaying image bottom */}
-      {!showHoverOverlay && currentIdea.tags.length > 0 && (
-        <div
-          className="absolute flex flex-wrap gap-2 justify-end pointer-events-none"
-          style={{
-            right: '20px',
-            top: '145px',
-            maxWidth: '320px',
-          }}
-        >
-          <TagRenderer tags={currentIdea.tags} />
-        </div>
-      )}
+      {!showHoverOverlay &&
+        !(isMobile && showMobileStats) &&
+        currentIdea.tags.length > 0 && (
+          <div
+            className="absolute flex flex-wrap gap-2 justify-end pointer-events-none"
+            style={{
+              right: '20px',
+              top: '145px',
+              maxWidth: '320px',
+            }}
+          >
+            <TagRenderer tags={currentIdea.tags} />
+          </div>
+        )}
 
       {/* Title */}
       <Link
@@ -531,7 +629,11 @@ export function IdeaCard({
                 ? BUTTON_COLORS.backgroundPay
                 : BUTTON_COLORS.background,
             }}
-            title={t('actions.id_pay') || "Double-click: I'd pay for it"}
+            title={
+              upvoted
+                ? t('actions.id_pay') || "Double-click: I'd pay for it"
+                : t('actions.like') || 'Click: Like'
+            }
           >
             <ChevronUp
               className="w-6 h-56"
@@ -601,6 +703,6 @@ export function IdeaCard({
       >
         {formatDate(currentIdea.createdAt)}
       </p>
-    </div>
+    </motion.div>
   )
 }

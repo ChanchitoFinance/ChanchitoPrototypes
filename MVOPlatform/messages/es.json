@@ -35,6 +35,7 @@
     "save": "Guardar",
     "up": "Me gusta",
     "down": "No me gusta",
+    "like": "Me gusta",
     "id_pay": "Pagar",
     "comments": "Comentarios",
     "share": "Compartir",
@@ -47,7 +48,9 @@
     "share_success": "¡Enlace compartido exitosamente!",
     "link_copied": "¡Enlace copiado al portapapeles!",
     "export": "Exportar",
-    "import": "Importar"
+    "import": "Importar",
+    "show_stats": "Ver estadísticas",
+    "hide_stats": "Ocultar estadísticas"
   },
   "status": {
     "loading": "Cargando...",
