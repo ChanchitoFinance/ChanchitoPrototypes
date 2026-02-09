@@ -25,6 +25,7 @@ import { toast } from 'sonner'
 import { TagRenderer } from '@/shared/components/ui/TagRenderer'
 
 type IdeaCardVariant = 'interactive' | 'metrics' | 'admin'
+type VoteType = 'use' | 'dislike' | 'pay'
 
 interface IdeaCardProps {
   idea: Idea
@@ -71,7 +72,6 @@ export function IdeaCard({
   const t = useTranslations()
   const { locale } = useLocale()
   const [currentIdea, setCurrentIdea] = useState(idea)
-  const [isVoting, setIsVoting] = useState(false)
   const [showHoverOverlay, setShowHoverOverlay] = useState(false)
   const [showMobileStats, setShowMobileStats] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -94,6 +94,176 @@ export function IdeaCard({
   const validCardMedia = useMediaValidation(currentIdea)
   const effectiveLocale = propLocale || locale
 
+  // -----------------------------
+  // Debounced "YouTube-like" voting (no button blocking)
+  // -----------------------------
+  const DEBOUNCE_MS = 450
+
+  const currentIdeaRef = useRef(currentIdea)
+  const userVoteRef = useRef(userVote)
+
+  const stableIdeaRef = useRef(currentIdea)
+  const stableUserVoteRef = useRef(userVote)
+
+  const lastSyncedSelectionRef = useRef<VoteType | null>(null)
+  const pendingSelectionRef = useRef<VoteType | null>(null)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const requestSeqRef = useRef(0)
+
+  const getSelectedType = (votes: {
+    use: boolean
+    dislike: boolean
+    pay: boolean
+  }): VoteType | null => {
+    if (votes.pay) return 'pay'
+    if (votes.use) return 'use'
+    if (votes.dislike) return 'dislike'
+    return null
+  }
+
+  const clampNonNegative = (n: number) => Math.max(0, n)
+
+  const applyOptimisticSelection = (next: VoteType | null) => {
+    const prevVotes = userVoteRef.current
+    const prevSelected = getSelectedType(prevVotes)
+
+    // Update userVote immediately (no blocking)
+    const nextVotes = {
+      use: next === 'use',
+      dislike: next === 'dislike',
+      pay: next === 'pay',
+    }
+    userVoteRef.current = nextVotes
+    setUserVote(nextVotes)
+
+    // Update counts immediately and consistently
+    setCurrentIdea(prev => {
+      const nextVotesByType = { ...prev.votesByType }
+
+      // Remove previous selection if any
+      if (prevSelected) {
+        nextVotesByType[prevSelected] = clampNonNegative(
+          nextVotesByType[prevSelected] - 1
+        )
+      }
+
+      // Add new selection if any
+      if (next) {
+        nextVotesByType[next] = (nextVotesByType[next] || 0) + 1
+      }
+
+      const nextTotal =
+        (nextVotesByType.use || 0) +
+        (nextVotesByType.pay || 0) +
+        (nextVotesByType.dislike || 0)
+
+      const updated = {
+        ...prev,
+        votesByType: nextVotesByType,
+        votes: nextTotal,
+      }
+
+      currentIdeaRef.current = updated
+      return updated
+    })
+
+    // Queue the last intent and debounce the network sync
+    pendingSelectionRef.current = next
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    debounceTimerRef.current = setTimeout(() => {
+      void flushVoteToServer()
+    }, DEBOUNCE_MS)
+  }
+
+  const flushVoteToServer = async () => {
+    const desired = pendingSelectionRef.current
+    const lastSynced = lastSyncedSelectionRef.current
+
+    // Nothing to do
+    if (desired === lastSynced) return
+
+    const mySeq = ++requestSeqRef.current
+
+    try {
+      let updatedIdea: Idea | null = null
+
+      // With toggleVote API, make the server end state match the desired state.
+      // - If had previous and want none => toggle previous off
+      // - If had none and want one => toggle desired on
+      // - If switching => toggle previous off, then desired on
+      if (lastSynced && !desired) {
+        updatedIdea = await ideaService.toggleVote(
+          currentIdeaRef.current.id,
+          lastSynced,
+          currentIdeaRef.current
+        )
+      } else if (!lastSynced && desired) {
+        updatedIdea = await ideaService.toggleVote(
+          currentIdeaRef.current.id,
+          desired,
+          currentIdeaRef.current
+        )
+      } else if (lastSynced && desired && lastSynced !== desired) {
+        updatedIdea = await ideaService.toggleVote(
+          currentIdeaRef.current.id,
+          lastSynced,
+          currentIdeaRef.current
+        )
+        updatedIdea = await ideaService.toggleVote(
+          currentIdeaRef.current.id,
+          desired,
+          updatedIdea
+        )
+      }
+
+      // Ignore stale in-flight results
+      if (mySeq !== requestSeqRef.current) return
+
+      if (updatedIdea) {
+        setCurrentIdea(updatedIdea)
+        currentIdeaRef.current = updatedIdea
+      }
+
+      // Reconcile user votes (guarded)
+      const updatedUserVotes = await ideaService.getUserVotes(
+        currentIdeaRef.current.id
+      )
+      if (mySeq !== requestSeqRef.current) return
+
+      setUserVote(updatedUserVotes)
+      userVoteRef.current = updatedUserVotes
+
+      // Mark as stable/synced
+      lastSyncedSelectionRef.current = desired
+      stableIdeaRef.current = currentIdeaRef.current
+      stableUserVoteRef.current = updatedUserVotes
+    } catch (error) {
+      if (mySeq !== requestSeqRef.current) return
+
+      console.error('Error voting:', error)
+      toast.error(t('actions.error_voting'))
+
+      // Revert to last known stable state
+      setCurrentIdea(stableIdeaRef.current)
+      currentIdeaRef.current = stableIdeaRef.current
+
+      setUserVote(stableUserVoteRef.current)
+      userVoteRef.current = stableUserVoteRef.current
+
+      lastSyncedSelectionRef.current = getSelectedType(stableUserVoteRef.current)
+      pendingSelectionRef.current = lastSyncedSelectionRef.current
+    }
+  }
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    currentIdeaRef.current = currentIdea
+  }, [currentIdea])
+
+  useEffect(() => {
+    userVoteRef.current = userVote
+  }, [userVote])
+
   // Detect if we're on mobile
   useEffect(() => {
     const checkMobile = () => {
@@ -106,19 +276,34 @@ export function IdeaCard({
 
   useEffect(() => {
     setCurrentIdea(idea)
+    currentIdeaRef.current = idea
+    stableIdeaRef.current = idea
   }, [idea])
 
   useEffect(() => {
     if (initialUserVotes) {
       setUserVote(initialUserVotes)
+      userVoteRef.current = initialUserVotes
+      stableUserVoteRef.current = initialUserVotes
+      lastSyncedSelectionRef.current = getSelectedType(initialUserVotes)
+      pendingSelectionRef.current = getSelectedType(initialUserVotes)
     } else {
-      setUserVote({
-        use: false,
-        dislike: false,
-        pay: false,
-      })
+      const reset = { use: false, dislike: false, pay: false }
+      setUserVote(reset)
+      userVoteRef.current = reset
+      stableUserVoteRef.current = reset
+      lastSyncedSelectionRef.current = null
+      pendingSelectionRef.current = null
     }
   }, [initialUserVotes])
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+      if (likeClickTimeoutRef.current) clearTimeout(likeClickTimeoutRef.current)
+    }
+  }, [])
 
   const videoRef = useVideoPlayer({
     videoSrc: validCardMedia.video,
@@ -126,93 +311,62 @@ export function IdeaCard({
     startTime: 10,
   })
 
-  const handleVote = async (voteType: 'use' | 'dislike' | 'pay') => {
-    if (!isAuthenticated) {
-      toast.warning(t('auth.sign_in_to_vote'))
-      return
-    }
-    if (isVoting) return
-
-    const previousIdea = currentIdea
-    const previousUserVote = userVote
-    const isRemovingVote = userVote[voteType]
-
-    setIsVoting(true)
-
-    if (!isRemovingVote) {
-      setCurrentIdea(prev => ({
-        ...prev,
-        votes: prev.votes + 1,
-        votesByType: {
-          ...prev.votesByType,
-          [voteType]: prev.votesByType[voteType] + 1,
-        },
-      }))
-    }
-
-    // Handle all vote types with exclusive logic
-    setUserVote(prev => ({
-      use: voteType === 'use' ? !prev.use : false,
-      dislike: voteType === 'dislike' ? !prev.dislike : false,
-      pay: voteType === 'pay' ? !prev.pay : false,
-    }))
-
-    try {
-      const updatedIdea = await ideaService.toggleVote(
-        currentIdea.id,
-        voteType,
-        currentIdea
-      )
-      setCurrentIdea(updatedIdea)
-      const updatedUserVotes = await ideaService.getUserVotes(currentIdea.id)
-      setUserVote(updatedUserVotes)
-    } catch (error) {
-      setCurrentIdea(previousIdea)
-      setUserVote(previousUserVote)
-      console.error('Error voting:', error)
-      toast.error(t('actions.error_voting'))
-    } finally {
-      setIsVoting(false)
-    }
-  }
-
-  // Handle like button with double-click detection (2s debounce)
+  // Like button: immediate optimistic "use", quick double-click overrides to "pay"
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
+    if (!isAuthenticated) {
+      toast.warning(t('auth.sign_in_to_vote'))
+      return
+    }
+
+    const currentSelected = getSelectedType(userVoteRef.current)
+
     // If already in pay state, single click should unvote (not switch to like)
-    if (userVote.pay) {
-      handleVote('pay')
+    if (currentSelected === 'pay') {
+      applyOptimisticSelection(null)
       return
     }
 
     likeClickCountRef.current += 1
 
-    if (likeClickTimeoutRef.current) {
-      clearTimeout(likeClickTimeoutRef.current)
+    // First click: toggle Like immediately (no waiting)
+    if (likeClickCountRef.current === 1) {
+      const next = currentSelected === 'use' ? null : 'use'
+      applyOptimisticSelection(next)
     }
 
-    // If double-click detected, trigger "pay for it"
+    if (likeClickTimeoutRef.current) clearTimeout(likeClickTimeoutRef.current)
+
+    // Short window to detect double click (fast YouTube-like)
+    likeClickTimeoutRef.current = setTimeout(() => {
+      likeClickCountRef.current = 0
+    }, 260)
+
+    // Second click within window: override to Pay
     if (likeClickCountRef.current === 2) {
       likeClickCountRef.current = 0
-      handleVote('pay')
-      return
-    }
-
-    // Set timeout for single click (2 seconds)
-    likeClickTimeoutRef.current = setTimeout(() => {
-      if (likeClickCountRef.current === 1) {
-        handleVote('use')
+      if (likeClickTimeoutRef.current) {
+        clearTimeout(likeClickTimeoutRef.current)
+        likeClickTimeoutRef.current = null
       }
-      likeClickCountRef.current = 0
-    }, 2000)
+      applyOptimisticSelection('pay')
+    }
   }
 
   const handleDislikeClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    handleVote('dislike')
+
+    if (!isAuthenticated) {
+      toast.warning(t('auth.sign_in_to_vote'))
+      return
+    }
+
+    const currentSelected = getSelectedType(userVoteRef.current)
+    const next = currentSelected === 'dislike' ? null : 'dislike'
+    applyOptimisticSelection(next)
   }
 
   const handleClick = () => {
@@ -365,7 +519,11 @@ export function IdeaCard({
           <video
             ref={videoRef}
             src={validCardMedia.video}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${showHoverOverlay || (isMobile && showMobileStats) ? 'opacity-40' : 'opacity-100'}`}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              showHoverOverlay || (isMobile && showMobileStats)
+                ? 'opacity-40'
+                : 'opacity-100'
+            }`}
             loop
             muted
             playsInline
@@ -375,12 +533,20 @@ export function IdeaCard({
           <img
             src={validCardMedia.image}
             alt={currentIdea.title}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${showHoverOverlay || (isMobile && showMobileStats) ? 'opacity-40' : 'opacity-100'}`}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              showHoverOverlay || (isMobile && showMobileStats)
+                ? 'opacity-40'
+                : 'opacity-100'
+            }`}
             loading="lazy"
           />
         ) : (
           <div
-            className={`w-full h-full bg-gradient-to-br from-blue-400 to-purple-400 transition-opacity duration-300 ${showHoverOverlay || (isMobile && showMobileStats) ? 'opacity-40' : 'opacity-100'}`}
+            className={`w-full h-full bg-gradient-to-br from-blue-400 to-purple-400 transition-opacity duration-300 ${
+              showHoverOverlay || (isMobile && showMobileStats)
+                ? 'opacity-40'
+                : 'opacity-100'
+            }`}
           />
         )}
 
@@ -421,7 +587,6 @@ export function IdeaCard({
               pointerEvents: 'auto',
             }}
             onClick={e => {
-              // Allow clicking on the overlay to navigate to idea
               if (!(e.target as HTMLElement).closest('button')) {
                 handleCardClick(e)
               }
@@ -455,11 +620,17 @@ export function IdeaCard({
                 {totalVotes > 0 && (
                   <>
                     {/* Vote Distribution Bars */}
-                    {/* Like Bar */}
                     <div
                       className="absolute"
                       style={{
-                        width: `${votePercentages.use > 0 ? Math.min(Math.max(votePercentages.use * 2.5, 60), 260) : 4}px`,
+                        width: `${
+                          votePercentages.use > 0
+                            ? Math.min(
+                                Math.max(votePercentages.use * 2.5, 60),
+                                260
+                              )
+                            : 4
+                        }px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.use,
                         left: '20px',
@@ -467,11 +638,17 @@ export function IdeaCard({
                       }}
                     />
 
-                    {/* Pay Bar */}
                     <div
                       className="absolute"
                       style={{
-                        width: `${votePercentages.pay > 0 ? Math.min(Math.max(votePercentages.pay * 2.5, 60), 260) : 4}px`,
+                        width: `${
+                          votePercentages.pay > 0
+                            ? Math.min(
+                                Math.max(votePercentages.pay * 2.5, 60),
+                                260
+                              )
+                            : 4
+                        }px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.pay,
                         left: '20px',
@@ -479,11 +656,17 @@ export function IdeaCard({
                       }}
                     />
 
-                    {/* Dislike Bar */}
                     <div
                       className="absolute"
                       style={{
-                        width: `${votePercentages.dislike > 0 ? Math.min(Math.max(votePercentages.dislike * 2.5, 60), 260) : 4}px`,
+                        width: `${
+                          votePercentages.dislike > 0
+                            ? Math.min(
+                                Math.max(votePercentages.dislike * 2.5, 60),
+                                260
+                              )
+                            : 4
+                        }px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.dislike,
                         left: '20px',
@@ -491,8 +674,7 @@ export function IdeaCard({
                       }}
                     />
 
-                    {/* Vote Percentages Text - Positioned individually on each bar */}
-                    {/* Like text */}
+                    {/* Vote Percentages Text */}
                     <div
                       className="font-bold absolute text-white flex items-center"
                       style={{
@@ -505,7 +687,6 @@ export function IdeaCard({
                       {votePercentages.use}% Like
                     </div>
 
-                    {/* Pay text */}
                     <div
                       className="font-bold absolute text-white flex items-center"
                       style={{
@@ -518,7 +699,6 @@ export function IdeaCard({
                       {votePercentages.pay}% I'd pay for it
                     </div>
 
-                    {/* Dislike text */}
                     <div
                       className="font-bold absolute text-white flex items-center"
                       style={{
@@ -614,12 +794,11 @@ export function IdeaCard({
           {/* Like Button - Double-click for "Pay for it" */}
           <motion.button
             onClick={handleLikeClick}
-            disabled={isVoting}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`absolute rounded-md transition-all duration-250 flex items-center justify-center ${
               upvoted || votedPay ? 'shadow-lg' : ''
-            } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            }`}
             style={{
               left: '16px',
               top: '272px',
@@ -651,12 +830,11 @@ export function IdeaCard({
           {/* Dislike Button */}
           <motion.button
             onClick={handleDislikeClick}
-            disabled={isVoting}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`absolute rounded-md transition-all duration-250 flex items-center justify-center ${
               downvoted ? 'shadow-lg' : ''
-            } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            }`}
             style={{
               left: '72px',
               top: '272px',
