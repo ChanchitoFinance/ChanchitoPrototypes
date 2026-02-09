@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   MessageSquare,
   ChevronUp,
@@ -187,10 +187,6 @@ export function IdeaCard({
     try {
       let updatedIdea: Idea | null = null
 
-      // With toggleVote API, make the server end state match the desired state.
-      // - If had previous and want none => toggle previous off
-      // - If had none and want one => toggle desired on
-      // - If switching => toggle previous off, then desired on
       if (lastSynced && !desired) {
         updatedIdea = await ideaService.toggleVote(
           currentIdeaRef.current.id,
@@ -216,7 +212,6 @@ export function IdeaCard({
         )
       }
 
-      // Ignore stale in-flight results
       if (mySeq !== requestSeqRef.current) return
 
       if (updatedIdea) {
@@ -224,7 +219,6 @@ export function IdeaCard({
         currentIdeaRef.current = updatedIdea
       }
 
-      // Reconcile user votes (guarded)
       const updatedUserVotes = await ideaService.getUserVotes(
         currentIdeaRef.current.id
       )
@@ -233,7 +227,6 @@ export function IdeaCard({
       setUserVote(updatedUserVotes)
       userVoteRef.current = updatedUserVotes
 
-      // Mark as stable/synced
       lastSyncedSelectionRef.current = desired
       stableIdeaRef.current = currentIdeaRef.current
       stableUserVoteRef.current = updatedUserVotes
@@ -243,7 +236,6 @@ export function IdeaCard({
       console.error('Error voting:', error)
       toast.error(t('actions.error_voting'))
 
-      // Revert to last known stable state
       setCurrentIdea(stableIdeaRef.current)
       currentIdeaRef.current = stableIdeaRef.current
 
@@ -254,6 +246,20 @@ export function IdeaCard({
       pendingSelectionRef.current = lastSyncedSelectionRef.current
     }
   }
+
+  // -----------------------------
+  // Click animations (smaller, no text)
+  // Like: "progress-to-pay" glow that fades back (invites second click)
+  // -----------------------------
+  const [likePulseKey, setLikePulseKey] = useState(0)
+  const [dislikePulseKey, setDislikePulseKey] = useState(0)
+  const [payBurstKey, setPayBurstKey] = useState(0)
+
+  const [likeChargeKey, setLikeChargeKey] = useState(0) // the "almost-pay" hint
+  const triggerLikePulse = () => setLikePulseKey(k => k + 1)
+  const triggerDislikePulse = () => setDislikePulseKey(k => k + 1)
+  const triggerPayBurst = () => setPayBurstKey(k => k + 1)
+  const triggerLikeCharge = () => setLikeChargeKey(k => k + 1)
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -326,6 +332,7 @@ export function IdeaCard({
     // If already in pay state, single click should unvote (not switch to like)
     if (currentSelected === 'pay') {
       applyOptimisticSelection(null)
+      triggerLikePulse()
       return
     }
 
@@ -335,6 +342,12 @@ export function IdeaCard({
     if (likeClickCountRef.current === 1) {
       const next = currentSelected === 'use' ? null : 'use'
       applyOptimisticSelection(next)
+
+      // Visible feedback
+      triggerLikePulse()
+
+      // If we just turned on Like, show "almost-pay" charge that fades back
+      if (next === 'use') triggerLikeCharge()
     }
 
     if (likeClickTimeoutRef.current) clearTimeout(likeClickTimeoutRef.current)
@@ -352,6 +365,7 @@ export function IdeaCard({
         likeClickTimeoutRef.current = null
       }
       applyOptimisticSelection('pay')
+      triggerPayBurst()
     }
   }
 
@@ -367,6 +381,8 @@ export function IdeaCard({
     const currentSelected = getSelectedType(userVoteRef.current)
     const next = currentSelected === 'dislike' ? null : 'dislike'
     applyOptimisticSelection(next)
+
+    triggerDislikePulse()
   }
 
   const handleClick = () => {
@@ -437,7 +453,6 @@ export function IdeaCard({
   }
 
   const isInteractive = variant === 'interactive'
-  const isAdmin = variant === 'admin'
   const upvoted = userVote.use
   const downvoted = userVote.dislike
   const votedPay = userVote.pay
@@ -449,6 +464,7 @@ export function IdeaCard({
       onClick={handleCardClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      // ✅ keep the original card hover animation
       whileHover={{
         scale: 1.02,
         y: -8,
@@ -594,7 +610,6 @@ export function IdeaCard({
           >
             {currentIdea.decision_making ? (
               <>
-                {/* Decision Making Question - Clickable */}
                 <p
                   className="font-bold absolute text-white line-clamp-2 cursor-pointer hover:underline"
                   style={{
@@ -619,7 +634,6 @@ export function IdeaCard({
 
                 {totalVotes > 0 && (
                   <>
-                    {/* Vote Distribution Bars */}
                     <div
                       className="absolute"
                       style={{
@@ -674,7 +688,6 @@ export function IdeaCard({
                       }}
                     />
 
-                    {/* Vote Percentages Text */}
                     <div
                       className="font-bold absolute text-white flex items-center"
                       style={{
@@ -791,7 +804,7 @@ export function IdeaCard({
       {/* Voting Buttons - Only show in interactive mode */}
       {isInteractive && (
         <>
-          {/* Like Button - Double-click for "Pay for it" */}
+          {/* LIKE BUTTON */}
           <motion.button
             onClick={handleLikeClick}
             whileHover={{ scale: 1.05 }}
@@ -807,6 +820,8 @@ export function IdeaCard({
               backgroundColor: votedPay
                 ? BUTTON_COLORS.backgroundPay
                 : BUTTON_COLORS.background,
+              position: 'absolute',
+              overflow: 'visible',
             }}
             title={
               upvoted
@@ -814,20 +829,124 @@ export function IdeaCard({
                 : t('actions.like') || 'Click: Like'
             }
           >
-            <ChevronUp
-              className="w-6 h-56"
-              strokeWidth={3}
-              style={{
-                color: votedPay
-                  ? BUTTON_COLORS.iconPay
+            {/* Smaller pulse (Like) */}
+            <AnimatePresence>
+              {!votedPay && likePulseKey > 0 && (
+                <motion.span
+                  key={`like-pulse-${likePulseKey}`}
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{
+                    opacity: [0, 0.7, 0],
+                    scale: [0.85, 1.12, 1.22],
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                  style={{
+                    position: 'absolute',
+                    inset: '-6px',
+                    borderRadius: '9px',
+                    border: `2px solid ${BUTTON_COLORS.iconLike}`,
+                    boxShadow: `0 0 0 6px rgba(111, 80, 145, 0.10)`,
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* "Almost Pay" charge: a purple-to-pay glow that slowly fades back */}
+            <AnimatePresence>
+              {likeChargeKey > 0 && !votedPay && upvoted && (
+                <motion.span
+                  key={`like-charge-${likeChargeKey}`}
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{
+                    opacity: [0, 0.75, 0.0],
+                    scale: [0.92, 1.06, 1.0],
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.85, ease: 'easeOut' }}
+                  style={{
+                    position: 'absolute',
+                    inset: '-8px',
+                    borderRadius: '10px',
+                    // visually "progressing" toward pay color, then fading out
+                    border: `2px solid ${BUTTON_COLORS.iconPay}`,
+                    boxShadow:
+                      '0 0 0 10px rgba(102, 25, 185, 0.18), 0 10px 22px rgba(102, 25, 185, 0.18)',
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* Pay burst (smaller square, but still clearly strongest) */}
+            <AnimatePresence>
+              {payBurstKey > 0 && votedPay && (
+                <motion.span
+                  key={`pay-burst-${payBurstKey}`}
+                  initial={{ opacity: 0, scale: 0.9, y: 3 }}
+                  animate={{
+                    opacity: [0, 1, 0],
+                    scale: [0.9, 1.25, 1.45],
+                    y: [3, -2, -4],
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.55, ease: 'easeOut' }}
+                  style={{
+                    position: 'absolute',
+                    inset: '-8px',
+                    borderRadius: '10px',
+                    border: `2px solid ${BUTTON_COLORS.iconPay}`,
+                    boxShadow:
+                      '0 0 0 10px rgba(102, 25, 185, 0.22), 0 10px 26px rgba(102, 25, 185, 0.30)',
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* Icon bounce */}
+            <motion.div
+              animate={
+                votedPay
+                  ? { scale: [1, 1.22, 1.1, 1.16, 1] }
                   : upvoted
-                    ? BUTTON_COLORS.iconLike
-                    : BUTTON_COLORS.iconDefault,
+                    ? { scale: [1, 1.08, 1] }
+                    : { scale: 1 }
+              }
+              transition={
+                votedPay
+                  ? { duration: 0.45, ease: 'easeOut' }
+                  : upvoted
+                    ? { duration: 0.22, ease: 'easeOut' }
+                    : { duration: 0.15 }
+              }
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
-            />
+            >
+              <ChevronUp
+                className="w-6 h-56"
+                strokeWidth={3}
+                style={{
+                  color: votedPay
+                    ? BUTTON_COLORS.iconPay
+                    : upvoted
+                      ? BUTTON_COLORS.iconLike
+                      : BUTTON_COLORS.iconDefault,
+                  filter: votedPay
+                    ? 'drop-shadow(0 8px 16px rgba(102, 25, 185, 0.38))'
+                    : upvoted
+                      ? 'drop-shadow(0 6px 12px rgba(111, 80, 145, 0.28))'
+                      : 'none',
+                }}
+              />
+            </motion.div>
           </motion.button>
 
-          {/* Dislike Button */}
+          {/* DISLIKE BUTTON */}
           <motion.button
             onClick={handleDislikeClick}
             whileHover={{ scale: 1.05 }}
@@ -841,17 +960,55 @@ export function IdeaCard({
               width: '44px',
               height: '44px',
               backgroundColor: BUTTON_COLORS.background,
+              position: 'absolute',
+              overflow: 'visible',
             }}
           >
-            <ChevronDown
-              className="w-6 h-56"
-              strokeWidth={3}
+            <AnimatePresence>
+              {dislikePulseKey > 0 && (
+                <motion.span
+                  key={`dislike-pulse-${dislikePulseKey}`}
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{
+                    opacity: [0, 0.65, 0],
+                    scale: [0.85, 1.1, 1.2],
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.32, ease: 'easeOut' }}
+                  style={{
+                    position: 'absolute',
+                    inset: '-6px',
+                    borderRadius: '9px',
+                    border: `2px solid ${BUTTON_COLORS.iconDislike}`,
+                    boxShadow: `0 0 0 6px rgba(173, 96, 52, 0.10)`,
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            <motion.div
+              animate={downvoted ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
               style={{
-                color: downvoted
-                  ? BUTTON_COLORS.iconDislike
-                  : BUTTON_COLORS.iconDefault,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
-            />
+            >
+              <ChevronDown
+                className="w-6 h-56"
+                strokeWidth={3}
+                style={{
+                  color: downvoted
+                    ? BUTTON_COLORS.iconDislike
+                    : BUTTON_COLORS.iconDefault,
+                  filter: downvoted
+                    ? 'drop-shadow(0 6px 12px rgba(173, 96, 52, 0.28))'
+                    : 'none',
+                }}
+              />
+            </motion.div>
           </motion.button>
         </>
       )}
