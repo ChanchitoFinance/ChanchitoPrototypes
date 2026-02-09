@@ -194,34 +194,29 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     threshold: 0.1, // Start playing when 10% visible
   })
 
-  const handleVoteUp = () => {
-    if (!isAuthenticated) {
-      toast.warning(t('auth.sign_in_to_vote'))
-      return
+  /** Apply target vote (same as IdeaCard: debounced in IdeaActions). Toggles off current then on target. */
+  const handleApplyVoteTarget = async (
+    target: 'use' | 'dislike' | 'pay' | null
+  ) => {
+    if (!isAuthenticated || !ideaData) return
+    const cur = userVotes.pay
+      ? 'pay'
+      : userVotes.use
+        ? 'use'
+        : userVotes.dislike
+          ? 'dislike'
+          : null
+    if (cur === target) return
+    if (cur) {
+      await dispatch(
+        toggleVote({ ideaId: ideaData.id, voteType: cur })
+      ).unwrap()
     }
-    if (!ideaData || isVoting) return
-
-    dispatch(toggleVote({ ideaId: ideaData.id, voteType: 'use' }))
-  }
-
-  const handleVoteDown = () => {
-    if (!isAuthenticated) {
-      toast.warning(t('auth.sign_in_to_vote'))
-      return
+    if (target) {
+      await dispatch(
+        toggleVote({ ideaId: ideaData.id, voteType: target })
+      ).unwrap()
     }
-    if (!ideaData || isVoting) return
-
-    dispatch(toggleVote({ ideaId: ideaData.id, voteType: 'dislike' }))
-  }
-
-  const handleLike = () => {
-    if (!isAuthenticated) {
-      toast.warning(t('auth.sign_in_to_vote'))
-      return
-    }
-    if (!ideaData || isVoting) return
-
-    dispatch(toggleVote({ ideaId: ideaData.id, voteType: 'pay' }))
   }
 
   const handleCommentsClick = () => {
@@ -612,10 +607,9 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
           dislikeCount={ideaData.votesByType.dislike}
           likeCount={ideaData.votesByType.pay}
           commentCount={commentCount}
-          onUpvote={handleVoteUp}
-          onDownvote={handleVoteDown}
-          onLike={handleLike}
+          onVoteTarget={handleApplyVoteTarget}
           onCommentsClick={handleCommentsClick}
+          isAuthenticated={isAuthenticated}
           isVoting={isVoting}
           isOwner={isOwner}
           onEdit={handleEdit}

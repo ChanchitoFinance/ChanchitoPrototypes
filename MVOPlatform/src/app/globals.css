@@ -489,22 +489,16 @@ a {
     color: rgba(17, 17, 17, 0.6);
   }
 
-  /* Responsive card sizing */
-  @media (max-width: 640px) {
+  /* Keep card proportion on phones: cap width so aspect ratio matches desktop */
+  @media (max-width: 768px) {
     .idea-card-responsive {
-      transform: scale(0.85);
-      transform-origin: top center;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
     }
   }
 
-  @media (max-width: 480px) {
-    .idea-card-responsive {
-      transform: scale(0.75);
-      transform-origin: top center;
-    }
-  }
-
-  /* Idea card hover animation */
+  /* Idea card hover animation – exactly as in original */
   .idea-card-responsive {
     transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
   }

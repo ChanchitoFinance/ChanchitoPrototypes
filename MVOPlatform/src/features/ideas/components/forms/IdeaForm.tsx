@@ -34,7 +34,10 @@ import {
 import { AIRiskFeedback } from '../../../ai/components/AIRiskFeedback'
 import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
 import { deductCredits, loadUserCredits } from '@/core/lib/slices/creditsSlice'
-import { PERSONA_PANEL } from '@/core/constants/coinCosts'
+import {
+  PERSONA_PANEL,
+  NEW_VERSION_CREDIT_COST,
+} from '@/core/constants/coinCosts'
 import { CreditConfirmationModal } from '@/shared/components/ui/CreditConfirmationModal'
 import { supabase } from '@/core/lib/supabase'
 import { ideaService } from '@/core/lib/services/ideaService'
@@ -50,10 +53,13 @@ type IdeaFormData = {
   title: string
   decision_making: string
   tags?: string
+  slug?: string
 }
 
 // LocalStorage key for form persistence
 const FORM_STORAGE_KEY = 'idea_form_draft'
+
+const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 interface IdeaFormProps {
   ideaId?: string // For editing existing ideas
@@ -62,6 +68,8 @@ interface IdeaFormProps {
   onCustomSubmit?: (data: IdeaFormData) => void
   isNewVersion?: boolean // When true, creates a new version instead of updating
   initialIdea?: Idea | null // Initial idea data for new versions
+  isArticle?: boolean // When true, create as article with slug (admin)
+  initialSlug?: string
 }
 
 export function IdeaForm({
@@ -71,6 +79,8 @@ export function IdeaForm({
   onCustomSubmit,
   isNewVersion = false,
   initialIdea = null,
+  isArticle = false,
+  initialSlug = '',
 }: IdeaFormProps = {}) {
   const router = useRouter()
   const t = useTranslations()
@@ -138,6 +148,12 @@ export function IdeaForm({
         },
         { message: t('validation.max_tags_3') }
       ),
+    slug: isArticle
+      ? z
+          .string()
+          .min(1, t('articles.slug_required'))
+          .regex(SLUG_REGEX, t('articles.slug_format'))
+      : z.string().optional(),
   })
 
   const {
@@ -148,6 +164,7 @@ export function IdeaForm({
     setValue,
   } = useForm<IdeaFormData>({
     resolver: zodResolver(ideaSchema),
+    defaultValues: isArticle ? { slug: initialSlug } : undefined,
   })
 
   const titleValue = watch('title')
@@ -928,12 +945,41 @@ export function IdeaForm({
         status_flag: 'new', // New ideas have 'new' status
         anonymous: isAnonymous, // Anonymous flag
       }
+      if (isArticle && !ideaId && data.slug) {
+        newIdea.is_article = true
+        newIdea.slug = data.slug.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      }
 
       setSubmitProgress('Uploading...')
 
       let resultIdea: Idea
 
       if (ideaId && isNewVersion) {
+        if (!user) {
+          toast.error(t('auth.sign_in_required_alert'))
+          setIsSubmitting(false)
+          setSubmitProgress('')
+          return
+        }
+        const hasEnoughCredits = coinsBalance >= NEW_VERSION_CREDIT_COST
+        if (!hasEnoughCredits) {
+          toast.error(t('credits.insufficient_title'))
+          setIsSubmitting(false)
+          setSubmitProgress('')
+          return
+        }
+        try {
+          await dispatch(
+            deductCredits({ userId: user.id, amount: NEW_VERSION_CREDIT_COST })
+          ).unwrap()
+          await dispatch(loadUserCredits(user.id))
+        } catch (error) {
+          console.error('Error deducting credits for new version:', error)
+          toast.error(t('credits.deduct_error'))
+          setIsSubmitting(false)
+          setSubmitProgress('')
+          return
+        }
         // Create a new version from the existing idea
         resultIdea = await ideaService.createIdeaVersion(ideaId, {
           title: newIdea.title,
@@ -1005,6 +1051,8 @@ export function IdeaForm({
       // Call onSuccess callback if provided, otherwise redirect
       if (onSuccess) {
         onSuccess()
+      } else if (resultIdea.slug && resultIdea.is_article) {
+        router.push(`/${locale}/articles/${resultIdea.slug}`)
       } else {
         router.push(`/${locale}/ideas/${resultIdea.id}`)
       }
@@ -1552,6 +1600,36 @@ export function IdeaForm({
               </p>
             )}
           </div>
+
+          {isArticle && !ideaId && (
+            <div className="mb-8 pb-8 border-b border-border-color">
+              <label className="block text-sm font-medium text-text-primary mb-3">
+                {t('articles.slug_label')} <span className="text-error">*</span>
+              </label>
+              <input
+                {...register('slug')}
+                type="text"
+                placeholder={t('articles.slug_placeholder')}
+                className="w-full px-4 py-3 bg-background border border-border-color rounded-lg text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary-accent focus:border-transparent"
+                onChange={e => {
+                  const v = e.target.value
+                    .toLowerCase()
+                    .replace(/\s+/g, '-')
+                    .replace(/[^a-z0-9-]/g, '')
+                  e.target.value = v
+                  setValue('slug', v)
+                }}
+              />
+              {errors.slug && (
+                <p className="text-error text-sm mt-2">
+                  {errors.slug.message}
+                </p>
+              )}
+              <p className="text-text-secondary text-sm mt-1">
+                {t('articles.slug_hint')}
+              </p>
+            </div>
+          )}
 
           {/* Rich Content Editor */}
           <div className="mb-8">

@@ -5,6 +5,10 @@ export interface IIdeaService {
 
   getIdeaById(id: string): Promise<Idea | null>
 
+  getIdeaBySlug(slug: string): Promise<Idea | null>
+
+  getArticles(limit?: number, offset?: number): Promise<Idea[]>
+
   loadMoreIdeas(currentCount: number): Promise<Idea[]>
 
   getFeaturedIdeas(limit?: number): Promise<Idea[]>
@@ -25,6 +29,12 @@ export interface IIdeaService {
   getCommunitiesFavorite(limit?: number): Promise<Idea[]>
 
   getMostCommented(limit?: number): Promise<Idea[]>
+
+  getMostDetailedIdeas(limit?: number): Promise<Idea[]>
+
+  getHighestPayIntentionIdeas(limit?: number): Promise<Idea[]>
+
+  getMostIteratedIdeas(limit?: number): Promise<Idea[]>
 
   getForYouIdeas(limit?: number, offset?: number): Promise<Idea[]>
 

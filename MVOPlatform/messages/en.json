@@ -41,6 +41,7 @@
     "share": "Share",
     "back": "Back",
     "delete": "Delete",
+    "error_deleting_idea": "Error deleting idea. Please try again.",
     "ok": "OK",
     "try_again": "Try Again",
     "clear_draft": "Clear Draft",
@@ -266,8 +267,15 @@
     "discover_new": "Discover Something New",
     "featured": "Featured",
     "trends": "Trends",
+    "articles": "Articles",
     "communities_favorite": "Communities' Favorite",
+    "top_10_most_liked": "Top 10 most liked",
     "most_commented": "Most Commented",
+    "trends_active_discussion": "Active Discussion",
+    "trends_top_commented": "Top 10 most commented",
+    "trends_most_detailed": "Top 5 Most detailed",
+    "trends_pay_intention": "Highest Pay intention",
+    "trends_most_iterated": "Top 5 iterated",
     "status_new": "New",
     "status_active_discussion": "Active Discussion",
     "status_trending": "Trending",
@@ -684,6 +692,15 @@
     "get_more_coins": "Get more coins",
     "coins_no_expire_note": "Coins do not expire. One-time purchase."
   },
+  "articles": {
+    "slug_label": "Article URL slug",
+    "slug_placeholder": "my-article-slug",
+    "slug_hint": "Lowercase letters, numbers, and hyphens only. Used in the article URL.",
+    "slug_required": "Slug is required for articles",
+    "slug_format": "Use only lowercase letters, numbers, and hyphens (e.g. my-article)",
+    "create_article": "Create Article",
+    "convert_to_article": "Convert to Article"
+  },
   "admin": {
     "dashboard": {
       "title": "Admin Dashboard",
@@ -699,7 +716,8 @@
       "delete_error": "Error deleting idea. Please try again.",
       "load_more": "Load More Ideas",
       "admin_info_title": "Admin Privileges Active",
-      "admin_info_message": "You have admin privileges on this page. You can delete ideas and manage content."
+      "admin_info_message": "You have admin privileges on this page. You can delete ideas and manage content.",
+      "create_article": "Create Article"
     }
   },
   "settings": {

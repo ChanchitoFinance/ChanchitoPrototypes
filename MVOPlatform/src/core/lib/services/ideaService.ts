@@ -46,6 +46,7 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .order('created_at', { ascending: false })
       .range(offset, limit ? offset + limit - 1 : undefined)
 
@@ -69,6 +70,8 @@ class SupabaseIdeaService implements IIdeaService {
         version_number,
         idea_group_id,
         is_active_version,
+        is_article,
+        slug,
         users!ideas_creator_id_fkey (
           username,
           full_name,
@@ -84,11 +87,98 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('id', id)
-      .single()
+      .eq('is_active_version', true)
+      .maybeSingle()
 
     if (error) return null
+    if (!data) return null
 
     return this.mapDbIdeaToIdea(data)
+  }
+
+  async getIdeaBySlug(slug: string): Promise<Idea | null> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        decision_making,
+        status_flag,
+        content,
+        created_at,
+        anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
+        is_article,
+        slug,
+        users!ideas_creator_id_fkey (
+          username,
+          full_name,
+          email
+        ),
+        idea_votes (
+          vote_type
+        ),
+        tags,
+        comments!left (
+          id
+        )
+      `
+      )
+      .eq('slug', slug)
+      .eq('is_active_version', true)
+      .maybeSingle()
+
+    if (error) return null
+    if (!data) return null
+
+    return this.mapDbIdeaToIdea(data)
+  }
+
+  async getArticles(limit?: number, offset = 0): Promise<Idea[]> {
+    let query = supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        decision_making,
+        status_flag,
+        content,
+        created_at,
+        anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
+        is_article,
+        slug,
+        users!ideas_creator_id_fkey (
+          username,
+          full_name
+        ),
+        idea_votes (
+          vote_type
+        ),
+        tags,
+        comments!left (
+          id
+        )
+      `
+      )
+      .eq('is_active_version', true)
+      .eq('is_article', true)
+      .order('created_at', { ascending: false })
+
+    if (limit !== undefined) {
+      query = query.range(offset, offset + limit - 1)
+    }
+
+    const { data, error } = await query
+    if (error) throw error
+
+    return data?.map(this.mapDbIdeaToIdea) || []
   }
 
   async loadMoreIdeas(currentCount: number): Promise<Idea[]> {
@@ -124,6 +214,7 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .eq('status_flag', 'trending')
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -162,6 +253,7 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .neq('status_flag', 'validated')
       .order('created_at', { ascending: false })
       .limit(limit * 10) // Fetch more to filter later
@@ -211,6 +303,7 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .eq('status_flag', 'new')
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -249,6 +342,7 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .order('created_at', { ascending: false })
       .limit(limit)
 
@@ -286,6 +380,7 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .order('created_at', { ascending: false })
       .limit(limit * 3)
 
@@ -331,6 +426,7 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .eq('status_flag', statusFlag)
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -369,6 +465,7 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .order('created_at', { ascending: false })
       .limit(limit * 3)
 
@@ -415,6 +512,7 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .order('created_at', { ascending: false })
       .limit(limit * 3)
 
@@ -426,6 +524,117 @@ class SupabaseIdeaService implements IIdeaService {
     const sortedIdeas = ideas.sort((a, b) => b.commentCount - a.commentCount)
 
     return sortedIdeas.slice(0, limit)
+  }
+
+  async getMostDetailedIdeas(limit = 5): Promise<Idea[]> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        decision_making,
+        status_flag,
+        content,
+        created_at,
+        anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
+        users!ideas_creator_id_fkey (
+          username,
+          full_name
+        ),
+        idea_votes (
+          vote_type
+        ),
+        tags,
+        comments!left (
+          id
+        )
+      `
+      )
+      .eq('is_active_version', true)
+      .eq('is_article', false)
+      .order('detail_score', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return (data?.map(this.mapDbIdeaToIdea) || [])
+  }
+
+  async getHighestPayIntentionIdeas(limit = 5): Promise<Idea[]> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        decision_making,
+        status_flag,
+        content,
+        created_at,
+        anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
+        users!ideas_creator_id_fkey (
+          username,
+          full_name
+        ),
+        idea_votes (
+          vote_type
+        ),
+        tags,
+        comments!left (
+          id
+        )
+      `
+      )
+      .eq('is_active_version', true)
+      .eq('is_article', false)
+      .order('pay_intention_ratio', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return (data?.map(this.mapDbIdeaToIdea) || [])
+  }
+
+  async getMostIteratedIdeas(limit = 5): Promise<Idea[]> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select(
+        `
+        id,
+        title,
+        decision_making,
+        status_flag,
+        content,
+        created_at,
+        anonymous,
+        version_number,
+        idea_group_id,
+        is_active_version,
+        users!ideas_creator_id_fkey (
+          username,
+          full_name
+        ),
+        idea_votes (
+          vote_type
+        ),
+        tags,
+        comments!left (
+          id
+        )
+      `
+      )
+      .eq('is_active_version', true)
+      .eq('is_article', false)
+      .order('iteration_count', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return (data?.map(this.mapDbIdeaToIdea) || [])
   }
 
   async getForYouIdeas(limit?: number, offset = 0): Promise<Idea[]> {
@@ -457,6 +666,7 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .neq('status_flag', 'validated')
       .order('created_at', { ascending: false })
       .range(offset, limit ? offset + limit - 1 : undefined)
@@ -499,6 +709,7 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .neq('status_flag', 'validated')
       .order('created_at', { ascending: false })
       .limit(fetchLimit)
@@ -522,10 +733,12 @@ class SupabaseIdeaService implements IIdeaService {
     limit = 20,
     offset = 0
   ): Promise<{ ideas: Idea[]; total: number }> {
-    // First, get the total count
+    // First, get the total count (exclude articles - they only appear in Articles section)
     let countQuery = supabase
       .from('ideas')
       .select('id', { count: 'exact', head: true })
+      .eq('is_active_version', true)
+      .eq('is_article', false)
 
     // Add search functionality if search query is provided
     if (search && search.trim()) {
@@ -548,6 +761,8 @@ class SupabaseIdeaService implements IIdeaService {
       const { count: tagCount, error: tagCountError } = await supabase
         .from('ideas')
         .select('id', { count: 'exact', head: true })
+        .eq('is_active_version', true)
+        .eq('is_article', false)
         .filter('tags', 'cs', [searchTerm.replace(/%/g, '')])
 
       if (!tagCountError && tagCount) {
@@ -582,6 +797,8 @@ class SupabaseIdeaService implements IIdeaService {
         )
       `
       )
+      .eq('is_active_version', true)
+      .eq('is_article', false)
       .order('created_at', { ascending: false })
 
     // Add search functionality if search query is provided
@@ -634,6 +851,8 @@ class SupabaseIdeaService implements IIdeaService {
           )
         `
         )
+        .eq('is_active_version', true)
+        .eq('is_article', false)
         .filter('tags', 'cs', [searchTerm.replace(/%/g, '')])
         .order('created_at', { ascending: false })
         .range(0, limit * 2) // Fetch more to account for overlaps
@@ -764,11 +983,15 @@ class SupabaseIdeaService implements IIdeaService {
         status_flag: ideaJson.status_flag,
         anonymous: ideaJson.anonymous || false,
         creatorEmail: ideaJson.creator?.email || null,
+        is_article: ideaJson.is_article ?? false,
       }
     })
 
+    // Exclude articles from browse/other lists; they only appear in Home Articles section
+    const ideasExcludingArticles = ideas.filter(i => !i.is_article)
+
     return {
-      ideas,
+      ideas: ideasExcludingArticles,
       total: totalCount,
     }
   }
@@ -832,11 +1055,12 @@ class SupabaseIdeaService implements IIdeaService {
   }
 
   async getAllTags(): Promise<string[]> {
-    // Extract unique tags from all ideas
+    // Extract unique tags from ideas only (exclude articles)
     const { data, error } = await supabase
       .from('ideas')
       .select('tags')
       .eq('is_active_version', true)
+      .eq('is_article', false)
 
     if (error) throw error
 
@@ -889,6 +1113,7 @@ class SupabaseIdeaService implements IIdeaService {
       `
       )
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .order('created_at', { ascending: false })
       .limit(fetchLimit)
     if (error) throw error
@@ -1094,6 +1319,7 @@ class SupabaseIdeaService implements IIdeaService {
         )
         .eq('creator_id', user.id)
         .eq('is_active_version', true)
+        .eq('is_article', false)
         .order('created_at', { ascending: false })
         .range(offset, limit ? offset + limit - 1 : undefined)
 
@@ -1152,6 +1378,7 @@ class SupabaseIdeaService implements IIdeaService {
       )
       .eq('creator_id', user.id)
       .eq('is_active_version', true)
+      .eq('is_article', false)
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -1369,6 +1596,9 @@ class SupabaseIdeaService implements IIdeaService {
       versionNumber: dbIdea.version_number || 1,
       ideaGroupId: dbIdea.idea_group_id || dbIdea.id,
       isActiveVersion: dbIdea.is_active_version !== false, // Default to true if not set
+      // Articles
+      is_article: dbIdea.is_article ?? false,
+      slug: dbIdea.slug ?? null,
     }
   }
 
@@ -1430,6 +1660,8 @@ class SupabaseIdeaService implements IIdeaService {
       versionNumber: rpcResult.version_number || 1,
       ideaGroupId: rpcResult.idea_group_id || rpcResult.id,
       isActiveVersion: rpcResult.is_active_version !== false, // Default to true if not set
+      is_article: rpcResult.is_article ?? false,
+      slug: rpcResult.slug ?? null,
     }
   }
 
@@ -1450,22 +1682,27 @@ class SupabaseIdeaService implements IIdeaService {
       finalContent = contentWithMetadata
     }
 
+    const insertPayload: Record<string, unknown> = {
+      creator_id: user.id,
+      title: ideaData.title,
+      decision_making: ideaData.decision_making,
+      content: {
+        blocks: finalContent,
+        hero_image: ideaData.image,
+        hero_video: ideaData.video,
+        description: ideaData.description,
+      },
+      tags: ideaData.tags || [],
+      status_flag: ideaData.status_flag || 'new',
+      anonymous: ideaData.anonymous || false,
+    }
+    if (ideaData.is_article !== undefined) insertPayload.is_article = ideaData.is_article
+    if (ideaData.slug !== undefined && ideaData.slug !== null)
+      insertPayload.slug = ideaData.slug
+
     const { data, error } = await supabase
       .from('ideas')
-      .insert({
-        creator_id: user.id,
-        title: ideaData.title,
-        decision_making: ideaData.decision_making,
-        content: {
-          blocks: finalContent,
-          hero_image: ideaData.image,
-          hero_video: ideaData.video,
-          description: ideaData.description,
-        },
-        tags: ideaData.tags || [],
-        status_flag: ideaData.status_flag || 'new',
-        anonymous: ideaData.anonymous || false,
-      })
+      .insert(insertPayload)
       .select()
       .single()
 
@@ -1520,6 +1757,8 @@ class SupabaseIdeaService implements IIdeaService {
     if (updates.tags !== undefined) {
       updateData.tags = updates.tags
     }
+    if (updates.is_article !== undefined) updateData.is_article = updates.is_article
+    if (updates.slug !== undefined) updateData.slug = updates.slug
 
     const { data, error } = await supabase
       .from('ideas')

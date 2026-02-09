@@ -41,6 +41,7 @@
     "share": "Compartir",
     "back": "Volver",
     "delete": "Eliminar",
+    "error_deleting_idea": "Error al eliminar la idea. Inténtalo de nuevo.",
     "ok": "OK",
     "try_again": "Intentar de Nuevo",
     "clear_draft": "Limpiar Borrador",
@@ -266,8 +267,15 @@
     "discover_new": "Descubre Algo Nuevo",
     "featured": "Destacados",
     "trends": "Tendencias",
+    "articles": "Artículos",
     "communities_favorite": "Favoritos de la Comunidad",
+    "top_10_most_liked": "Top 10 más gustados",
     "most_commented": "Más Comentados",
+    "trends_active_discussion": "Discusión Activa",
+    "trends_top_commented": "Top 10 más comentados",
+    "trends_most_detailed": "Top 5 Más detallados",
+    "trends_pay_intention": "Mayor intención de pago",
+    "trends_most_iterated": "Top 5 iterados",
     "status_new": "Nuevas",
     "status_active_discussion": "Discusión Activa",
     "status_trending": "En Tendencia",
@@ -684,6 +692,15 @@
     "get_more_coins": "Obtener más monedas",
     "coins_no_expire_note": "Las monedas no expiran. Compra única."
   },
+  "articles": {
+    "slug_label": "Slug de URL del artículo",
+    "slug_placeholder": "mi-articulo",
+    "slug_hint": "Solo minúsculas, números y guiones. Se usa en la URL del artículo.",
+    "slug_required": "El slug es obligatorio para artículos",
+    "slug_format": "Usa solo minúsculas, números y guiones (ej. mi-articulo)",
+    "create_article": "Crear Artículo",
+    "convert_to_article": "Convertir en Artículo"
+  },
   "admin": {
     "dashboard": {
       "title": "Panel de Administración",
@@ -699,7 +716,8 @@
       "delete_error": "Error al eliminar la idea. Por favor, inténtalo de nuevo.",
       "load_more": "Cargar Más Ideas",
       "admin_info_title": "Privilegios de Administrador Activos",
-      "admin_info_message": "Tienes privilegios de administrador en esta página. Puedes eliminar ideas y gestionar contenido."
+      "admin_info_message": "Tienes privilegios de administrador en esta página. Puedes eliminar ideas y gestionar contenido.",
+      "create_article": "Crear Artículo"
     }
   },
   "settings": {

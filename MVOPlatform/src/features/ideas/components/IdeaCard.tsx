@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   MessageSquare,
   ChevronUp,
@@ -10,6 +10,7 @@ import {
   Trash2,
   Eye,
   EyeOff,
+  FileText,
 } from 'lucide-react'
 import {
   useLocale,
@@ -25,6 +26,7 @@ import { toast } from 'sonner'
 import { TagRenderer } from '@/shared/components/ui/TagRenderer'
 
 type IdeaCardVariant = 'interactive' | 'metrics' | 'admin'
+type VoteType = 'use' | 'dislike' | 'pay'
 
 interface IdeaCardProps {
   idea: Idea
@@ -37,25 +39,28 @@ interface IdeaCardProps {
     pay: boolean
   }
   onDelete?: () => void
+  onConvertToArticle?: (idea: Idea) => void
   router?: any
   locale?: string
 }
 
 // Vote colors - updated palette with opacity
 const BUTTON_COLORS = {
-  background: 'rgba(118, 99, 99, 0.13)', // Default button background with 13% opacity
-  backgroundPay: 'rgba(115, 49, 223, 0.13)', // Background when double-clicked for pay with 13% opacity
-  iconDefault: '#686060', // Icon color when not voted (100% opacity)
-  iconLike: '#6F5091', // Icon color when liked (100% opacity)
-  iconDislike: '#AD6034', // Icon color when disliked (100% opacity)
-  iconPay: '#6619B9', // Icon color when double-clicked for pay (100% opacity)
+  background: 'rgba(118, 99, 99, 0.13)',
+  backgroundPay: 'rgba(115, 49, 223, 0.13)',
+  backgroundLike: 'rgba(111, 80, 145, 0.18)',
+  backgroundDislike: 'rgba(173, 96, 52, 0.18)',
+  iconDefault: '#686060',
+  iconLike: '#6F5091',
+  iconDislike: '#AD6034',
+  iconPay: '#6619B9',
 }
 
 // Colors for hover overlay bars
 const HOVER_BAR_COLORS = {
-  use: '#C46DE4', // Pink for like bar in overlay
-  pay: '#7600A1', // Purple for pay bar in overlay
-  dislike: '#FF922B', // Orange for dislike bar in overlay
+  use: '#C46DE4',
+  pay: '#7600A1',
+  dislike: '#FF922B',
 }
 
 export function IdeaCard({
@@ -65,13 +70,13 @@ export function IdeaCard({
   onMouseLeave,
   initialUserVotes,
   onDelete,
+  onConvertToArticle,
   router,
   locale: propLocale,
 }: IdeaCardProps) {
   const t = useTranslations()
   const { locale } = useLocale()
   const [currentIdea, setCurrentIdea] = useState(idea)
-  const [isVoting, setIsVoting] = useState(false)
   const [showHoverOverlay, setShowHoverOverlay] = useState(false)
   const [showMobileStats, setShowMobileStats] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -94,11 +99,177 @@ export function IdeaCard({
   const validCardMedia = useMediaValidation(currentIdea)
   const effectiveLocale = propLocale || locale
 
-  // Detect if we're on mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
+  // -----------------------------
+  // Debounced "YouTube-like" voting (no button blocking)
+  // -----------------------------
+  const DEBOUNCE_MS = 450
+
+  const currentIdeaRef = useRef(currentIdea)
+  const userVoteRef = useRef(userVote)
+
+  const stableIdeaRef = useRef(currentIdea)
+  const stableUserVoteRef = useRef(userVote)
+
+  const lastSyncedSelectionRef = useRef<VoteType | null>(null)
+  const pendingSelectionRef = useRef<VoteType | null>(null)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const requestSeqRef = useRef(0)
+
+  const getSelectedType = (votes: {
+    use: boolean
+    dislike: boolean
+    pay: boolean
+  }): VoteType | null => {
+    if (votes.pay) return 'pay'
+    if (votes.use) return 'use'
+    if (votes.dislike) return 'dislike'
+    return null
+  }
+
+  const clampNonNegative = (n: number) => Math.max(0, n)
+
+  const applyOptimisticSelection = (next: VoteType | null) => {
+    const prevVotes = userVoteRef.current
+    const prevSelected = getSelectedType(prevVotes)
+
+    const nextVotes = {
+      use: next === 'use',
+      dislike: next === 'dislike',
+      pay: next === 'pay',
     }
+    userVoteRef.current = nextVotes
+    setUserVote(nextVotes)
+
+    setCurrentIdea(prev => {
+      const nextVotesByType = { ...prev.votesByType }
+
+      if (prevSelected) {
+        nextVotesByType[prevSelected] = clampNonNegative(
+          nextVotesByType[prevSelected] - 1
+        )
+      }
+
+      if (next) {
+        nextVotesByType[next] = (nextVotesByType[next] || 0) + 1
+      }
+
+      const nextTotal =
+        (nextVotesByType.use || 0) +
+        (nextVotesByType.pay || 0) +
+        (nextVotesByType.dislike || 0)
+
+      const updated = {
+        ...prev,
+        votesByType: nextVotesByType,
+        votes: nextTotal,
+      }
+
+      currentIdeaRef.current = updated
+      return updated
+    })
+
+    pendingSelectionRef.current = next
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    debounceTimerRef.current = setTimeout(() => {
+      void flushVoteToServer()
+    }, DEBOUNCE_MS)
+  }
+
+  const flushVoteToServer = async () => {
+    const desired = pendingSelectionRef.current
+    const lastSynced = lastSyncedSelectionRef.current
+    if (desired === lastSynced) return
+
+    const mySeq = ++requestSeqRef.current
+
+    try {
+      let updatedIdea: Idea | null = null
+
+      if (lastSynced && !desired) {
+        updatedIdea = await ideaService.toggleVote(
+          currentIdeaRef.current.id,
+          lastSynced,
+          currentIdeaRef.current
+        )
+      } else if (!lastSynced && desired) {
+        updatedIdea = await ideaService.toggleVote(
+          currentIdeaRef.current.id,
+          desired,
+          currentIdeaRef.current
+        )
+      } else if (lastSynced && desired && lastSynced !== desired) {
+        updatedIdea = await ideaService.toggleVote(
+          currentIdeaRef.current.id,
+          lastSynced,
+          currentIdeaRef.current
+        )
+        updatedIdea = await ideaService.toggleVote(
+          currentIdeaRef.current.id,
+          desired,
+          updatedIdea
+        )
+      }
+
+      if (mySeq !== requestSeqRef.current) return
+
+      if (updatedIdea) {
+        setCurrentIdea(updatedIdea)
+        currentIdeaRef.current = updatedIdea
+      }
+
+      const updatedUserVotes = await ideaService.getUserVotes(
+        currentIdeaRef.current.id
+      )
+      if (mySeq !== requestSeqRef.current) return
+
+      setUserVote(updatedUserVotes)
+      userVoteRef.current = updatedUserVotes
+
+      lastSyncedSelectionRef.current = desired
+      stableIdeaRef.current = currentIdeaRef.current
+      stableUserVoteRef.current = updatedUserVotes
+    } catch (error) {
+      if (mySeq !== requestSeqRef.current) return
+
+      console.error('Error voting:', error)
+      toast.error(t('actions.error_voting'))
+
+      setCurrentIdea(stableIdeaRef.current)
+      currentIdeaRef.current = stableIdeaRef.current
+
+      setUserVote(stableUserVoteRef.current)
+      userVoteRef.current = stableUserVoteRef.current
+
+      lastSyncedSelectionRef.current = getSelectedType(stableUserVoteRef.current)
+      pendingSelectionRef.current = lastSyncedSelectionRef.current
+    }
+  }
+
+  // -----------------------------
+  // Click animations (smaller, no text)
+  // -----------------------------
+  const [likePulseKey, setLikePulseKey] = useState(0)
+  const [dislikePulseKey, setDislikePulseKey] = useState(0)
+  const [payBurstKey, setPayBurstKey] = useState(0)
+  const [likeChargeKey, setLikeChargeKey] = useState(0)
+
+  const triggerLikePulse = () => setLikePulseKey(k => k + 1)
+  const triggerDislikePulse = () => setDislikePulseKey(k => k + 1)
+  const triggerPayBurst = () => setPayBurstKey(k => k + 1)
+  const triggerLikeCharge = () => setLikeChargeKey(k => k + 1)
+
+  // Keep refs in sync
+  useEffect(() => {
+    currentIdeaRef.current = currentIdea
+  }, [currentIdea])
+
+  useEffect(() => {
+    userVoteRef.current = userVote
+  }, [userVote])
+
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
@@ -106,19 +277,33 @@ export function IdeaCard({
 
   useEffect(() => {
     setCurrentIdea(idea)
+    currentIdeaRef.current = idea
+    stableIdeaRef.current = idea
   }, [idea])
 
   useEffect(() => {
     if (initialUserVotes) {
       setUserVote(initialUserVotes)
+      userVoteRef.current = initialUserVotes
+      stableUserVoteRef.current = initialUserVotes
+      lastSyncedSelectionRef.current = getSelectedType(initialUserVotes)
+      pendingSelectionRef.current = getSelectedType(initialUserVotes)
     } else {
-      setUserVote({
-        use: false,
-        dislike: false,
-        pay: false,
-      })
+      const reset = { use: false, dislike: false, pay: false }
+      setUserVote(reset)
+      userVoteRef.current = reset
+      stableUserVoteRef.current = reset
+      lastSyncedSelectionRef.current = null
+      pendingSelectionRef.current = null
     }
   }, [initialUserVotes])
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+      if (likeClickTimeoutRef.current) clearTimeout(likeClickTimeoutRef.current)
+    }
+  }, [])
 
   const videoRef = useVideoPlayer({
     videoSrc: validCardMedia.video,
@@ -126,93 +311,62 @@ export function IdeaCard({
     startTime: 10,
   })
 
-  const handleVote = async (voteType: 'use' | 'dislike' | 'pay') => {
-    if (!isAuthenticated) {
-      toast.warning(t('auth.sign_in_to_vote'))
-      return
-    }
-    if (isVoting) return
-
-    const previousIdea = currentIdea
-    const previousUserVote = userVote
-    const isRemovingVote = userVote[voteType]
-
-    setIsVoting(true)
-
-    if (!isRemovingVote) {
-      setCurrentIdea(prev => ({
-        ...prev,
-        votes: prev.votes + 1,
-        votesByType: {
-          ...prev.votesByType,
-          [voteType]: prev.votesByType[voteType] + 1,
-        },
-      }))
-    }
-
-    // Handle all vote types with exclusive logic
-    setUserVote(prev => ({
-      use: voteType === 'use' ? !prev.use : false,
-      dislike: voteType === 'dislike' ? !prev.dislike : false,
-      pay: voteType === 'pay' ? !prev.pay : false,
-    }))
-
-    try {
-      const updatedIdea = await ideaService.toggleVote(
-        currentIdea.id,
-        voteType,
-        currentIdea
-      )
-      setCurrentIdea(updatedIdea)
-      const updatedUserVotes = await ideaService.getUserVotes(currentIdea.id)
-      setUserVote(updatedUserVotes)
-    } catch (error) {
-      setCurrentIdea(previousIdea)
-      setUserVote(previousUserVote)
-      console.error('Error voting:', error)
-      toast.error(t('actions.error_voting'))
-    } finally {
-      setIsVoting(false)
-    }
-  }
-
-  // Handle like button with double-click detection (2s debounce)
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
-    // If already in pay state, single click should unvote (not switch to like)
-    if (userVote.pay) {
-      handleVote('pay')
+    if (!isAuthenticated) {
+      toast.warning(t('auth.sign_in_to_vote'))
+      return
+    }
+
+    const currentSelected = getSelectedType(userVoteRef.current)
+
+    if (currentSelected === 'pay') {
+      applyOptimisticSelection(null)
+      triggerLikePulse()
       return
     }
 
     likeClickCountRef.current += 1
 
-    if (likeClickTimeoutRef.current) {
-      clearTimeout(likeClickTimeoutRef.current)
+    if (likeClickCountRef.current === 1) {
+      const next = currentSelected === 'use' ? null : 'use'
+      applyOptimisticSelection(next)
+      triggerLikePulse()
+      if (next === 'use') triggerLikeCharge()
     }
 
-    // If double-click detected, trigger "pay for it"
+    if (likeClickTimeoutRef.current) clearTimeout(likeClickTimeoutRef.current)
+
+    likeClickTimeoutRef.current = setTimeout(() => {
+      likeClickCountRef.current = 0
+    }, 260)
+
     if (likeClickCountRef.current === 2) {
       likeClickCountRef.current = 0
-      handleVote('pay')
-      return
-    }
-
-    // Set timeout for single click (2 seconds)
-    likeClickTimeoutRef.current = setTimeout(() => {
-      if (likeClickCountRef.current === 1) {
-        handleVote('use')
+      if (likeClickTimeoutRef.current) {
+        clearTimeout(likeClickTimeoutRef.current)
+        likeClickTimeoutRef.current = null
       }
-      likeClickCountRef.current = 0
-    }, 2000)
+      applyOptimisticSelection('pay')
+      triggerPayBurst()
+    }
   }
 
   const handleDislikeClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    handleVote('dislike')
+
+    if (!isAuthenticated) {
+      toast.warning(t('auth.sign_in_to_vote'))
+      return
+    }
+
+    const currentSelected = getSelectedType(userVoteRef.current)
+    const next = currentSelected === 'dislike' ? null : 'dislike'
+    applyOptimisticSelection(next)
+    triggerDislikePulse()
   }
 
   const handleClick = () => {
@@ -220,9 +374,7 @@ export function IdeaCard({
       const scrollContainer = document.querySelector(
         'main > div.overflow-y-auto'
       ) as HTMLElement
-      const scrollY = scrollContainer
-        ? scrollContainer.scrollTop
-        : window.scrollY
+      const scrollY = scrollContainer ? scrollContainer.scrollTop : window.scrollY
 
       sessionStorage.setItem('previousPath', window.location.pathname)
       sessionStorage.setItem('previousScrollPosition', scrollY.toString())
@@ -230,31 +382,26 @@ export function IdeaCard({
   }
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't navigate if clicking on a button
-    if ((e.target as HTMLElement).closest('button')) {
-      return
-    }
-    // Don't navigate if clicking on the title link
-    if ((e.target as HTMLElement).closest('a')) {
-      return
-    }
-    // Navigate to idea details
+    if ((e.target as HTMLElement).closest('button')) return
+    if ((e.target as HTMLElement).closest('a')) return
+
     if (typeof window !== 'undefined') {
       const scrollContainer = document.querySelector(
         'main > div.overflow-y-auto'
       ) as HTMLElement
-      const scrollY = scrollContainer
-        ? scrollContainer.scrollTop
-        : window.scrollY
+      const scrollY = scrollContainer ? scrollContainer.scrollTop : window.scrollY
 
       sessionStorage.setItem('previousPath', window.location.pathname)
       sessionStorage.setItem('previousScrollPosition', scrollY.toString())
     }
-    if (router && effectiveLocale) {
-      router.push(`/${effectiveLocale}/ideas/${currentIdea.id}`)
-    } else if (typeof window !== 'undefined') {
-      window.location.href = `/${effectiveLocale}/ideas/${currentIdea.id}`
-    }
+
+    const ideaUrl =
+      currentIdea.is_article && currentIdea.slug
+        ? `/${effectiveLocale}/articles/${currentIdea.slug}`
+        : `/${effectiveLocale}/ideas/${currentIdea.id}`
+
+    if (router && effectiveLocale) router.push(ideaUrl)
+    else if (typeof window !== 'undefined') window.location.href = ideaUrl
   }
 
   const toggleMobileStats = (e: React.MouseEvent) => {
@@ -262,28 +409,19 @@ export function IdeaCard({
     setShowMobileStats(!showMobileStats)
   }
 
-  // Calculate vote percentages
   const totalVotes =
     currentIdea.votesByType.use +
     currentIdea.votesByType.pay +
     currentIdea.votesByType.dislike
+
   const votePercentages = {
-    use:
-      totalVotes > 0
-        ? Math.round((currentIdea.votesByType.use / totalVotes) * 100)
-        : 0,
-    pay:
-      totalVotes > 0
-        ? Math.round((currentIdea.votesByType.pay / totalVotes) * 100)
-        : 0,
+    use: totalVotes > 0 ? Math.round((currentIdea.votesByType.use / totalVotes) * 100) : 0,
+    pay: totalVotes > 0 ? Math.round((currentIdea.votesByType.pay / totalVotes) * 100) : 0,
     dislike:
-      totalVotes > 0
-        ? Math.round((currentIdea.votesByType.dislike / totalVotes) * 100)
-        : 0,
+      totalVotes > 0 ? Math.round((currentIdea.votesByType.dislike / totalVotes) * 100) : 0,
   }
 
   const isInteractive = variant === 'interactive'
-  const isAdmin = variant === 'admin'
   const upvoted = userVote.use
   const downvoted = userVote.dislike
   const votedPay = userVote.pay
@@ -291,19 +429,15 @@ export function IdeaCard({
   return (
     <motion.div
       ref={cardRef}
-      className={`relative idea-card-responsive cursor-pointer group`}
+      className="relative idea-card-responsive cursor-pointer group"
       onClick={handleCardClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       whileHover={{
-        scale: 1.02,
         y: -8,
-        boxShadow: '0 8px 24px rgba(160, 123, 207, 0.3)',
-        transition: { duration: 0.3, ease: 'easeOut' },
-      }}
-      initial={{
-        scale: 1,
-        y: 0,
+        scale: 1.02,
+        boxShadow: '0 10px 28px rgba(160, 123, 207, 0.38)',
+        transition: { duration: 0.28, ease: 'easeOut' },
       }}
       style={{
         width: '100%',
@@ -325,6 +459,19 @@ export function IdeaCard({
         </button>
       )}
 
+      {onConvertToArticle && !currentIdea.is_article && (
+        <button
+          onClick={e => {
+            e.stopPropagation()
+            onConvertToArticle(currentIdea)
+          }}
+          className="absolute top-3 right-12 z-50 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+          title={t('articles.convert_to_article')}
+        >
+          <FileText className="w-4 h-4" />
+        </button>
+      )}
+
       {/* Background Layer */}
       <div
         className="absolute idea-card-bg rounded-[12px]"
@@ -333,6 +480,7 @@ export function IdeaCard({
           height: '400px',
           left: '0px',
           top: '10px',
+          zIndex: 1,
         }}
       />
 
@@ -344,16 +492,13 @@ export function IdeaCard({
           height: '180px',
           left: '0px',
           top: '0px',
+          zIndex: 2,
         }}
         onMouseEnter={() => {
-          if (!isMobile) {
-            setShowHoverOverlay(true)
-          }
+          if (!isMobile) setShowHoverOverlay(true)
         }}
         onMouseLeave={() => {
-          if (!isMobile) {
-            setShowHoverOverlay(false)
-          }
+          if (!isMobile) setShowHoverOverlay(false)
         }}
         onTouchStart={e => {
           if (isMobile && !(e.target as HTMLElement).closest('button')) {
@@ -365,7 +510,11 @@ export function IdeaCard({
           <video
             ref={videoRef}
             src={validCardMedia.video}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${showHoverOverlay || (isMobile && showMobileStats) ? 'opacity-40' : 'opacity-100'}`}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              showHoverOverlay || (isMobile && showMobileStats)
+                ? 'opacity-40'
+                : 'opacity-100'
+            }`}
             loop
             muted
             playsInline
@@ -375,16 +524,23 @@ export function IdeaCard({
           <img
             src={validCardMedia.image}
             alt={currentIdea.title}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${showHoverOverlay || (isMobile && showMobileStats) ? 'opacity-40' : 'opacity-100'}`}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              showHoverOverlay || (isMobile && showMobileStats)
+                ? 'opacity-40'
+                : 'opacity-100'
+            }`}
             loading="lazy"
           />
         ) : (
           <div
-            className={`w-full h-full bg-gradient-to-br from-blue-400 to-purple-400 transition-opacity duration-300 ${showHoverOverlay || (isMobile && showMobileStats) ? 'opacity-40' : 'opacity-100'}`}
+            className={`w-full h-full bg-gradient-to-br from-blue-400 to-purple-400 transition-opacity duration-300 ${
+              showHoverOverlay || (isMobile && showMobileStats)
+                ? 'opacity-40'
+                : 'opacity-100'
+            }`}
           />
         )}
 
-        {/* Mobile Stats Toggle Button */}
         {isMobile && currentIdea.decision_making && (
           <button
             onClick={toggleMobileStats}
@@ -407,7 +563,6 @@ export function IdeaCard({
           </button>
         )}
 
-        {/* Hover Overlay with Decision Making Question and Vote Stats */}
         {(showHoverOverlay || (isMobile && showMobileStats)) && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -421,7 +576,6 @@ export function IdeaCard({
               pointerEvents: 'auto',
             }}
             onClick={e => {
-              // Allow clicking on the overlay to navigate to idea
               if (!(e.target as HTMLElement).closest('button')) {
                 handleCardClick(e)
               }
@@ -429,7 +583,6 @@ export function IdeaCard({
           >
             {currentIdea.decision_making ? (
               <>
-                {/* Decision Making Question - Clickable */}
                 <p
                   className="font-bold absolute text-white line-clamp-2 cursor-pointer hover:underline"
                   style={{
@@ -454,36 +607,45 @@ export function IdeaCard({
 
                 {totalVotes > 0 && (
                   <>
-                    {/* Vote Distribution Bars */}
-                    {/* Like Bar */}
                     <div
                       className="absolute"
                       style={{
-                        width: `${votePercentages.use > 0 ? Math.min(Math.max(votePercentages.use * 2.5, 60), 260) : 4}px`,
+                        width: `${
+                          votePercentages.use > 0
+                            ? Math.min(Math.max(votePercentages.use * 2.5, 60), 260)
+                            : 4
+                        }px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.use,
                         left: '20px',
                         top: '65px',
                       }}
                     />
-
-                    {/* Pay Bar */}
                     <div
                       className="absolute"
                       style={{
-                        width: `${votePercentages.pay > 0 ? Math.min(Math.max(votePercentages.pay * 2.5, 60), 260) : 4}px`,
+                        width: `${
+                          votePercentages.pay > 0
+                            ? Math.min(Math.max(votePercentages.pay * 2.5, 60), 260)
+                            : 4
+                        }px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.pay,
                         left: '20px',
                         top: '103px',
                       }}
                     />
-
-                    {/* Dislike Bar */}
                     <div
                       className="absolute"
                       style={{
-                        width: `${votePercentages.dislike > 0 ? Math.min(Math.max(votePercentages.dislike * 2.5, 60), 260) : 4}px`,
+                        width: `${
+                          votePercentages.dislike > 0
+                            ? Math.min(
+                                Math.max(votePercentages.dislike * 2.5, 60),
+                                260
+                              )
+                            : 4
+                        }px`,
                         height: '28px',
                         backgroundColor: HOVER_BAR_COLORS.dislike,
                         left: '20px',
@@ -491,8 +653,6 @@ export function IdeaCard({
                       }}
                     />
 
-                    {/* Vote Percentages Text - Positioned individually on each bar */}
-                    {/* Like text */}
                     <div
                       className="font-bold absolute text-white flex items-center"
                       style={{
@@ -504,8 +664,6 @@ export function IdeaCard({
                     >
                       {votePercentages.use}% Like
                     </div>
-
-                    {/* Pay text */}
                     <div
                       className="font-bold absolute text-white flex items-center"
                       style={{
@@ -517,8 +675,6 @@ export function IdeaCard({
                     >
                       {votePercentages.pay}% I'd pay for it
                     </div>
-
-                    {/* Dislike text */}
                     <div
                       className="font-bold absolute text-white flex items-center"
                       style={{
@@ -551,7 +707,6 @@ export function IdeaCard({
         )}
       </div>
 
-      {/* Tags - Right aligned, overlaying image bottom */}
       {!showHoverOverlay &&
         !(isMobile && showMobileStats) &&
         currentIdea.tags.length > 0 && (
@@ -561,21 +716,26 @@ export function IdeaCard({
               right: '20px',
               top: '145px',
               maxWidth: '320px',
+              zIndex: 3,
             }}
           >
             <TagRenderer tags={currentIdea.tags} />
           </div>
         )}
 
-      {/* Title */}
       <Link
-        href={`/${effectiveLocale}/ideas/${currentIdea.id}`}
+        href={
+          currentIdea.is_article && currentIdea.slug
+            ? `/${effectiveLocale}/articles/${currentIdea.slug}`
+            : `/${effectiveLocale}/ideas/${currentIdea.id}`
+        }
         onClick={handleClick}
         className="absolute"
         style={{
           left: '16px',
           right: '16px',
           top: '195px',
+          zIndex: 3,
         }}
       >
         <h2
@@ -589,12 +749,12 @@ export function IdeaCard({
         </h2>
       </Link>
 
-      {/* Comments with icon - positioned to the right of buttons */}
       <div
         className="absolute flex items-center gap-1.5"
         style={{
           left: '130px',
           top: '284px',
+          zIndex: 3,
         }}
       >
         <MessageSquare className="w-4 h-4 idea-card-text" />
@@ -608,18 +768,16 @@ export function IdeaCard({
         </p>
       </div>
 
-      {/* Voting Buttons - Only show in interactive mode */}
       {isInteractive && (
         <>
-          {/* Like Button - Double-click for "Pay for it" */}
+          {/* LIKE BUTTON */}
           <motion.button
             onClick={handleLikeClick}
-            disabled={isVoting}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`absolute rounded-md transition-all duration-250 flex items-center justify-center ${
               upvoted || votedPay ? 'shadow-lg' : ''
-            } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            }`}
             style={{
               left: '16px',
               top: '272px',
@@ -627,7 +785,12 @@ export function IdeaCard({
               height: '44px',
               backgroundColor: votedPay
                 ? BUTTON_COLORS.backgroundPay
-                : BUTTON_COLORS.background,
+                : upvoted
+                  ? BUTTON_COLORS.backgroundLike
+                  : BUTTON_COLORS.background,
+              position: 'absolute',
+              overflow: 'visible',
+              zIndex: 3,
             }}
             title={
               upvoted
@@ -635,56 +798,195 @@ export function IdeaCard({
                 : t('actions.like') || 'Click: Like'
             }
           >
-            <ChevronUp
-              className="w-6 h-56"
-              strokeWidth={3}
-              style={{
-                color: votedPay
-                  ? BUTTON_COLORS.iconPay
+            <AnimatePresence>
+              {!votedPay && likePulseKey > 0 && (
+                <motion.span
+                  key={`like-pulse-${likePulseKey}`}
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{
+                    opacity: [0, 0.7, 0],
+                    scale: [0.85, 1.12, 1.22],
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                  style={{
+                    position: 'absolute',
+                    inset: '-6px',
+                    borderRadius: '9px',
+                    border: `2px solid ${BUTTON_COLORS.iconLike}`,
+                    boxShadow: `0 0 0 6px rgba(111, 80, 145, 0.10)`,
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {likeChargeKey > 0 && !votedPay && upvoted && (
+                <motion.span
+                  key={`like-charge-${likeChargeKey}`}
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{
+                    opacity: [0, 0.75, 0.0],
+                    scale: [0.92, 1.06, 1.0],
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.85, ease: 'easeOut' }}
+                  style={{
+                    position: 'absolute',
+                    inset: '-8px',
+                    borderRadius: '10px',
+                    border: `2px solid ${BUTTON_COLORS.iconPay}`,
+                    boxShadow:
+                      '0 0 0 10px rgba(102, 25, 185, 0.18), 0 10px 22px rgba(102, 25, 185, 0.18)',
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {payBurstKey > 0 && votedPay && (
+                <motion.span
+                  key={`pay-burst-${payBurstKey}`}
+                  initial={{ opacity: 0, scale: 0.9, y: 3 }}
+                  animate={{
+                    opacity: [0, 1, 0],
+                    scale: [0.9, 1.25, 1.45],
+                    y: [3, -2, -4],
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.55, ease: 'easeOut' }}
+                  style={{
+                    position: 'absolute',
+                    inset: '-8px',
+                    borderRadius: '10px',
+                    border: `2px solid ${BUTTON_COLORS.iconPay}`,
+                    boxShadow:
+                      '0 0 0 10px rgba(102, 25, 185, 0.22), 0 10px 26px rgba(102, 25, 185, 0.30)',
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            <motion.div
+              animate={
+                votedPay
+                  ? { scale: [1, 1.22, 1.1, 1.16, 1] }
                   : upvoted
-                    ? BUTTON_COLORS.iconLike
-                    : BUTTON_COLORS.iconDefault,
+                    ? { scale: [1, 1.08, 1] }
+                    : { scale: 1 }
+              }
+              transition={
+                votedPay
+                  ? { duration: 0.45, ease: 'easeOut' }
+                  : upvoted
+                    ? { duration: 0.22, ease: 'easeOut' }
+                    : { duration: 0.15 }
+              }
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
-            />
+            >
+              <ChevronUp
+                className="w-6 h-56"
+                strokeWidth={3}
+                style={{
+                  color: votedPay
+                    ? BUTTON_COLORS.iconPay
+                    : upvoted
+                      ? BUTTON_COLORS.iconLike
+                      : BUTTON_COLORS.iconDefault,
+                  filter: votedPay
+                    ? 'drop-shadow(0 8px 16px rgba(102, 25, 185, 0.38))'
+                    : upvoted
+                      ? 'drop-shadow(0 6px 12px rgba(111, 80, 145, 0.28))'
+                      : 'none',
+                }}
+              />
+            </motion.div>
           </motion.button>
 
-          {/* Dislike Button */}
+          {/* DISLIKE BUTTON */}
           <motion.button
             onClick={handleDislikeClick}
-            disabled={isVoting}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`absolute rounded-md transition-all duration-250 flex items-center justify-center ${
               downvoted ? 'shadow-lg' : ''
-            } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            }`}
             style={{
               left: '72px',
               top: '272px',
               width: '44px',
               height: '44px',
-              backgroundColor: BUTTON_COLORS.background,
+              backgroundColor: downvoted
+                ? BUTTON_COLORS.backgroundDislike
+                : BUTTON_COLORS.background,
+              position: 'absolute',
+              overflow: 'visible',
+              zIndex: 3,
             }}
           >
-            <ChevronDown
-              className="w-6 h-56"
-              strokeWidth={3}
+            <AnimatePresence>
+              {dislikePulseKey > 0 && (
+                <motion.span
+                  key={`dislike-pulse-${dislikePulseKey}`}
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{
+                    opacity: [0, 0.65, 0],
+                    scale: [0.85, 1.1, 1.2],
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.32, ease: 'easeOut' }}
+                  style={{
+                    position: 'absolute',
+                    inset: '-6px',
+                    borderRadius: '9px',
+                    border: `2px solid ${BUTTON_COLORS.iconDislike}`,
+                    boxShadow: `0 0 0 6px rgba(173, 96, 52, 0.10)`,
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            <motion.div
+              animate={downvoted ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
               style={{
-                color: downvoted
-                  ? BUTTON_COLORS.iconDislike
-                  : BUTTON_COLORS.iconDefault,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
-            />
+            >
+              <ChevronDown
+                className="w-6 h-56"
+                strokeWidth={3}
+                style={{
+                  color: downvoted
+                    ? BUTTON_COLORS.iconDislike
+                    : BUTTON_COLORS.iconDefault,
+                  filter: downvoted
+                    ? 'drop-shadow(0 6px 12px rgba(173, 96, 52, 0.28))'
+                    : 'none',
+                }}
+              />
+            </motion.div>
           </motion.button>
         </>
       )}
 
-      {/* Author */}
       <p
         className="idea-card-text-secondary font-bold absolute"
         style={{
           fontSize: '13px',
           left: '16px',
           top: '330px',
+          zIndex: 3,
         }}
       >
         {currentIdea.anonymous
@@ -692,13 +994,13 @@ export function IdeaCard({
           : `${t('common.by')} ${currentIdea.author}`}
       </p>
 
-      {/* Date */}
       <p
         className="idea-card-text-secondary font-bold absolute text-right"
         style={{
           fontSize: '13px',
           right: '16px',
           top: '330px',
+          zIndex: 3,
         }}
       >
         {formatDate(currentIdea.createdAt)}
