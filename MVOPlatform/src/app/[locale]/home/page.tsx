@@ -53,105 +53,86 @@ export default function Home() {
       background: 'url(/hero/hero4.png)',
     },
   ]
-  // Restore scroll position on mount
-
+  // Scroll on mount: first time = top; coming back = restore last position
   useEffect(() => {
-    const restoreScroll = () => {
+    const pathname =
+      typeof window !== 'undefined' ? window.location.pathname : ''
+
+    const scrollToTop = () => {
+      const scrollContainer = document.querySelector('main') as HTMLElement
+      if (scrollContainer) {
+        scrollContainer.scrollTo({ top: 0, behavior: 'instant' })
+      } else {
+        window.scrollTo({ top: 0, behavior: 'instant' })
+      }
+    }
+
+    const restoreScroll = (): boolean => {
       if (typeof window === 'undefined') return false
 
-      // Check if we should restore scroll from navigation back
-
       const shouldRestore = sessionStorage.getItem('shouldRestoreScroll')
-
       const restorePath = sessionStorage.getItem('restoreScrollPath')
-
       const restorePosition = sessionStorage.getItem('restoreScrollPosition')
 
       let scrollY: number | null = null
 
       if (
         shouldRestore === 'true' &&
-        restorePath === window.location.pathname &&
+        restorePath === pathname &&
         restorePosition
       ) {
-        // Use the position from sessionStorage (more reliable for back navigation)
-
         scrollY = parseInt(restorePosition, 10)
-
-        // Clear the flag
-
         sessionStorage.removeItem('shouldRestoreScroll')
-
         sessionStorage.removeItem('restoreScrollPath')
-
         sessionStorage.removeItem('restoreScrollPosition')
       } else {
-        // Otherwise try to restore from localStorage
-
         const savedScroll = localStorage.getItem(
-          `scrollPosition_${window.location.pathname}`
+          `scrollPosition_${pathname}`
         )
-
         if (savedScroll) {
           scrollY = parseInt(savedScroll, 10)
         }
       }
 
       if (scrollY !== null && !isNaN(scrollY) && scrollY > 0) {
-        // Find the scrollable container (main element)
-
         const scrollContainer = document.querySelector('main') as HTMLElement
-
         if (scrollContainer) {
-          // Scroll the container
-
           requestAnimationFrame(() => {
             scrollContainer.scrollTo({ top: scrollY!, behavior: 'instant' })
           })
         } else {
-          // Fallback to window scroll
-
           requestAnimationFrame(() => {
             window.scrollTo({ top: scrollY!, behavior: 'instant' })
           })
         }
-
         return true
       }
-
       return false
     }
 
-    // Try immediately
-
     let restored = restoreScroll()
-
-    // If not restored, try after delays to handle async content loading
-
     const timeouts: NodeJS.Timeout[] = []
 
     if (!restored) {
+      // First time on home (no saved position): start at top
+      requestAnimationFrame(() => scrollToTop())
       timeouts.push(
         setTimeout(() => {
-          restored = restoreScroll() || restored
+          if (!restoreScroll()) requestAnimationFrame(() => scrollToTop())
         }, 100),
-
-        setTimeout(() => {
-          restored = restoreScroll() || restored
-        }, 300),
-
-        setTimeout(() => {
-          restored = restoreScroll() || restored
-        }, 600),
-
-        setTimeout(() => {
-          restoreScroll()
-        }, 1000)
+        setTimeout(() => restoreScroll(), 300),
+        setTimeout(() => restoreScroll(), 600)
+      )
+    } else {
+      // Retry restore after layout in case main isn't ready yet
+      timeouts.push(
+        setTimeout(() => restoreScroll(), 100),
+        setTimeout(() => restoreScroll(), 300)
       )
     }
 
     return () => {
-      timeouts.forEach(timeout => clearTimeout(timeout))
+      timeouts.forEach(t => clearTimeout(t))
     }
   }, [])
 
