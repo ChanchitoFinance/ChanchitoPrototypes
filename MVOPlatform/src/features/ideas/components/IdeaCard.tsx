@@ -433,12 +433,16 @@ export function IdeaCard({
       onClick={handleCardClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      whileHover={{
-        y: -8,
-        scale: 1.02,
-        boxShadow: '0 10px 28px rgba(160, 123, 207, 0.38)',
-        transition: { duration: 0.28, ease: 'easeOut' },
-      }}
+      whileHover={
+        isMobile
+          ? undefined
+          : {
+              y: -8,
+              scale: 1.02,
+              boxShadow: '0 10px 28px rgba(160, 123, 207, 0.38)',
+              transition: { duration: 0.28, ease: 'easeOut' },
+            }
+      }
       style={{
         width: '100%',
         maxWidth: '100%',
