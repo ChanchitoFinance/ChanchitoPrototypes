@@ -12,11 +12,17 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { TermsAcceptanceModal } from '@/shared/components/ui/TermsAcceptanceModal'
 
-export function IdeaUpload() {
+interface IdeaUploadProps {
+  mode?: string
+}
+
+export function IdeaUpload({ mode }: IdeaUploadProps = {}) {
   const t = useTranslations()
   const dispatch = useAppDispatch()
   const { isAuthenticated, loading, initialized, user, profile } =
     useAppSelector(state => state.auth)
+  const isArticleMode =
+    mode === 'article' && profile?.role === 'admin'
 
   // Check if terms are accepted after user is authenticated
   useEffect(() => {
@@ -58,7 +64,10 @@ export function IdeaUpload() {
 
   return (
     <>
-      <IdeaForm onCustomSubmit={handleSubmit} />
+      <IdeaForm
+        onCustomSubmit={handleSubmit}
+        isArticle={isArticleMode}
+      />
       <TermsAcceptanceModal
         isOpen={showTermsModal}
         onClose={() => setShowTermsModal(false)}

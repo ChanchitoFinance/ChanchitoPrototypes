@@ -55,6 +55,9 @@ export interface Idea {
   versionNumber?: number
   ideaGroupId?: string
   isActiveVersion?: boolean
+  // Articles: readable URL and article flag
+  is_article?: boolean
+  slug?: string | null
 }
 
 /**

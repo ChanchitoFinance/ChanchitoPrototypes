@@ -64,6 +64,7 @@ BEGIN
          FROM ideas i
          WHERE 1=1
              AND i.is_active_version = TRUE
+             AND COALESCE(i.is_article, FALSE) = FALSE
              AND (search_query IS NULL OR search_query = '' OR (
                 i.title ILIKE '%' || search_query || '%' OR 
                 i.content->>'description' ILIKE '%' || search_query || '%' OR

@@ -10,6 +10,7 @@ import {
   Trash2,
   Eye,
   EyeOff,
+  FileText,
 } from 'lucide-react'
 import {
   useLocale,
@@ -38,25 +39,28 @@ interface IdeaCardProps {
     pay: boolean
   }
   onDelete?: () => void
+  onConvertToArticle?: (idea: Idea) => void
   router?: any
   locale?: string
 }
 
 // Vote colors - updated palette with opacity
 const BUTTON_COLORS = {
-  background: 'rgba(118, 99, 99, 0.13)', // Default button background with 13% opacity
-  backgroundPay: 'rgba(115, 49, 223, 0.13)', // Background when double-clicked for pay with 13% opacity
-  iconDefault: '#686060', // Icon color when not voted (100% opacity)
-  iconLike: '#6F5091', // Icon color when liked (100% opacity)
-  iconDislike: '#AD6034', // Icon color when disliked (100% opacity)
-  iconPay: '#6619B9', // Icon color when double-clicked for pay (100% opacity)
+  background: 'rgba(118, 99, 99, 0.13)',
+  backgroundPay: 'rgba(115, 49, 223, 0.13)',
+  backgroundLike: 'rgba(111, 80, 145, 0.18)',
+  backgroundDislike: 'rgba(173, 96, 52, 0.18)',
+  iconDefault: '#686060',
+  iconLike: '#6F5091',
+  iconDislike: '#AD6034',
+  iconPay: '#6619B9',
 }
 
 // Colors for hover overlay bars
 const HOVER_BAR_COLORS = {
-  use: '#C46DE4', // Pink for like bar in overlay
-  pay: '#7600A1', // Purple for pay bar in overlay
-  dislike: '#FF922B', // Orange for dislike bar in overlay
+  use: '#C46DE4',
+  pay: '#7600A1',
+  dislike: '#FF922B',
 }
 
 export function IdeaCard({
@@ -66,6 +70,7 @@ export function IdeaCard({
   onMouseLeave,
   initialUserVotes,
   onDelete,
+  onConvertToArticle,
   router,
   locale: propLocale,
 }: IdeaCardProps) {
@@ -127,7 +132,6 @@ export function IdeaCard({
     const prevVotes = userVoteRef.current
     const prevSelected = getSelectedType(prevVotes)
 
-    // Update userVote immediately (no blocking)
     const nextVotes = {
       use: next === 'use',
       dislike: next === 'dislike',
@@ -136,18 +140,15 @@ export function IdeaCard({
     userVoteRef.current = nextVotes
     setUserVote(nextVotes)
 
-    // Update counts immediately and consistently
     setCurrentIdea(prev => {
       const nextVotesByType = { ...prev.votesByType }
 
-      // Remove previous selection if any
       if (prevSelected) {
         nextVotesByType[prevSelected] = clampNonNegative(
           nextVotesByType[prevSelected] - 1
         )
       }
 
-      // Add new selection if any
       if (next) {
         nextVotesByType[next] = (nextVotesByType[next] || 0) + 1
       }
@@ -167,7 +168,6 @@ export function IdeaCard({
       return updated
     })
 
-    // Queue the last intent and debounce the network sync
     pendingSelectionRef.current = next
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     debounceTimerRef.current = setTimeout(() => {
@@ -178,8 +178,6 @@ export function IdeaCard({
   const flushVoteToServer = async () => {
     const desired = pendingSelectionRef.current
     const lastSynced = lastSyncedSelectionRef.current
-
-    // Nothing to do
     if (desired === lastSynced) return
 
     const mySeq = ++requestSeqRef.current
@@ -249,19 +247,18 @@ export function IdeaCard({
 
   // -----------------------------
   // Click animations (smaller, no text)
-  // Like: "progress-to-pay" glow that fades back (invites second click)
   // -----------------------------
   const [likePulseKey, setLikePulseKey] = useState(0)
   const [dislikePulseKey, setDislikePulseKey] = useState(0)
   const [payBurstKey, setPayBurstKey] = useState(0)
+  const [likeChargeKey, setLikeChargeKey] = useState(0)
 
-  const [likeChargeKey, setLikeChargeKey] = useState(0) // the "almost-pay" hint
   const triggerLikePulse = () => setLikePulseKey(k => k + 1)
   const triggerDislikePulse = () => setDislikePulseKey(k => k + 1)
   const triggerPayBurst = () => setPayBurstKey(k => k + 1)
   const triggerLikeCharge = () => setLikeChargeKey(k => k + 1)
 
-  // Keep refs in sync with state
+  // Keep refs in sync
   useEffect(() => {
     currentIdeaRef.current = currentIdea
   }, [currentIdea])
@@ -270,11 +267,9 @@ export function IdeaCard({
     userVoteRef.current = userVote
   }, [userVote])
 
-  // Detect if we're on mobile
+  // Detect mobile
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
@@ -303,7 +298,6 @@ export function IdeaCard({
     }
   }, [initialUserVotes])
 
-  // Cleanup timers on unmount
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
@@ -317,7 +311,6 @@ export function IdeaCard({
     startTime: 10,
   })
 
-  // Like button: immediate optimistic "use", quick double-click overrides to "pay"
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -329,7 +322,6 @@ export function IdeaCard({
 
     const currentSelected = getSelectedType(userVoteRef.current)
 
-    // If already in pay state, single click should unvote (not switch to like)
     if (currentSelected === 'pay') {
       applyOptimisticSelection(null)
       triggerLikePulse()
@@ -338,26 +330,19 @@ export function IdeaCard({
 
     likeClickCountRef.current += 1
 
-    // First click: toggle Like immediately (no waiting)
     if (likeClickCountRef.current === 1) {
       const next = currentSelected === 'use' ? null : 'use'
       applyOptimisticSelection(next)
-
-      // Visible feedback
       triggerLikePulse()
-
-      // If we just turned on Like, show "almost-pay" charge that fades back
       if (next === 'use') triggerLikeCharge()
     }
 
     if (likeClickTimeoutRef.current) clearTimeout(likeClickTimeoutRef.current)
 
-    // Short window to detect double click (fast YouTube-like)
     likeClickTimeoutRef.current = setTimeout(() => {
       likeClickCountRef.current = 0
     }, 260)
 
-    // Second click within window: override to Pay
     if (likeClickCountRef.current === 2) {
       likeClickCountRef.current = 0
       if (likeClickTimeoutRef.current) {
@@ -381,7 +366,6 @@ export function IdeaCard({
     const currentSelected = getSelectedType(userVoteRef.current)
     const next = currentSelected === 'dislike' ? null : 'dislike'
     applyOptimisticSelection(next)
-
     triggerDislikePulse()
   }
 
@@ -390,9 +374,7 @@ export function IdeaCard({
       const scrollContainer = document.querySelector(
         'main > div.overflow-y-auto'
       ) as HTMLElement
-      const scrollY = scrollContainer
-        ? scrollContainer.scrollTop
-        : window.scrollY
+      const scrollY = scrollContainer ? scrollContainer.scrollTop : window.scrollY
 
       sessionStorage.setItem('previousPath', window.location.pathname)
       sessionStorage.setItem('previousScrollPosition', scrollY.toString())
@@ -400,31 +382,26 @@ export function IdeaCard({
   }
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't navigate if clicking on a button
-    if ((e.target as HTMLElement).closest('button')) {
-      return
-    }
-    // Don't navigate if clicking on the title link
-    if ((e.target as HTMLElement).closest('a')) {
-      return
-    }
-    // Navigate to idea details
+    if ((e.target as HTMLElement).closest('button')) return
+    if ((e.target as HTMLElement).closest('a')) return
+
     if (typeof window !== 'undefined') {
       const scrollContainer = document.querySelector(
         'main > div.overflow-y-auto'
       ) as HTMLElement
-      const scrollY = scrollContainer
-        ? scrollContainer.scrollTop
-        : window.scrollY
+      const scrollY = scrollContainer ? scrollContainer.scrollTop : window.scrollY
 
       sessionStorage.setItem('previousPath', window.location.pathname)
       sessionStorage.setItem('previousScrollPosition', scrollY.toString())
     }
-    if (router && effectiveLocale) {
-      router.push(`/${effectiveLocale}/ideas/${currentIdea.id}`)
-    } else if (typeof window !== 'undefined') {
-      window.location.href = `/${effectiveLocale}/ideas/${currentIdea.id}`
-    }
+
+    const ideaUrl =
+      currentIdea.is_article && currentIdea.slug
+        ? `/${effectiveLocale}/articles/${currentIdea.slug}`
+        : `/${effectiveLocale}/ideas/${currentIdea.id}`
+
+    if (router && effectiveLocale) router.push(ideaUrl)
+    else if (typeof window !== 'undefined') window.location.href = ideaUrl
   }
 
   const toggleMobileStats = (e: React.MouseEvent) => {
@@ -432,24 +409,16 @@ export function IdeaCard({
     setShowMobileStats(!showMobileStats)
   }
 
-  // Calculate vote percentages
   const totalVotes =
     currentIdea.votesByType.use +
     currentIdea.votesByType.pay +
     currentIdea.votesByType.dislike
+
   const votePercentages = {
-    use:
-      totalVotes > 0
-        ? Math.round((currentIdea.votesByType.use / totalVotes) * 100)
-        : 0,
-    pay:
-      totalVotes > 0
-        ? Math.round((currentIdea.votesByType.pay / totalVotes) * 100)
-        : 0,
+    use: totalVotes > 0 ? Math.round((currentIdea.votesByType.use / totalVotes) * 100) : 0,
+    pay: totalVotes > 0 ? Math.round((currentIdea.votesByType.pay / totalVotes) * 100) : 0,
     dislike:
-      totalVotes > 0
-        ? Math.round((currentIdea.votesByType.dislike / totalVotes) * 100)
-        : 0,
+      totalVotes > 0 ? Math.round((currentIdea.votesByType.dislike / totalVotes) * 100) : 0,
   }
 
   const isInteractive = variant === 'interactive'
@@ -460,20 +429,15 @@ export function IdeaCard({
   return (
     <motion.div
       ref={cardRef}
-      className={`relative idea-card-responsive cursor-pointer group`}
+      className="relative idea-card-responsive cursor-pointer group"
       onClick={handleCardClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      // ✅ keep the original card hover animation
       whileHover={{
-        scale: 1.02,
         y: -8,
-        boxShadow: '0 8px 24px rgba(160, 123, 207, 0.3)',
-        transition: { duration: 0.3, ease: 'easeOut' },
-      }}
-      initial={{
-        scale: 1,
-        y: 0,
+        scale: 1.02,
+        boxShadow: '0 10px 28px rgba(160, 123, 207, 0.38)',
+        transition: { duration: 0.28, ease: 'easeOut' },
       }}
       style={{
         width: '100%',
@@ -495,6 +459,19 @@ export function IdeaCard({
         </button>
       )}
 
+      {onConvertToArticle && !currentIdea.is_article && (
+        <button
+          onClick={e => {
+            e.stopPropagation()
+            onConvertToArticle(currentIdea)
+          }}
+          className="absolute top-3 right-12 z-50 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+          title={t('articles.convert_to_article')}
+        >
+          <FileText className="w-4 h-4" />
+        </button>
+      )}
+
       {/* Background Layer */}
       <div
         className="absolute idea-card-bg rounded-[12px]"
@@ -503,6 +480,7 @@ export function IdeaCard({
           height: '400px',
           left: '0px',
           top: '10px',
+          zIndex: 1,
         }}
       />
 
@@ -514,16 +492,13 @@ export function IdeaCard({
           height: '180px',
           left: '0px',
           top: '0px',
+          zIndex: 2,
         }}
         onMouseEnter={() => {
-          if (!isMobile) {
-            setShowHoverOverlay(true)
-          }
+          if (!isMobile) setShowHoverOverlay(true)
         }}
         onMouseLeave={() => {
-          if (!isMobile) {
-            setShowHoverOverlay(false)
-          }
+          if (!isMobile) setShowHoverOverlay(false)
         }}
         onTouchStart={e => {
           if (isMobile && !(e.target as HTMLElement).closest('button')) {
@@ -566,7 +541,6 @@ export function IdeaCard({
           />
         )}
 
-        {/* Mobile Stats Toggle Button */}
         {isMobile && currentIdea.decision_making && (
           <button
             onClick={toggleMobileStats}
@@ -589,7 +563,6 @@ export function IdeaCard({
           </button>
         )}
 
-        {/* Hover Overlay with Decision Making Question and Vote Stats */}
         {(showHoverOverlay || (isMobile && showMobileStats)) && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -639,10 +612,7 @@ export function IdeaCard({
                       style={{
                         width: `${
                           votePercentages.use > 0
-                            ? Math.min(
-                                Math.max(votePercentages.use * 2.5, 60),
-                                260
-                              )
+                            ? Math.min(Math.max(votePercentages.use * 2.5, 60), 260)
                             : 4
                         }px`,
                         height: '28px',
@@ -651,16 +621,12 @@ export function IdeaCard({
                         top: '65px',
                       }}
                     />
-
                     <div
                       className="absolute"
                       style={{
                         width: `${
                           votePercentages.pay > 0
-                            ? Math.min(
-                                Math.max(votePercentages.pay * 2.5, 60),
-                                260
-                              )
+                            ? Math.min(Math.max(votePercentages.pay * 2.5, 60), 260)
                             : 4
                         }px`,
                         height: '28px',
@@ -669,7 +635,6 @@ export function IdeaCard({
                         top: '103px',
                       }}
                     />
-
                     <div
                       className="absolute"
                       style={{
@@ -699,7 +664,6 @@ export function IdeaCard({
                     >
                       {votePercentages.use}% Like
                     </div>
-
                     <div
                       className="font-bold absolute text-white flex items-center"
                       style={{
@@ -711,7 +675,6 @@ export function IdeaCard({
                     >
                       {votePercentages.pay}% I'd pay for it
                     </div>
-
                     <div
                       className="font-bold absolute text-white flex items-center"
                       style={{
@@ -744,7 +707,6 @@ export function IdeaCard({
         )}
       </div>
 
-      {/* Tags - Right aligned, overlaying image bottom */}
       {!showHoverOverlay &&
         !(isMobile && showMobileStats) &&
         currentIdea.tags.length > 0 && (
@@ -754,21 +716,26 @@ export function IdeaCard({
               right: '20px',
               top: '145px',
               maxWidth: '320px',
+              zIndex: 3,
             }}
           >
             <TagRenderer tags={currentIdea.tags} />
           </div>
         )}
 
-      {/* Title */}
       <Link
-        href={`/${effectiveLocale}/ideas/${currentIdea.id}`}
+        href={
+          currentIdea.is_article && currentIdea.slug
+            ? `/${effectiveLocale}/articles/${currentIdea.slug}`
+            : `/${effectiveLocale}/ideas/${currentIdea.id}`
+        }
         onClick={handleClick}
         className="absolute"
         style={{
           left: '16px',
           right: '16px',
           top: '195px',
+          zIndex: 3,
         }}
       >
         <h2
@@ -782,12 +749,12 @@ export function IdeaCard({
         </h2>
       </Link>
 
-      {/* Comments with icon - positioned to the right of buttons */}
       <div
         className="absolute flex items-center gap-1.5"
         style={{
           left: '130px',
           top: '284px',
+          zIndex: 3,
         }}
       >
         <MessageSquare className="w-4 h-4 idea-card-text" />
@@ -801,7 +768,6 @@ export function IdeaCard({
         </p>
       </div>
 
-      {/* Voting Buttons - Only show in interactive mode */}
       {isInteractive && (
         <>
           {/* LIKE BUTTON */}
@@ -819,9 +785,12 @@ export function IdeaCard({
               height: '44px',
               backgroundColor: votedPay
                 ? BUTTON_COLORS.backgroundPay
-                : BUTTON_COLORS.background,
+                : upvoted
+                  ? BUTTON_COLORS.backgroundLike
+                  : BUTTON_COLORS.background,
               position: 'absolute',
               overflow: 'visible',
+              zIndex: 3,
             }}
             title={
               upvoted
@@ -829,7 +798,6 @@ export function IdeaCard({
                 : t('actions.like') || 'Click: Like'
             }
           >
-            {/* Smaller pulse (Like) */}
             <AnimatePresence>
               {!votedPay && likePulseKey > 0 && (
                 <motion.span
@@ -853,7 +821,6 @@ export function IdeaCard({
               )}
             </AnimatePresence>
 
-            {/* "Almost Pay" charge: a purple-to-pay glow that slowly fades back */}
             <AnimatePresence>
               {likeChargeKey > 0 && !votedPay && upvoted && (
                 <motion.span
@@ -869,7 +836,6 @@ export function IdeaCard({
                     position: 'absolute',
                     inset: '-8px',
                     borderRadius: '10px',
-                    // visually "progressing" toward pay color, then fading out
                     border: `2px solid ${BUTTON_COLORS.iconPay}`,
                     boxShadow:
                       '0 0 0 10px rgba(102, 25, 185, 0.18), 0 10px 22px rgba(102, 25, 185, 0.18)',
@@ -879,7 +845,6 @@ export function IdeaCard({
               )}
             </AnimatePresence>
 
-            {/* Pay burst (smaller square, but still clearly strongest) */}
             <AnimatePresence>
               {payBurstKey > 0 && votedPay && (
                 <motion.span
@@ -905,7 +870,6 @@ export function IdeaCard({
               )}
             </AnimatePresence>
 
-            {/* Icon bounce */}
             <motion.div
               animate={
                 votedPay
@@ -959,9 +923,12 @@ export function IdeaCard({
               top: '272px',
               width: '44px',
               height: '44px',
-              backgroundColor: BUTTON_COLORS.background,
+              backgroundColor: downvoted
+                ? BUTTON_COLORS.backgroundDislike
+                : BUTTON_COLORS.background,
               position: 'absolute',
               overflow: 'visible',
+              zIndex: 3,
             }}
           >
             <AnimatePresence>
@@ -1013,13 +980,13 @@ export function IdeaCard({
         </>
       )}
 
-      {/* Author */}
       <p
         className="idea-card-text-secondary font-bold absolute"
         style={{
           fontSize: '13px',
           left: '16px',
           top: '330px',
+          zIndex: 3,
         }}
       >
         {currentIdea.anonymous
@@ -1027,13 +994,13 @@ export function IdeaCard({
           : `${t('common.by')} ${currentIdea.author}`}
       </p>
 
-      {/* Date */}
       <p
         className="idea-card-text-secondary font-bold absolute text-right"
         style={{
           fontSize: '13px',
           right: '16px',
           top: '330px',
+          zIndex: 3,
         }}
       >
         {formatDate(currentIdea.createdAt)}

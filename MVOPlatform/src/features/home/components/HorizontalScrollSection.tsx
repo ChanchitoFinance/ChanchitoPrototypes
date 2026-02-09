@@ -22,6 +22,7 @@ export function HorizontalScrollSection({
   loading = false,
   visibleCards = 3,
   onIdeaHover,
+  hoveredIdeaId,
 }: HorizontalScrollSectionProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
@@ -132,7 +133,7 @@ export function HorizontalScrollSection({
 
       <div
         ref={scrollContainerRef}
-        className="flex overflow-x-auto gap-1 md:gap-3 pb-3 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] h-[420px] md:h-[420px]"
+        className="flex overflow-x-auto gap-1 md:gap-3 pt-3 pb-3 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] min-h-[436px] md:min-h-[436px]"
       >
         {loading
           ? Array.from({ length: currentVisibleCards + 1 }).map((_, i) => (

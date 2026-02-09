@@ -8,6 +8,9 @@ export const DEEP_RESEARCH = 40
 export const FULL_SYNTHESIS = 30
 export const RE_RUN = 10
 
+/** Cost to create a new version of an idea (iteration) */
+export const NEW_VERSION_CREDIT_COST = 10
+
 /** Coin packages added on purchase (Starter / Builder / Operator) */
 export const PLAN_COINS = {
   starter: 100,

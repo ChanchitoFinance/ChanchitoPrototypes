@@ -50,6 +50,11 @@ export function BrowseDashboard({ isAdmin = false }) {
     direction: 'desc',
   })
   const [currentOffset, setCurrentOffset] = useState(0)
+  const [convertToArticleIdea, setConvertToArticleIdea] = useState<Idea | null>(
+    null
+  )
+  const [convertSlug, setConvertSlug] = useState('')
+  const [converting, setConverting] = useState(false)
 
   const observerRef = useRef<HTMLDivElement>(null)
   const isInitialLoadRef = useRef(true)
@@ -342,16 +347,24 @@ export function BrowseDashboard({ isAdmin = false }) {
       </div>
 
       {isAdmin && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center">
-          <Shield className="w-8 h-8 mr-8 text-blue-800" />
-          <div>
-            <h3 className="text-lg font-semibold text-blue-800 mb-2">
-              {t('admin.dashboard.admin_info_title')}
-            </h3>
-            <p className="text-blue-700 text-sm">
-              {t('admin.dashboard.admin_info_message')}
-            </p>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center">
+            <Shield className="w-8 h-8 mr-8 text-blue-800" />
+            <div>
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                {t('admin.dashboard.admin_info_title')}
+              </h3>
+              <p className="text-blue-700 text-sm">
+                {t('admin.dashboard.admin_info_message')}
+              </p>
+            </div>
           </div>
+          <a
+            href={`/${locale}/upload?mode=article`}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+          >
+            {t('admin.dashboard.create_article')}
+          </a>
         </div>
       )}
 
@@ -408,8 +421,9 @@ export function BrowseDashboard({ isAdmin = false }) {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-x-8 gap-y-32">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-x-8 gap-y-32 pt-2 overflow-visible">
               {ideas.map(idea => (
+                <div key={idea.id} className="overflow-visible">
                 <IdeaCard
                   key={idea.id}
                   idea={idea}
@@ -437,7 +451,22 @@ export function BrowseDashboard({ isAdmin = false }) {
                         }
                       : undefined
                   }
+                  onConvertToArticle={
+                    isAdmin && !idea.is_article
+                      ? ideaToConvert => {
+                          setConvertToArticleIdea(ideaToConvert)
+                          setConvertSlug(
+                            ideaToConvert.title
+                              .toLowerCase()
+                              .replace(/\s+/g, '-')
+                              .replace(/[^a-z0-9-]/g, '')
+                              .slice(0, 50)
+                          )
+                        }
+                      : undefined
+                  }
                 />
+                </div>
               ))}
             </div>
 
@@ -460,6 +489,85 @@ export function BrowseDashboard({ isAdmin = false }) {
           </>
         )}
       </div>
+
+      {/* Convert to Article Modal */}
+      {convertToArticleIdea && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-background rounded-lg shadow-xl max-w-md w-full p-6 border border-border">
+            <h3 className="text-lg font-semibold text-text-primary mb-2">
+              {t('articles.convert_to_article')}
+            </h3>
+            <p className="text-text-secondary text-sm mb-4">
+              {convertToArticleIdea.title}
+            </p>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              {t('articles.slug_label')} <span className="text-error">*</span>
+            </label>
+            <input
+              type="text"
+              value={convertSlug}
+              onChange={e => {
+                const v = e.target.value
+                  .toLowerCase()
+                  .replace(/\s+/g, '-')
+                  .replace(/[^a-z0-9-]/g, '')
+                setConvertSlug(v)
+              }}
+              placeholder={t('articles.slug_placeholder')}
+              className="w-full px-4 py-3 bg-background border border-border-color rounded-lg text-text-primary mb-4"
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setConvertToArticleIdea(null)
+                  setConvertSlug('')
+                }}
+                className="px-4 py-2 border border-border rounded-lg text-text-primary hover:bg-gray-100"
+              >
+                {t('actions.cancel')}
+              </button>
+              <button
+                type="button"
+                disabled={!convertSlug.trim() || converting}
+                onClick={async () => {
+                  const slug = convertSlug.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+                  if (!slug) return
+                  setConverting(true)
+                  try {
+                    const updated = await ideaService.updateIdea(
+                      convertToArticleIdea.id,
+                      { is_article: true, slug }
+                    )
+                    setIdeas(prev =>
+                      prev.map(i =>
+                        i.id === convertToArticleIdea.id ? updated : i
+                      )
+                    )
+                    setConvertToArticleIdea(null)
+                    setConvertSlug('')
+                    setToast({
+                      message: t('articles.convert_to_article') + ' ✓',
+                      isOpen: true,
+                    })
+                  } catch (err) {
+                    console.error(err)
+                    setToast({
+                      message: t('validation.idea_creation_error'),
+                      isOpen: true,
+                    })
+                  } finally {
+                    setConverting(false)
+                  }
+                }}
+                className="px-4 py-2 bg-accent text-text-primary rounded-lg hover:bg-accent/90 disabled:opacity-50"
+              >
+                {converting ? '...' : t('actions.save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notifications */}
       {toast && (
