@@ -24,6 +24,8 @@ import { formatDate } from '@/core/lib/utils/date'
 import { ideaService } from '@/core/lib/services/ideaService'
 import { toast } from 'sonner'
 import { TagRenderer } from '@/shared/components/ui/TagRenderer'
+import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner'
+import { useAnalytics } from '@/core/hooks/useAnalytics'
 
 type IdeaCardVariant = 'interactive' | 'metrics' | 'admin'
 type VoteType = 'use' | 'dislike' | 'pay'
@@ -76,6 +78,7 @@ export function IdeaCard({
 }: IdeaCardProps) {
   const t = useTranslations()
   const { locale } = useLocale()
+  const { trackVote } = useAnalytics()
   const [currentIdea, setCurrentIdea] = useState(idea)
   const [showHoverOverlay, setShowHoverOverlay] = useState(false)
   const [showMobileStats, setShowMobileStats] = useState(false)

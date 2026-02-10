@@ -456,6 +456,126 @@ a {
     }
   }
 
+  /* Tooltip theme support */
+  .tooltip-container {
+    --tooltip-bg: #1f2937;
+    background-color: var(--tooltip-bg);
+    color: #ffffff;
+  }
+
+  body.light-theme .tooltip-container {
+    --tooltip-bg: #374151;
+    background-color: var(--tooltip-bg);
+    color: #ffffff;
+  }
+
+  /* Analytics theme support */
+  .analytics-skeleton-bg {
+    background-color: var(--gray-100);
+  }
+
+  .analytics-skeleton-bar {
+    background-color: var(--gray-200);
+  }
+
+  .analytics-progress-track {
+    background-color: var(--gray-200);
+  }
+
+  /* Sentiment badges - theme aware */
+  .sentiment-badge-positive {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+  }
+
+  body.light-theme .sentiment-badge-positive {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #059669;
+  }
+
+  .sentiment-badge-neutral {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+  }
+
+  body.light-theme .sentiment-badge-neutral {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+  }
+
+  .sentiment-badge-negative {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+
+  body.light-theme .sentiment-badge-negative {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+  }
+
+  /* AI feature cards - theme aware backgrounds */
+  .ai-feature-card-purple {
+    background-color: rgba(139, 92, 246, 0.1);
+  }
+
+  body.light-theme .ai-feature-card-purple {
+    background-color: rgba(139, 92, 246, 0.08);
+  }
+
+  .ai-feature-card-blue {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+
+  body.light-theme .ai-feature-card-blue {
+    background-color: rgba(59, 130, 246, 0.08);
+  }
+
+  .ai-feature-card-green {
+    background-color: rgba(16, 185, 129, 0.1);
+  }
+
+  body.light-theme .ai-feature-card-green {
+    background-color: rgba(16, 185, 129, 0.08);
+  }
+
+  /* AI lift cards - theme aware */
+  .ai-lift-card-positive {
+    background-color: rgba(16, 185, 129, 0.08);
+  }
+
+  body.light-theme .ai-lift-card-positive {
+    background-color: rgba(16, 185, 129, 0.06);
+  }
+
+  .ai-lift-card-blue {
+    background-color: rgba(59, 130, 246, 0.08);
+  }
+
+  body.light-theme .ai-lift-card-blue {
+    background-color: rgba(59, 130, 246, 0.06);
+  }
+
+  /* Count badges - theme aware */
+  .count-badge-purple {
+    background-color: rgba(139, 92, 246, 0.15);
+    color: #8b5cf6;
+  }
+
+  body.light-theme .count-badge-purple {
+    background-color: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+  }
+
+  .count-badge-gray {
+    background-color: var(--gray-200);
+    color: var(--text-secondary);
+  }
+
+  body.light-theme .count-badge-gray {
+    background-color: var(--light-gray-200);
+    color: var(--light-text-secondary);
+  }
+
   /* IdeaCard theme support */
   .idea-card-bg {
     background-color: #000000;
