@@ -4,24 +4,31 @@ import { useState } from 'react'
 import { IdeaVotes, IdeaVoteType } from '@/core/types/idea'
 import * as Tooltip from '@radix-ui/react-tooltip'
 import { VOTE_COLORS } from '@/core/lib/utils/idea.utils'
+import { useTranslations } from '@/shared/components/providers/I18nProvider'
+
+// Default labels (match analytics: Like, Dislike, I'd pay for it)
+export const VOTE_LABELS: Record<IdeaVoteType, string> = {
+  dislike: 'Dislike',
+  use: 'Like',
+  pay: "I'd pay for it",
+}
 
 interface VoteDistributionRingProps {
   votes: IdeaVotes
   size?: number // Diameter in pixels
 }
 
-// Labels for each vote type
-export const VOTE_LABELS: Record<IdeaVoteType, string> = {
-  dislike: "Wouldn't Use",
-  use: 'Would Use',
-  pay: 'Would Pay',
-}
-
 export function VoteDistributionRing({
   votes,
   size = 120,
 }: VoteDistributionRingProps) {
+  const t = useTranslations()
   const [hoveredArc, setHoveredArc] = useState<number | null>(null)
+  const labels: Record<IdeaVoteType, string> = {
+    dislike: t('activity.signal_overview.labels.dislike') || VOTE_LABELS.dislike,
+    use: t('activity.signal_overview.labels.like') || VOTE_LABELS.use,
+    pay: t('activity.signal_overview.labels.id_pay_for_it') || VOTE_LABELS.pay,
+  }
   const totalVotes = votes.dislike + votes.use + votes.pay
 
   // If no votes, don't show anything
@@ -120,7 +127,7 @@ export function VoteDistributionRing({
                   className="bg-gray-900 text-white px-3 py-2 rounded-md text-sm shadow-lg"
                   sideOffset={5}
                 >
-                  <span className="font-semibold">{VOTE_LABELS[arc.type]}</span>
+                  <span className="font-semibold">{labels[arc.type]}</span>
                   <br />
                   <span className="text-xs">
                     {arc.count} votes <span className="opacity-50">•</span>{' '}

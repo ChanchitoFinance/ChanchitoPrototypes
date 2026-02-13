@@ -482,6 +482,45 @@ a {
     background-color: var(--gray-200);
   }
 
+  /* Analytics metrics tables - brand accent, subtle life */
+  .analytics-table-wrap {
+    border: 1px solid rgba(160, 123, 207, 0.22);
+    border-radius: var(--border-radius-lg);
+    background: rgba(160, 123, 207, 0.04);
+    overflow: hidden;
+  }
+
+  .analytics-table-wrap .analytics-table-row {
+    transition: background-color var(--transition-fast), border-color var(--transition-fast), padding-left var(--transition-fast);
+  }
+
+  .analytics-table-wrap .analytics-table-row:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .analytics-table-wrap .analytics-table-row:hover {
+    background: rgba(160, 123, 207, 0.1);
+    box-shadow: inset 3px 0 0 var(--primary-accent);
+  }
+
+  .analytics-table-wrap thead tr {
+    background: rgba(160, 123, 207, 0.14);
+    color: var(--text-primary);
+  }
+
+  .analytics-table-wrap tbody tr {
+    transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .analytics-table-wrap tbody tr:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .analytics-table-wrap tbody tr:hover {
+    background: rgba(160, 123, 207, 0.1);
+    box-shadow: inset 3px 0 0 var(--primary-accent);
+  }
+
   /* Sentiment badges - theme aware */
   .sentiment-badge-positive {
     background-color: rgba(16, 185, 129, 0.15);
