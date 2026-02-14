@@ -1,48 +1,46 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useAppSelector } from '@/core/lib/hooks'
 import { useRouter } from 'next/navigation'
-import { useTranslations } from '@/shared/components/providers/I18nProvider'
+import { useTranslations, useLocale } from '@/shared/components/providers/I18nProvider'
 import { Button } from '@/shared/components/ui/Button'
 import {
   ArrowLeft,
   Lightbulb,
   Check,
   LogIn,
-  ThumbsUp,
   MessageCircle,
   ArrowUp,
   ArrowDown,
   DollarSign,
-  BarChart3,
-  TrendingUp,
-  TrendingDown,
-  PieChart as PieChartIcon,
-  Users,
-  Target,
-  RefreshCw,
 } from 'lucide-react'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-} from 'recharts'
-import { UserAnalytics } from '@/features/activity/components/UserAnalytics'
-import { UserIdeasList } from '@/features/activity/components/UserIdeasList'
+import { SignalOverviewSkeleton, IdeaCardSkeleton } from '@/shared/components/ui/Skeleton'
+
+const UserAnalytics = dynamic(
+  () => import('@/features/activity/components/UserAnalytics').then(m => ({ default: m.UserAnalytics })),
+  { loading: () => <SignalOverviewSkeleton />, ssr: false }
+)
+
+const UserIdeasList = dynamic(
+  () => import('@/features/activity/components/UserIdeasList').then(m => ({ default: m.UserIdeasList })),
+  {
+    loading: () => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3].map(i => (
+          <IdeaCardSkeleton key={i} />
+        ))}
+      </div>
+    ),
+    ssr: false,
+  }
+)
 
 export default function ActivityPage() {
   const t = useTranslations()
   const router = useRouter()
+  const { locale } = useLocale()
   const { isAuthenticated, user, profile, initialized } = useAppSelector(
     state => state.auth
   )
@@ -161,7 +159,7 @@ export default function ActivityPage() {
                   </div>
 
                   <Button
-                    onClick={() => router.push('/auth')}
+                    onClick={() => router.push(`/${locale}/auth`)}
                     variant="primary"
                     className="mt-6 inline-flex items-center gap-2"
                   >
@@ -172,14 +170,14 @@ export default function ActivityPage() {
               </div>
             </div>
 
-            {/* Example Cards Preview */}
+            {/* Ideas tab: example cards. Analytics tab: mocked Signal Overview preview */}
             <div className="mt-8">
-              <h3 className="text-lg font-semibold text-text-primary mb-4">
-                {t('activity.example.preview')}
-              </h3>
-
               {activeTab === 'ideas' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <>
+                  <h3 className="text-lg font-semibold text-text-primary mb-4">
+                    {t('activity.example.preview')}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Example Idea Card 1 */}
                   <div className="card-hover overflow-hidden h-full">
                     <article className="p-4 flex flex-col h-full">
@@ -417,328 +415,16 @@ export default function ActivityPage() {
                     </article>
                   </div>
                 </div>
+                </>
               ) : (
-                <div className="space-y-8">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold text-text-primary">
-                        {t('activity.analytics.title')}
-                      </h2>
-                      <p className="text-text-secondary">
-                        {t('activity.analytics.subtitle')}
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="inline-flex items-center gap-2"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      {t('common.refresh')}
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-text-secondary mb-1">
-                            {t('activity.analytics.overview.total_ideas')}
-                          </p>
-                          <p className="text-2xl font-bold text-text-primary">
-                            12
-                          </p>
-                        </div>
-                        <BarChart3 className="w-8 h-8 text-accent" />
-                      </div>
-                    </div>
-
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-text-secondary mb-1">
-                            {t('activity.analytics.overview.total_votes')}
-                          </p>
-                          <p className="text-2xl font-bold text-text-primary">
-                            128
-                          </p>
-                        </div>
-                        <ThumbsUp className="w-8 h-8 text-green-500" />
-                      </div>
-                    </div>
-
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-text-secondary mb-1">
-                            {t('activity.analytics.overview.total_comments')}
-                          </p>
-                          <p className="text-2xl font-bold text-text-primary">
-                            85
-                          </p>
-                        </div>
-                        <MessageCircle className="w-8 h-8 text-purple-500" />
-                      </div>
-                    </div>
-
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-text-secondary mb-1">
-                            {t('activity.analytics.overview.avg_score')}
-                          </p>
-                          <p className="text-2xl font-bold text-text-primary">
-                            75.2
-                          </p>
-                        </div>
-                        <TrendingUp className="w-8 h-8 text-orange-500" />
-                      </div>
-                    </div>
-
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-text-secondary mb-1">
-                            {t('activity.analytics.overview.engagement_rate')}
-                          </p>
-                          <p className="text-2xl font-bold text-text-primary">
-                            68%
-                          </p>
-                        </div>
-                        <Users className="w-8 h-8 text-blue-500" />
-                      </div>
-                    </div>
-
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-text-secondary mb-1">
-                            {t('activity.analytics.overview.impact_score')}
-                          </p>
-                          <p className="text-2xl font-bold text-text-primary">
-                            82
-                          </p>
-                        </div>
-                        <Target className="w-8 h-8 text-red-500" />
-                      </div>
-                    </div>
-
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-text-secondary mb-1">
-                            {t('activity.analytics.overview.feasibility_score')}
-                          </p>
-                          <p className="text-2xl font-bold text-text-primary">
-                            74%
-                          </p>
-                        </div>
-                        <Lightbulb className="w-8 h-8 text-yellow-500" />
-                      </div>
-                    </div>
-
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-text-secondary mb-1">
-                            {t('common.total_interactions')}
-                          </p>
-                          <p className="text-2xl font-bold text-text-primary">
-                            213
-                          </p>
-                        </div>
-                        <PieChartIcon className="w-8 h-8 text-indigo-500" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <h3 className="text-lg font-semibold text-text-primary mb-4">
-                        {t('activity.analytics.charts.vote_types_breakdown')}
-                      </h3>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                          <Pie
-                            data={[
-                              {
-                                name: t('actions.up'),
-                                value: 65,
-                                color: '#10B981',
-                              },
-                              {
-                                name: t('actions.down'),
-                                value: 10,
-                                color: '#EF4444',
-                              },
-                              {
-                                name: t('actions.id_pay'),
-                                value: 25,
-                                color: '#3B82F6',
-                              },
-                            ]}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, percent }) =>
-                              `${name} ${(percent * 100).toFixed(0)}%`
-                            }
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            {[
-                              { color: '#10B981' },
-                              { color: '#EF4444' },
-                              { color: '#3B82F6' },
-                            ].map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: 'var(--gray-800)',
-                              border: '2px solid var(--border-color)',
-                              borderRadius: 'var(--border-radius-md)',
-                            }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <h3 className="text-lg font-semibold text-text-primary mb-4">
-                        {t('activity.analytics.charts.category_distribution')}
-                      </h3>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                          <Pie
-                            data={[
-                              { name: 'SaaS', value: 40 },
-                              { name: 'Mobile', value: 30 },
-                              { name: 'Sustainability', value: 20 },
-                              { name: 'Productivity', value: 10 },
-                            ]}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, percent }) =>
-                              `${name} ${(percent * 100).toFixed(0)}%`
-                            }
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            {['#3B82F6', '#10B981', '#EF4444', '#F59E0B'].map(
-                              (color, index) => (
-                                <Cell key={`cell-${index}`} fill={color} />
-                              )
-                            )}
-                          </Pie>
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: 'var(--gray-800)',
-                              border: '2px solid var(--border-color)',
-                              borderRadius: 'var(--border-radius-md)',
-                            }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5 text-green-500" />
-                        {t('activity.analytics.best_idea')}
-                      </h3>
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-text-primary">
-                          {t('activity.example.idea_title_1')}
-                        </h4>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-text-secondary">
-                            {t('common.score')}
-                          </span>
-                          <span className="font-medium text-text-primary">
-                            85
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-text-secondary">
-                            {t('common.votes')}
-                          </span>
-                          <span className="font-medium text-text-primary">
-                            52
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-                        <MessageCircle className="w-5 h-5 text-purple-500" />
-                        {t('activity.analytics.most_interacted')}
-                      </h3>
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-text-primary">
-                          {t('activity.example.idea_title_3')}
-                        </h4>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-text-secondary">
-                            {t('common.comments')}
-                          </span>
-                          <span className="font-medium text-text-primary">
-                            25
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-text-secondary">
-                            {t('common.total_interactions')}
-                          </span>
-                          <span className="font-medium text-text-primary">
-                            77
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-                      <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-                        <TrendingDown className="w-5 h-5 text-red-500" />
-                        {t('activity.analytics.worst_idea')}
-                      </h3>
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-text-primary">
-                          {t('activity.example.idea_title_2')}
-                        </h4>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-text-secondary">
-                            {t('common.score')}
-                          </span>
-                          <span className="font-medium text-text-primary">
-                            68
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-text-secondary">
-                            {t('common.total_interactions')}
-                          </span>
-                          <span className="font-medium text-text-primary">
-                            43
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <UserAnalytics />
               )}
             </div>
           </div>
         </main>
-      </div>
-    )
-  }
+    </div>
+  )
+}
 
   return (
     <div className="w-full bg-background flex">

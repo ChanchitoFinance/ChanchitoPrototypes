@@ -478,6 +478,7 @@
         "title": "Signal Overview",
         "subtitle": "Cross-idea signal and behavioral evidence. This does not evaluate ideas. It shows external response patterns.",
         "no_data": "No data available yet",
+        "preview_login_message": "This is a preview with sample data. Sign in to see your real analytics.",
         "labels": {
           "dislike": "Dislike",
           "like": "Like",

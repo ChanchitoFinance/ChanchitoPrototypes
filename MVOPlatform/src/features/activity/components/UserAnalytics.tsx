@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { useTranslations } from '@/shared/components/providers/I18nProvider'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useTranslations, useLocale } from '@/shared/components/providers/I18nProvider'
 import { ideaService } from '@/core/lib/services/ideaService'
 import { analyticsService } from '@/core/lib/services/analyticsService'
 import { useAppSelector } from '@/core/lib/hooks'
@@ -17,9 +18,10 @@ import {
   BarChart,
   Bar,
 } from 'recharts'
-import { BarChart3, RefreshCw, Activity, GitBranch } from 'lucide-react'
+import { BarChart3, RefreshCw, Activity, GitBranch, LogIn } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { getGlobalSignalOverviewMock } from '../data/mockSignalOverview'
+import { SignalOverviewSkeleton } from '@/shared/components/ui/Skeleton'
 
 const tableRowVariants = {
   hidden: { opacity: 0, x: -6 },
@@ -43,6 +45,14 @@ const SIGNAL_COLORS = {
   pay: '#992BFF',
 }
 
+/** Mock aggregate used for guest preview (not logged in) */
+const PREVIEW_DATA: AnalyticsData = {
+  totalIdeas: 3,
+  totalVotes: 150,
+  totalComments: 24,
+  voteTypeBreakdown: { use: 60, dislike: 45, pay: 45 },
+}
+
 type SignalTab = 'signal' | 'attention' | 'behavioral'
 
 interface AnalyticsData {
@@ -54,16 +64,24 @@ interface AnalyticsData {
 
 export function UserAnalytics() {
   const t = useTranslations()
+  const router = useRouter()
+  const { locale } = useLocale()
   const { user } = useAppSelector(state => state.auth)
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<SignalTab>('signal')
   const [mock] = useState(() => getGlobalSignalOverviewMock())
+  const isPreviewMode = !user
 
   useEffect(() => {
+    if (!user) {
+      setData(PREVIEW_DATA)
+      setLoading(false)
+      return
+    }
     loadAnalytics()
-  }, [])
+  }, [user])
 
   const loadAnalytics = async () => {
     try {
@@ -95,19 +113,7 @@ export function UserAnalytics() {
   }
 
   if (loading) {
-    return (
-      <div className="space-y-6 bg-black min-h-[320px] rounded-lg border border-white/10">
-        <div className="p-6 border-b border-white/10">
-          <div className="h-6 w-48 bg-white/10 rounded animate-pulse mb-2" />
-          <div className="h-4 w-96 bg-white/5 rounded animate-pulse" />
-        </div>
-        <div className="p-6 flex gap-2">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-9 w-32 bg-white/10 rounded animate-pulse" />
-          ))}
-        </div>
-      </div>
-    )
+    return <SignalOverviewSkeleton />
   }
 
   if (error) {
@@ -146,6 +152,21 @@ export function UserAnalytics() {
 
   return (
     <div className="space-y-0 bg-black rounded-lg border border-white/10 overflow-hidden">
+      {isPreviewMode && (
+        <div className="px-6 py-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-3" style={{ backgroundColor: 'rgba(160, 123, 207, 0.12)' }}>
+          <p className="text-white/90 text-sm">
+            {translate('activity.signal_overview.preview_login_message', 'This is a preview with sample data. Sign in to see your real analytics.')}
+          </p>
+          <Button
+            onClick={() => router.push(`/${locale}/auth`)}
+            variant="primary"
+            className="inline-flex items-center gap-2 shrink-0"
+          >
+            <LogIn className="w-4 h-4" />
+            {t('actions.sign_in')}
+          </Button>
+        </div>
+      )}
       <div className="p-6 border-b border-white/10">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -156,10 +177,12 @@ export function UserAnalytics() {
               {translate('activity.signal_overview.subtitle', 'Cross-idea signal and behavioral evidence. This does not evaluate ideas. It shows external response patterns.')}
             </p>
           </div>
-          <Button onClick={loadAnalytics} variant="outline" className="self-start md:self-center border-white/20 text-white hover:bg-white/10">
-            <RefreshCw className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('common.refresh')}</span>
-          </Button>
+          {!isPreviewMode && (
+            <Button onClick={loadAnalytics} variant="outline" className="self-start md:self-center border-white/20 text-white hover:bg-white/10">
+              <RefreshCw className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('common.refresh')}</span>
+            </Button>
+          )}
         </div>
       </div>
 

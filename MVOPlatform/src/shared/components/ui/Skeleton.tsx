@@ -172,3 +172,48 @@ export function IdeaDetailSkeleton() {
     </div>
   )
 }
+
+/** Skeleton for Signal Overview / analytics page – matches tabs + chart + tables layout */
+export function SignalOverviewSkeleton() {
+  return (
+    <div className="space-y-0 bg-black rounded-lg border border-white/10 overflow-hidden animate-pulse">
+      <div className="p-6 border-b border-white/10">
+        <div className="h-6 w-48 bg-white/10 rounded mb-2" />
+        <div className="h-4 w-full max-w-xl bg-white/5 rounded" />
+      </div>
+      <div className="flex gap-0 border-b border-white/10 px-2">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="h-10 w-28 bg-white/5 rounded-t mx-1" />
+        ))}
+      </div>
+      <div className="p-6 space-y-8">
+        <section>
+          <div className="h-4 w-40 bg-white/10 rounded mb-3" />
+          <div className="h-3 w-full max-w-2xl bg-white/5 rounded mb-4" />
+          <div className="h-10 w-full rounded bg-white/5 mb-3" />
+          <div className="flex gap-4">
+            <div className="h-3 w-16 bg-white/5 rounded" />
+            <div className="h-3 w-20 bg-white/5 rounded" />
+            <div className="h-3 w-14 bg-white/5 rounded" />
+          </div>
+        </section>
+        <section className="pt-6 border-t border-white/10">
+          <div className="h-4 w-32 bg-white/10 rounded mb-3" />
+          <div className="h-3 w-full max-w-xl bg-white/5 rounded mb-4" />
+          <div className="h-48 w-full rounded bg-white/5" />
+        </section>
+        <section className="pt-6 border-t border-white/10">
+          <div className="h-4 w-24 bg-white/10 rounded mb-3" />
+          <div className="space-y-0 divide-y divide-white/10">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="flex justify-between px-4 py-3">
+                <div className="h-4 w-40 bg-white/5 rounded" />
+                <div className="h-4 w-20 bg-white/5 rounded" />
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  )
+}

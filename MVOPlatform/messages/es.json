@@ -477,6 +477,7 @@
         "title": "Resumen de Señales",
         "subtitle": "Evidencia de señales y comportamiento entre ideas. Esto no evalúa ideas; muestra patrones de respuesta externos.",
         "no_data": "Aún no hay datos disponibles",
+        "preview_login_message": "Esta es una vista previa con datos de ejemplo. Inicia sesión para ver tus analíticas reales.",
         "labels": {
           "dislike": "No me gusta",
           "like": "Me gusta",
