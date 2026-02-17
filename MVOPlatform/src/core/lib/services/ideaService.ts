@@ -2061,6 +2061,122 @@ class SupabaseIdeaService implements IIdeaService {
     if (error) throw error
   }
 
+  // Idea Signals Synthesis methods
+  async saveIdeaSignalsSynthesis(
+    ideaId: string,
+    ideaVersionNumber: number,
+    synthesis: {
+      synthesisResult: Record<string, string>
+      language?: string
+    }
+  ): Promise<void> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    const { data: latestVersionData, error: versionError } = await supabase
+      .from('idea_signals_synthesis')
+      .select('version')
+      .eq('idea_id', ideaId)
+      .eq('idea_version_number', ideaVersionNumber)
+      .order('version', { ascending: false })
+      .limit(1)
+
+    if (versionError) throw versionError
+
+    const newVersion =
+      latestVersionData?.length > 0 ? latestVersionData[0].version + 1 : 1
+
+    const { error: insertError } = await supabase
+      .from('idea_signals_synthesis')
+      .insert({
+        idea_id: ideaId,
+        idea_version_number: ideaVersionNumber,
+        version: newVersion,
+        synthesis_result: synthesis.synthesisResult,
+        language: synthesis.language || 'en',
+      })
+
+    if (insertError) throw insertError
+  }
+
+  async getIdeaSignalsSynthesisByIdeaId(
+    ideaId: string,
+    ideaVersionNumber?: number
+  ): Promise<any[]> {
+    let query = supabase
+      .from('idea_signals_synthesis')
+      .select('*')
+      .eq('idea_id', ideaId)
+
+    if (ideaVersionNumber !== undefined) {
+      query = query.eq('idea_version_number', ideaVersionNumber)
+    }
+
+    const { data, error } = await query
+      .order('idea_version_number', { ascending: false })
+      .order('version', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  }
+
+  async getLatestIdeaSignalsSynthesis(
+    ideaId: string,
+    ideaVersionNumber: number
+  ): Promise<any | null> {
+    const { data, error } = await supabase
+      .from('idea_signals_synthesis')
+      .select('*')
+      .eq('idea_id', ideaId)
+      .eq('idea_version_number', ideaVersionNumber)
+      .order('version', { ascending: false })
+      .limit(1)
+
+    if (error) throw error
+    return data?.[0] ?? null
+  }
+
+  async getIdeaSignalsSynthesisVersion(
+    ideaId: string,
+    ideaVersionNumber: number,
+    version: number
+  ): Promise<any | null> {
+    const { data, error } = await supabase
+      .from('idea_signals_synthesis')
+      .select('*')
+      .eq('idea_id', ideaId)
+      .eq('idea_version_number', ideaVersionNumber)
+      .eq('version', version)
+      .single()
+
+    if (error) return null
+    return data
+  }
+
+  async deleteIdeaSignalsSynthesis(
+    ideaId: string,
+    ideaVersionNumber?: number
+  ): Promise<void> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    let query = supabase
+      .from('idea_signals_synthesis')
+      .delete()
+      .eq('idea_id', ideaId)
+
+    if (ideaVersionNumber !== undefined) {
+      query = query.eq('idea_version_number', ideaVersionNumber)
+    }
+
+    const { error } = await query
+    if (error) throw error
+  }
+
   // AI Personas Evaluation methods
   async saveAIPersonasEvaluation(
     ideaId: string,

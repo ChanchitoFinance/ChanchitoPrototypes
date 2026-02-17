@@ -217,3 +217,62 @@ export function SignalOverviewSkeleton() {
     </div>
   )
 }
+
+/** Placeholder when a chart has no data – same dark theme as analytics */
+export function AnalyticsChartSkeleton({ height = 240 }: { height?: number }) {
+  return (
+    <div
+      className="relative w-full rounded-lg bg-white/5 overflow-hidden"
+      style={{ height }}
+    >
+      {/* Grid lines */}
+      <div className="absolute inset-0 flex flex-col justify-between py-4 px-6">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-px bg-white/10" />
+        ))}
+      </div>
+
+      {/* Fake bars */}
+      <div className="absolute bottom-6 left-6 right-6 flex items-end gap-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={i}
+            className="w-6 rounded bg-white/10 animate-pulse"
+            style={{
+              height: `${40 + Math.random() * 60}%`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+
+/** Placeholder for the signal mix bar when there are no votes */
+export function AnalyticsBarSkeleton() {
+  return (
+    <div className="flex h-10 w-full rounded overflow-hidden bg-white/5">
+      <div className="w-1/3 bg-white/10 animate-pulse" />
+      <div className="w-1/4 bg-white/20 animate-pulse" />
+      <div className="w-1/6 bg-white/10 animate-pulse" />
+      <div className="flex-1 bg-white/15 animate-pulse" />
+    </div>
+  )
+}
+
+/** Placeholder for analytics table rows when there's no data */
+export function AnalyticsTableSkeleton({ rows = 5 }: { rows?: number }) {
+  return (
+    <div className="divide-y divide-white/10">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="grid grid-cols-3 gap-4 px-4 py-3 items-center">
+          <div className="h-4 w-32 bg-white/10 rounded animate-pulse" />
+          <div className="h-4 w-20 bg-white/5 rounded animate-pulse" />
+          <div className="h-4 w-12 bg-white/10 rounded animate-pulse justify-self-end" />
+        </div>
+      ))}
+    </div>
+  )
+}
+

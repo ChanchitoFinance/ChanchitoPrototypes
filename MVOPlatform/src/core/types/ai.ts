@@ -174,6 +174,26 @@ export type MarketValidationTab =
   | 'synthesis'
 
 // ============================================
+// Idea Signals Synthesis (Decision Clarity)
+// ============================================
+export interface IdeaSignalsSynthesisResult {
+  decisionFraming: string
+  signalSummary: string
+  whatSignalsSay: string
+  keyRisksAndAssumptions: string
+  recommendation: string
+  founderSafeSummary: string
+}
+
+export type IdeaSignalsSynthesisTab =
+  | 'decision_framing'
+  | 'signal_summary'
+  | 'what_signals_say'
+  | 'key_risks'
+  | 'recommendation'
+  | 'founder_safe_summary'
+
+// ============================================
 // Search Result Types (Used by Market Validation)
 // ============================================
 export interface GoogleSearchResult {

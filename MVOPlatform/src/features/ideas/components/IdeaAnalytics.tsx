@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import { commentService } from '@/core/lib/services/commentService'
+import { analyticsService } from '@/core/lib/services/analyticsService'
 import { Idea } from '@/core/types/idea'
 import { Comment } from '@/core/types/comment'
+import type { IdeaDecisionEvidence } from '@/core/types/analytics'
 import {
   BarChart,
   Bar,
@@ -18,7 +20,7 @@ import {
 } from 'recharts'
 import { BarChart3, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { getIdeaDecisionEvidenceMock } from '@/features/activity/data/mockSignalOverview'
+import { AnalyticsChartSkeleton, AnalyticsBarSkeleton } from '@/shared/components/ui/Skeleton'
 
 const rowVariants = {
   hidden: { opacity: 0, x: -6 },
@@ -33,6 +35,8 @@ const SIGNAL_COLORS = {
   pay: '#992BFF',
 }
 
+const BLANK = '—'
+
 interface IdeaAnalyticsProps {
   ideaId: string
   idea: Idea
@@ -42,26 +46,31 @@ interface IdeaAnalyticsProps {
 export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
   const t = useTranslations()
   const [comments, setComments] = useState<Comment[]>([])
+  const [decisionEvidence, setDecisionEvidence] = useState<IdeaDecisionEvidence | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
-  const mock = useMemo(() => getIdeaDecisionEvidenceMock(ideaId), [ideaId])
 
   useEffect(() => {
     if (isOwner) {
-      loadComments()
+      loadData()
     }
   }, [ideaId, isOwner])
 
-  const loadComments = async () => {
+  const loadData = async () => {
     try {
       setLoading(true)
       setError(null)
-      const loadedComments = await commentService.getComments(ideaId)
+      // Load both comments and decision evidence in parallel
+      const [loadedComments, evidence] = await Promise.all([
+        commentService.getComments(ideaId),
+        analyticsService.getIdeaDecisionEvidence(ideaId),
+      ])
       setComments(loadedComments)
+      setDecisionEvidence(evidence)
     } catch (err) {
-      console.error('Error loading comments for analytics:', err)
-      setError('Failed to load comments')
+      console.error('Error loading idea analytics:', err)
+      setError('Failed to load analytics')
     } finally {
       setLoading(false)
     }
@@ -95,7 +104,30 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
       ? Math.round(
           comments.reduce((sum, c) => sum + (c.content?.length ?? 0), 0) / comments.length
         )
-      : mock.avgCommentLength
+      : (decisionEvidence?.avgCommentLength != null ? decisionEvidence.avgCommentLength : BLANK)
+
+  // Owners see only real data; show blanks when no decision evidence
+  const ev = decisionEvidence
+  const noData = !ev
+  const num = (v: number | undefined): string | number =>
+    noData ? BLANK : (v != null ? v : BLANK)
+  const signalVolatility = noData ? BLANK : (ev.signalVolatility ?? BLANK)
+  const voteChangeOverTime = noData ? [] : (ev.voteChangeOverTime?.length ? ev.voteChangeOverTime : [])
+  const detailViews = num(ev?.detailViews)
+  const avgDwellTimeMs = noData ? BLANK : (ev.avgDwellTimeMs != null ? `${(ev.avgDwellTimeMs / 1000).toFixed(1)}s` : BLANK)
+  const medianDwellTimeMs = noData ? BLANK : (ev.medianDwellTimeMs != null ? `${(ev.medianDwellTimeMs / 1000).toFixed(1)}s` : BLANK)
+  const scrollDepthPct = noData ? BLANK : (ev.scrollDepthPct != null ? `${ev.scrollDepthPct}%` : BLANK)
+  const returnRate = noData ? BLANK : (ev.returnRate != null ? (ev.returnRate * 100).toFixed(1) + '%' : BLANK)
+  const timeToFirstSignalSec = noData ? BLANK : (ev.timeToFirstSignalSec != null ? `${Math.max(0, ev.timeToFirstSignalSec)}s` : BLANK)
+  const timeToFirstCommentSec = noData ? BLANK : (ev.timeToFirstCommentSec != null ? `${Math.max(0, ev.timeToFirstCommentSec)}s` : BLANK)
+  const voteLatencyAvgSec = noData ? BLANK : (ev.voteLatencyAvgSec != null ? `${Math.max(0, ev.voteLatencyAvgSec)}s` : BLANK)
+  const pctVotesAfterComment = noData ? BLANK : (ev.pctVotesAfterComment != null ? `${ev.pctVotesAfterComment}%` : BLANK)
+  const pctVotesAfterAIComment = noData ? BLANK : (ev.pctVotesAfterAIComment != null ? `${ev.pctVotesAfterAIComment}%` : BLANK)
+  const commentDepth = num(ev?.commentDepth)
+  const earlyExitRatePct = noData ? BLANK : (ev.earlyExitRatePct != null ? `${ev.earlyExitRatePct}%` : BLANK)
+  const highDwellNoVotePct = noData ? BLANK : (ev.highDwellNoVotePct != null ? `${ev.highDwellNoVotePct}%` : BLANK)
+  const dwellDistribution = noData ? [] : (ev.dwellDistribution?.length ? ev.dwellDistribution : [])
+  const segments = noData ? [] : (ev.segments?.length ? ev.segments : [])
 
   return (
     <div className="mb-6">
@@ -167,7 +199,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
                         </motion.div>
                       ))
                     ) : (
-                      <div className="flex items-center justify-center w-full text-white/40 text-sm">No signals yet</div>
+                      <AnalyticsBarSkeleton />
                     )}
                   </div>
                   <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-white/60 mb-4">
@@ -175,12 +207,12 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
                     <span>{translate('activity.decision_evidence.labels.like', 'Like')}: {usePct.toFixed(1)}</span>
                     <span>{translate('activity.decision_evidence.labels.id_pay_for_it', "I'd pay for it")}: {payPct.toFixed(1)}</span>
                     <span>Total signals: {totalVotes}</span>
-                    <span>Signal volatility: {mock.signalVolatility}%</span>
+                    <span>Signal volatility: {signalVolatility === BLANK ? BLANK : `${signalVolatility}%`}</span>
                   </div>
-                  {mock.voteChangeOverTime?.length > 0 && (
+                  {voteChangeOverTime?.length > 0 ? (
                     <motion.div variants={chartVariants} initial="hidden" animate="visible" className="rounded-lg border border-white/10 p-3 hover:border-white/20 transition-colors duration-200">
                       <ResponsiveContainer width="100%" height={200}>
-                        <LineChart data={mock.voteChangeOverTime} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                        <LineChart data={voteChangeOverTime} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                           <XAxis dataKey="date" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
                           <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
@@ -189,6 +221,8 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
                         </LineChart>
                       </ResponsiveContainer>
                     </motion.div>
+                  ) : (
+                    <AnalyticsChartSkeleton height={200} />
                   )}
                 </section>
 
@@ -204,13 +238,13 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
                   </p>
                   <div className="analytics-table-wrap divide-y divide-white/10 mb-4">
                     {[
-                      { label: translate('activity.decision_evidence.detail_views', 'Detail views'), value: mock.detailViews },
-                      { label: translate('activity.decision_evidence.avg_dwell', 'Avg dwell time'), value: `${(mock.avgDwellTimeMs / 1000).toFixed(1)}s` },
-                      { label: translate('activity.decision_evidence.median_dwell', 'Median dwell time'), value: `${(mock.medianDwellTimeMs / 1000).toFixed(1)}s` },
-                      { label: translate('activity.decision_evidence.scroll_depth', 'Scroll depth'), value: mock.scrollDepthPct + '%' },
-                      { label: translate('activity.decision_evidence.return_rate', 'Return rate'), value: (mock.returnRate * 100).toFixed(1) + '%' },
-                      { label: translate('activity.decision_evidence.time_to_first_signal', 'Time to first signal'), value: `${mock.timeToFirstSignalSec}s` },
-                      { label: translate('activity.decision_evidence.time_to_first_comment', 'Time to first comment'), value: `${mock.timeToFirstCommentSec}s` },
+                      { label: translate('activity.decision_evidence.detail_views', 'Detail views'), value: detailViews },
+                      { label: translate('activity.decision_evidence.avg_dwell', 'Avg dwell time'), value: avgDwellTimeMs },
+                      { label: translate('activity.decision_evidence.median_dwell', 'Median dwell time'), value: medianDwellTimeMs },
+                      { label: translate('activity.decision_evidence.scroll_depth', 'Scroll depth'), value: scrollDepthPct },
+                      { label: translate('activity.decision_evidence.return_rate', 'Return rate'), value: returnRate },
+                      { label: translate('activity.decision_evidence.time_to_first_signal', 'Time to first signal'), value: timeToFirstSignalSec },
+                      { label: translate('activity.decision_evidence.time_to_first_comment', 'Time to first comment'), value: timeToFirstCommentSec },
                     ].map((row, i) => (
                       <motion.div
                         key={i}
@@ -229,18 +263,22 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
                     {translate('activity.decision_evidence.dwell_distribution', 'Dwell distribution')}
                   </p>
                   <motion.div variants={chartVariants} initial="hidden" animate="visible" className="rounded-lg border border-white/10 p-3 hover:border-white/20 transition-colors duration-200">
-                    <ResponsiveContainer width="100%" height={140}>
-                      <BarChart
-                        data={mock.dwellDistribution.map((v, i) => ({ name: ['0-2s', '2-5s', '5-10s', '10-30s', '30+s'][i] ?? i, count: v }))}
-                        margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                        <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
-                        <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
-                        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-                        <Bar dataKey="count" fill="rgba(153,43,255,0.6)" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={400} animationEasing="ease-out" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    {dwellDistribution.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={140}>
+                        <BarChart
+                          data={dwellDistribution.map((v, i) => ({ name: ['0-2s', '2-5s', '5-10s', '10-30s', '30+s'][i] ?? i, count: v }))}
+                          margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                          <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
+                          <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
+                          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+                          <Bar dataKey="count" fill="rgba(153,43,255,0.6)" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={400} animationEasing="ease-out" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <AnalyticsChartSkeleton height={140} />
+                    )}
                   </motion.div>
                 </section>
 
@@ -256,13 +294,13 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
                   </p>
                   <div className="analytics-table-wrap divide-y divide-white/10 mb-4">
                     {[
-                      { label: translate('activity.decision_evidence.vote_latency', 'Vote latency'), value: `${mock.voteLatencyAvgSec}s` },
-                      { label: translate('activity.decision_evidence.votes_after_comment', 'Votes after comment %'), value: mock.pctVotesAfterComment + '%' },
-                      { label: translate('activity.decision_evidence.votes_after_ai_comment', 'Votes after AI comment %'), value: mock.pctVotesAfterAIComment + '%' },
-                      { label: translate('activity.decision_evidence.comment_depth', 'Comment depth'), value: mock.commentDepth },
+                      { label: translate('activity.decision_evidence.vote_latency', 'Vote latency'), value: voteLatencyAvgSec },
+                      { label: translate('activity.decision_evidence.votes_after_comment', 'Votes after comment %'), value: pctVotesAfterComment },
+                      { label: translate('activity.decision_evidence.votes_after_ai_comment', 'Votes after AI comment %'), value: pctVotesAfterAIComment },
+                      { label: translate('activity.decision_evidence.comment_depth', 'Comment depth'), value: commentDepth },
                       { label: translate('activity.decision_evidence.avg_comment_length', 'Avg comment length'), value: avgCommentLength },
-                      { label: translate('activity.decision_evidence.early_exit', 'Early exit rate'), value: mock.earlyExitRatePct + '%' },
-                      { label: translate('activity.decision_evidence.high_dwell_no_vote', 'High dwell / no vote %'), value: mock.highDwellNoVotePct + '%' },
+                      { label: translate('activity.decision_evidence.early_exit', 'Early exit rate'), value: earlyExitRatePct },
+                      { label: translate('activity.decision_evidence.high_dwell_no_vote', 'High dwell / no vote %'), value: highDwellNoVotePct },
                     ].map((row, i) => (
                       <motion.div
                         key={i}
@@ -273,11 +311,11 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
                         className="analytics-table-row flex justify-between px-4 py-3 text-sm cursor-default"
                       >
                         <span className="text-white/70">{row.label}</span>
-                        <span className="text-white font-mono">{row.value}</span>
+                        <span className="text-white font-mono">{typeof row.value === 'number' ? row.value.toLocaleString() : row.value}</span>
                       </motion.div>
                     ))}
                   </div>
-                  {mock.segments?.length > 0 && (
+                  {segments?.length > 0 && (
                     <>
                       <p className="text-white/50 text-sm leading-relaxed mb-2 max-w-2xl">
                         {translate('activity.decision_evidence.segment_table_explain', 'Breakdown by audience type: First-time viewers, Returning viewers, Space members, and External testers. Each row shows how many signals that segment gave, their average dwell time on the idea, and the vote mix (Use %, Dislike %, Pay %) for that segment. Use this to see whether different audiences respond differently.')}
@@ -295,7 +333,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
                             </tr>
                           </thead>
                           <tbody>
-                            {mock.segments.map((seg, i) => (
+                            {segments.map((seg, i) => (
                               <motion.tr
                                 key={i}
                                 custom={i}

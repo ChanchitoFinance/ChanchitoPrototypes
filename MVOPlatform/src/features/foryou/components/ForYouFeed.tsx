@@ -8,6 +8,7 @@ import { Idea } from '@/core/types/idea'
 import { ideaService } from '@/core/lib/services/ideaService'
 import { ExploreIdeaSkeleton } from '@/shared/components/ui/Skeleton'
 import { useAppSelector } from '@/core/lib/hooks'
+import { analyticsService } from '@/core/lib/services/analyticsService'
 import {
   useTranslations,
   useLocale,
@@ -33,7 +34,7 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
   const hasSetInitialScroll = useRef(false)
   const lastUrlIdeaId = useRef<string | null>(null)
   const uniqueIdeasCount = useRef(0)
-  const { isAuthenticated } = useAppSelector(state => state.auth)
+  const { isAuthenticated, user } = useAppSelector(state => state.auth)
 
   const handleKeyDown = useCallback(
     async (e: KeyboardEvent) => {
@@ -365,6 +366,19 @@ export function ForYouFeed({ initialIdeaId }: ForYouFeedProps) {
       container?.removeEventListener('scroll', handleScroll)
     }
   }, [])
+
+  // Track feed impression when active idea changes (for_you feed)
+  const lastTrackedIndexRef = useRef<number>(-1)
+  useEffect(() => {
+    if (!initialized || activeIndex < 0 || !ideas[activeIndex]) return
+    if (lastTrackedIndexRef.current === activeIndex) return
+    lastTrackedIndexRef.current = activeIndex
+    analyticsService.trackFeedImpression({
+      ideaId: ideas[activeIndex].id,
+      viewerId: user?.id ?? undefined,
+      feedType: 'for_you',
+    })
+  }, [initialized, activeIndex, ideas, user?.id])
 
   return (
     <div

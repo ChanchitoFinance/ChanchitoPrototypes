@@ -493,7 +493,7 @@
         "signal_mix_explain": "La barra apilada muestra cómo se reparten todos los votos de tus ideas: No me gusta, Me gusta y Pagaría por ello. Total de señales es la suma de todos los votos; Ratio de intención de pago es la parte de votos que son Pagaría por ello. Así ves la mezcla de respuesta global sin juzgar una sola idea.",
         "signal_drift": "Deriva de Señales",
         "signal_drift_desc": "Cambio de votos en el tiempo (últimos 30 días). Volatilidad y reversiones de señal.",
-        "signal_drift_explain": "El gráfico de líneas muestra cómo cambia el volumen de votos día a día en los últimos 30 días. Refleja volatilidad y patrones de reversión—útil para ver si la respuesta es estable o está cambiando.",
+        "signal_drift_explain": "El gráfico de líneas muestra cómo cambia el volumen de votos día a día en los últimos 30 días. Refleja volatilidad y patrones de reversión.",
         "exposure": {
           "feed_impressions": "Impresiones totales en feed",
           "reimpression_rate": "Tasa de re-impresión",
@@ -560,7 +560,7 @@
           "id_pay_for_it": "Pagaría por ello"
         },
         "signal_composition": "Composición de Señales",
-        "signal_composition_explain": "Desglose de votos solo para esta idea: parte de No me gusta, Me gusta y Pagaría por ello, total de señales y cómo cambió la mezcla en el tiempo (volatilidad y serie temporal). Sin recomendación—solo composición y tendencia.",
+        "signal_composition_explain": "Desglose de votos para esta idea y cómo cambió la mezcla en el tiempo (volatilidad y serie temporal).",
         "attention_depth": "Atención y Profundidad",
         "attention_depth_explain": "Cómo se consume esta idea: vistas de detalle, tiempo medio y mediano de permanencia, profundidad de scroll, tasa de vuelta y tiempo hasta la primera señal o comentario. El gráfico de distribución de permanencia muestra cuánto tiempo se queda la gente antes de irse o actuar.",
         "behavioral_context": "Contexto de Comportamiento",
@@ -1110,6 +1110,7 @@
       "layer": "Capa",
       "hypothesis": "Hipótesis",
       "evidence_summary": "Resumen de Evidencia",
+      "next_test": "Siguiente Prueba",
       "sources": "Fuentes de Respaldo",
       "contradicting_signals": "Señales Contradictorias",
       "no_hypotheses": "No hay hipótesis disponibles",
@@ -1224,6 +1225,48 @@
       "suggested_next_steps": "Próximos Pasos Sugeridos",
       "pivot_guidance": "Guía de Pivote",
       "disclaimer": "Esta es una guía consultiva. El éxito depende de la ejecución, el tiempo y factores más allá de este análisis."
+    }
+  },
+  "idea_signals_synthesis": {
+    "feature_name": "Síntesis de Señales de la Idea",
+    "title": "Síntesis de Señales de la Idea",
+    "get_synthesis": "Obtener Síntesis de Señales",
+    "view_synthesis": "Ver Síntesis de Señales",
+    "researching": "Generando síntesis…",
+    "re_run": "Volver a ejecutar síntesis",
+    "regenerate": "Regenerar",
+    "clear_all": "Borrar todo",
+    "clear_confirm": "¿Eliminar todas las versiones de síntesis de esta idea? No se puede deshacer.",
+    "previous": "Versión anterior",
+    "next": "Versión siguiente",
+    "previous_short": "← Anterior",
+    "next_short": "Siguiente →",
+    "strong_validation_points": "Puntos Fuertes de Validación",
+    "suggested_next_steps": "Próximos Pasos Sugeridos",
+    "key_risks_intro": "Esta sección destaca riesgos clave y suposiciones que requieren atención.",
+    "decision_framing_intro": "Enmarca la decisión, qué la hace costosa de revertir y la confianza actual antes de comprometerse.",
+    "try_again": "Reintentar",
+    "disclaimer": "Síntesis generada por IA. Solo orientativa. Ninguna decisión está cerrada.",
+    "version_of": "Versión {current} de {total}",
+    "no_content": "Sin contenido.",
+    "error_default": "Error al ejecutar la síntesis de señales",
+    "tabs": {
+      "decision_framing": "Encuadre de decisión",
+      "signal_summary": "Resumen de señales",
+      "what_signals_say": "Qué dicen las señales",
+      "key_risks": "Riesgos clave",
+      "hypotheses_status": "Estado de hipótesis",
+      "recommendation": "Recomendación",
+      "founder_safe_summary": "Resumen"
+    },
+    "tabs_short": {
+      "decision_framing": "Encuadre",
+      "signal_summary": "Señales",
+      "what_signals_say": "Señales",
+      "key_risks": "Riesgos",
+      "hypotheses_status": "Hipótesis",
+      "recommendation": "Recomend.",
+      "founder_safe_summary": "Resumen"
     }
   }
 }

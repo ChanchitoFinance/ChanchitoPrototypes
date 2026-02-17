@@ -178,6 +178,25 @@ export interface TrackAIFeatureParams extends VersionInfo {
   coinsSpent: number
 }
 
+export interface TrackDetailViewStartParams {
+  ideaId: string
+  viewerId?: string | null
+}
+
+export interface TrackDetailViewEndParams {
+  detailViewId: string
+  dwellMs: number
+  scrollDepthPct?: number
+}
+
+export type FeedType = 'home' | 'for_you' | 'browse' | 'activity' | 'other'
+
+export interface TrackFeedImpressionParams {
+  ideaId: string
+  viewerId?: string | null
+  feedType: FeedType
+}
+
 // =====================================================
 // DASHBOARD DISPLAY TYPES
 // =====================================================
@@ -229,10 +248,114 @@ export interface AIValueInsightsDisplay {
 }
 
 // =====================================================
+// SIGNAL OVERVIEW & ATTENTION / BEHAVIORAL (extended analytics)
+// =====================================================
+
+export interface SignalDriftDay {
+  date: string
+  use?: number
+  dislike?: number
+  pay?: number
+  total?: number
+  voteChange: number
+  volatility?: number
+  reversalRate?: number
+}
+
+export interface CreatorSignalOverview {
+  totalIdeas: number
+  totalVotes: number
+  totalComments: number
+  voteTypeBreakdown: { use: number; dislike: number; pay: number }
+  signalDriftLast30Days: SignalDriftDay[]
+}
+
+export interface CreatorAttentionMetrics {
+  totalFeedImpressions: number
+  reimpressionRate: number
+  uniqueViewers: number
+  avgFeedDwellTimeMs: number
+  hoverDurationDesktopMs: number
+  detailViewStarts: number
+  avgDetailDwellTimeMs: number
+  medianDwellTimeMs: number
+  scrollDepthAvgPct: number
+  returnToDetailRate: number
+  timeBetweenReturnsSec: number
+  dwellTimeDistribution: number[]
+  scrollDepthDistribution: number[]
+}
+
+export interface CreatorBehavioralMetrics {
+  avgTimeDetailToSignalSec: number
+  medianVoteLatencySec: number
+  pctVotesUnder10Sec: number
+  pctVotesAfterComment: number
+  pctVotesAfterAIComment?: number
+  commentsPerIdeaAvg: number
+  avgCommentLength: number
+  replyDepthAvg: number
+  replyDepthDistribution?: number[]
+  threadParticipationRate?: number
+  commentEditRate?: number
+  commentUpvoteDownvoteRatio?: number
+  earlyExitRatePct: number
+  highViewsLowSignalsRatio: number
+  commentsWithoutVotesPct: number
+  votesWithoutCommentsPct: number
+  highDwellNoVotePct: number
+  returnSessionCountPerUser: number
+  pctUsersReturningWithin7Days: number
+  engagementDecayRate?: number
+}
+
+export interface IdeaDecisionEvidence {
+  totalVotes: number
+  voteTypeBreakdown: {
+    use: number
+    dislike: number
+    pay: number
+  }
+  signalVolatility: number
+  voteChangeOverTime: {
+    date: string
+    use: number
+    dislike: number
+    pay: number
+    total: number
+  }[]
+  detailViews: number
+  avgDwellTimeMs: number
+  medianDwellTimeMs: number
+  scrollDepthPct: number
+  returnRate: number
+  timeToFirstSignalSec: number
+  timeToFirstCommentSec: number
+  voteLatencyAvgSec: number
+  pctVotesAfterComment: number
+  pctVotesAfterAIComment: number
+  commentDepth: number
+  avgCommentLength: number
+  earlyExitRatePct: number
+  highDwellNoVotePct: number
+  dwellDistribution: number[]
+  segments: {
+    segment: string
+    signals: number
+    avgDwellMs: number
+    voteTypePct: {
+      use: number
+      dislike: number
+      pay: number
+    }
+  }[]
+}
+
+// =====================================================
 // UTILITY TYPES
 // =====================================================
 
-export type FeatureType = 'deep_research' | 'personas_evaluation' | 'ai_comments' | 'risk_analysis'
+export type FeatureType = 'deep_research' | 'personas_evaluation' | 'ai_comments' | 'risk_analysis' | 'idea_signals_synthesis'
 
 export function formatTimeToEngagement(seconds: number | null): string {
   if (seconds === null || seconds === 0) return 'N/A'

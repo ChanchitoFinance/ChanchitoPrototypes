@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Idea } from '@/core/types/idea'
-import { IdeaCard } from '@/features/ideas/components/IdeaCard'
+import { FeedIdeaCard } from '@/features/ideas/components/FeedIdeaCard'
 import { IdeaCardSkeleton } from '@/shared/components/ui/Skeleton'
 
 interface HorizontalScrollSectionProps {
@@ -154,8 +154,9 @@ export function HorizontalScrollSection({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-                <IdeaCard
+                <FeedIdeaCard
                   idea={idea}
+                  feedType="home"
                   variant="interactive"
                   onMouseEnter={() => onIdeaHover?.(idea.id)}
                   onMouseLeave={() => onIdeaHover?.(null)}

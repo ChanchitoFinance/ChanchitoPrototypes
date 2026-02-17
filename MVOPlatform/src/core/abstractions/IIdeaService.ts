@@ -162,6 +162,33 @@ export interface IIdeaService {
     ideaVersionNumber?: number
   ): Promise<void>
 
+  saveIdeaSignalsSynthesis(
+    ideaId: string,
+    ideaVersionNumber: number,
+    synthesis: { synthesisResult: Record<string, string>; language?: string }
+  ): Promise<void>
+
+  getIdeaSignalsSynthesisByIdeaId(
+    ideaId: string,
+    ideaVersionNumber?: number
+  ): Promise<any[]>
+
+  getLatestIdeaSignalsSynthesis(
+    ideaId: string,
+    ideaVersionNumber: number
+  ): Promise<any | null>
+
+  getIdeaSignalsSynthesisVersion(
+    ideaId: string,
+    ideaVersionNumber: number,
+    version: number
+  ): Promise<any | null>
+
+  deleteIdeaSignalsSynthesis(
+    ideaId: string,
+    ideaVersionNumber?: number
+  ): Promise<void>
+
   // AI Personas Evaluation methods
   saveAIPersonasEvaluation(
     ideaId: string,

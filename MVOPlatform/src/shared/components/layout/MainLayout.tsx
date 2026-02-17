@@ -40,7 +40,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       )}
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col overflow-hidden`}>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile Overlay */}
         <MobileSidebarOverlay
           isOpen={isMobileOpen}
@@ -49,7 +49,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
         {/* Content Container */}
         <main
-          className={`flex-1 overflow-y-auto ${isLandingPage ? 'pt-0' : isMobile ? (!isForYouPage ? 'pt-16' : 'pt-0') : 'pt-0'}`}
+          className={`flex-1 min-w-0 overflow-y-auto overflow-x-hidden ${isLandingPage ? 'pt-0' : isMobile ? (!isForYouPage ? 'pt-16' : 'pt-0') : 'pt-0'}`}
         >
           {children}
         </main>

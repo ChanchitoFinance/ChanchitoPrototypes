@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Idea } from '@/core/types/idea'
-import { IdeaCard } from '@/features/ideas/components/IdeaCard'
+import { FeedIdeaCard } from '@/features/ideas/components/FeedIdeaCard'
 import { IdeaCardSkeleton } from '@/shared/components/ui/Skeleton'
 
 interface VerticalIdeasSectionProps {
@@ -73,8 +73,9 @@ export function VerticalIdeasSection({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-                <IdeaCard
+                <FeedIdeaCard
                   idea={idea}
+                  feedType="home"
                   variant="interactive"
                   onMouseEnter={() => onIdeaHover?.(idea.id)}
                   onMouseLeave={() => onIdeaHover?.(null)}

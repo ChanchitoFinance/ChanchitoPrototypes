@@ -13,6 +13,7 @@ import { ideaService } from '@/core/lib/services/ideaService'
 import { supabase } from '@/core/lib/supabase'
 import { Toast } from '@/shared/components/ui/Toast'
 import { IdeaCard } from '@/features/ideas/components/IdeaCard'
+import { FeedIdeaCard } from '@/features/ideas/components/FeedIdeaCard'
 import { IdeaFilterPanel } from '@/features/ideas/components/IdeaFilterPanel'
 import {
   FilterCondition,
@@ -423,50 +424,15 @@ export function BrowseDashboard({ isAdmin = false }) {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-x-8 gap-y-32 pt-2 overflow-visible">
               {ideas.map(idea => (
-                <div key={idea.id} className="overflow-visible">
-                <IdeaCard
+                <FeedIdeaCard
                   key={idea.id}
                   idea={idea}
+                  feedType="browse"
                   variant="interactive"
-                  locale={locale}
-                  router={router}
                   initialUserVotes={idea.userVotes}
-                  onDelete={
-                    isAdmin
-                      ? async () => {
-                          try {
-                            await ideaService.deleteIdea(idea.id)
-                            setIdeas(ideas.filter(i => i.id !== idea.id))
-                            setToast({
-                              message: t('admin.dashboard.idea_deleted'),
-                              isOpen: true,
-                            })
-                          } catch (error) {
-                            console.error('Error deleting idea:', error)
-                            setToast({
-                              message: t('actions.error_deleting_idea'),
-                              isOpen: true,
-                            })
-                          }
-                        }
-                      : undefined
-                  }
-                  onConvertToArticle={
-                    isAdmin && !idea.is_article
-                      ? ideaToConvert => {
-                          setConvertToArticleIdea(ideaToConvert)
-                          setConvertSlug(
-                            ideaToConvert.title
-                              .toLowerCase()
-                              .replace(/\s+/g, '-')
-                              .replace(/[^a-z0-9-]/g, '')
-                              .slice(0, 50)
-                          )
-                        }
-                      : undefined
-                  }
+                  onMouseEnter={() => {}}
+                  onMouseLeave={() => {}}
                 />
-                </div>
               ))}
             </div>
 

@@ -281,3 +281,106 @@ export function useIdeaViewTracking(
     hasTracked.current = true
   }, [ideaId, creatorId, user?.id, hasAIComments, hasDeepResearch, versionNumber, ideaGroupId])
 }
+
+/**
+ * Hook for tracking detail view session (dwell + scroll).
+ * Call with ideaId and optional scrollContainerRef. On unmount or page hide, sends dwell and scroll depth.
+ */
+export function useDetailViewTracking(
+  ideaId: string | undefined,
+  scrollContainerRef: React.RefObject<HTMLElement | null>
+): void {
+  const { user } = useAppSelector(state => state.auth)
+  const detailViewIdRef = useRef<string | null>(null)
+  const startTimeRef = useRef<number>(0)
+
+  useEffect(() => {
+    if (!ideaId || typeof window === 'undefined') return
+
+    const start = Date.now()
+    startTimeRef.current = start
+
+    analyticsService.trackDetailViewStart({
+      ideaId,
+      viewerId: user?.id ?? undefined,
+    }).then(id => {
+      detailViewIdRef.current = id
+    })
+
+    const handleEnd = () => {
+      const id = detailViewIdRef.current
+      if (!id) return
+      const dwellMs = Math.round(Date.now() - startTimeRef.current)
+      let scrollDepthPct = 0
+      const el = scrollContainerRef?.current
+      if (el) {
+        const maxScroll = el.scrollHeight - el.clientHeight
+        if (maxScroll > 0) {
+          scrollDepthPct = Math.round((el.scrollTop / maxScroll) * 100)
+          scrollDepthPct = Math.min(100, Math.max(0, scrollDepthPct))
+        }
+      } else if (typeof document !== 'undefined' && document.documentElement) {
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight
+        if (maxScroll > 0) {
+          scrollDepthPct = Math.round((window.scrollY / maxScroll) * 100)
+          scrollDepthPct = Math.min(100, Math.max(0, scrollDepthPct))
+        }
+      }
+      analyticsService.trackDetailViewEnd({ detailViewId: id, dwellMs, scrollDepthPct })
+      detailViewIdRef.current = null
+    }
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') handleEnd()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility)
+    window.addEventListener('pagehide', handleEnd)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+      window.removeEventListener('pagehide', handleEnd)
+      handleEnd()
+    }
+  }, [ideaId, user?.id])
+}
+
+/**
+ * Hook for tracking feed impression (and optional dwell). Call when idea card enters viewport.
+ * Returns a ref to attach to the card root and optional feedType.
+ */
+export function useFeedImpressionTracking(
+  ideaId: string | undefined,
+  feedType: 'home' | 'for_you' | 'browse' | 'activity' | 'other' = 'other'
+): {
+  ref: React.RefObject<HTMLDivElement | null>
+  onEnterViewport: () => void
+  onLeaveViewport: (dwellMs: number) => void
+} {
+  const { user } = useAppSelector(state => state.auth)
+  const impressionIdRef = useRef<string | null>(null)
+  const enterTimeRef = useRef<number>(0)
+  const cardRef = useRef<HTMLDivElement | null>(null)
+
+  const onEnterViewport = useCallback(() => {
+    if (!ideaId) return
+    enterTimeRef.current = Date.now()
+    analyticsService.trackFeedImpression({
+      ideaId,
+      viewerId: user?.id ?? undefined,
+      feedType,
+    }).then(id => {
+      impressionIdRef.current = id
+    })
+  }, [ideaId, user?.id, feedType])
+
+  const onLeaveViewport = useCallback((dwellMs: number) => {
+    const id = impressionIdRef.current
+    if (id && dwellMs > 0) {
+      analyticsService.trackFeedImpressionDwell(id, dwellMs)
+      impressionIdRef.current = null
+    }
+  }, [])
+
+  return { ref: cardRef, onEnterViewport, onLeaveViewport }
+}

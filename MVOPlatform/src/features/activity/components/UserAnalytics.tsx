@@ -21,7 +21,8 @@ import {
 import { BarChart3, RefreshCw, Activity, GitBranch, LogIn } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { getGlobalSignalOverviewMock } from '../data/mockSignalOverview'
-import { SignalOverviewSkeleton } from '@/shared/components/ui/Skeleton'
+import { SignalOverviewSkeleton, AnalyticsChartSkeleton } from '@/shared/components/ui/Skeleton'
+import type { CreatorAttentionMetrics, CreatorBehavioralMetrics, SignalDriftDay } from '@/core/types/analytics'
 
 const tableRowVariants = {
   hidden: { opacity: 0, x: -6 },
@@ -44,6 +45,8 @@ const SIGNAL_COLORS = {
   use: '#A07BCF',
   pay: '#992BFF',
 }
+
+const BLANK = '—'
 
 /** Mock aggregate used for guest preview (not logged in) */
 const PREVIEW_DATA: AnalyticsData = {
@@ -72,11 +75,15 @@ export function UserAnalytics() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<SignalTab>('signal')
   const [mock] = useState(() => getGlobalSignalOverviewMock())
+  const [signalDriftData, setSignalDriftData] = useState<SignalDriftDay[]>([])
+  const [attentionMetrics, setAttentionMetrics] = useState<CreatorAttentionMetrics | null>(null)
+  const [behavioralMetrics, setBehavioralMetrics] = useState<CreatorBehavioralMetrics | null>(null)
   const isPreviewMode = !user
 
   useEffect(() => {
     if (!user) {
       setData(PREVIEW_DATA)
+      setSignalDriftData(mock.signalDriftLast30Days)
       setLoading(false)
       return
     }
@@ -84,17 +91,29 @@ export function UserAnalytics() {
   }, [user])
 
   const loadAnalytics = async () => {
+    if (!user?.id) return
     try {
       setLoading(true)
       setError(null)
-      const analytics = await ideaService.getUserIdeasAnalytics()
-      const insights = user?.id ? await analyticsService.getCreatorInsights(user.id) : null
+      const [analytics, signalOverview, attention, behavioral] = await Promise.all([
+        ideaService.getUserIdeasAnalytics(),
+        analyticsService.getCreatorSignalOverview(user.id),
+        analyticsService.getCreatorAttentionMetrics(user.id),
+        analyticsService.getCreatorBehavioralMetrics(user.id),
+      ])
       setData({
         totalIdeas: analytics.totalIdeas,
         totalVotes: analytics.totalVotes,
         totalComments: analytics.totalComments,
         voteTypeBreakdown: analytics.voteTypeBreakdown,
       })
+      if (signalOverview?.signalDriftLast30Days?.length) {
+        setSignalDriftData(signalOverview.signalDriftLast30Days)
+      } else {
+        setSignalDriftData([])
+      }
+      setAttentionMetrics(attention ?? null)
+      setBehavioralMetrics(behavioral ?? null)
     } catch (err) {
       console.error('Error loading analytics:', err)
       setError('Failed to load analytics')
@@ -129,13 +148,7 @@ export function UserAnalytics() {
   }
 
   if (!data || data.totalIdeas === 0) {
-    return (
-      <div className="text-center py-12 bg-black rounded-lg border border-white/10">
-        <BarChart3 className="w-16 h-16 text-white/30 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-white mb-2">{translate('activity.signal_overview.no_data', 'No data available yet')}</h3>
-        <p className="text-white/60">Create your first idea to see signal overview.</p>
-      </div>
-    )
+    return <SignalOverviewSkeleton />
   }
 
   const totalSignals = data.voteTypeBreakdown.use + data.voteTypeBreakdown.dislike + data.voteTypeBreakdown.pay
@@ -212,15 +225,15 @@ export function UserAnalytics() {
             pctUse={pctUse}
             pctPay={pctPay}
             payIntentionRatio={payIntentionRatio}
-            signalDriftData={mock.signalDriftLast30Days}
+            signalDriftData={signalDriftData}
             translate={translate}
           />
         )}
         {activeTab === 'attention' && (
-          <AttentionDepthTab mock={mock} translate={translate} />
+          <AttentionDepthTab mock={mock} real={attentionMetrics} isPreviewMode={isPreviewMode} translate={translate} />
         )}
         {activeTab === 'behavioral' && (
-          <BehavioralPatternsTab mock={mock} data={data} translate={translate} />
+          <BehavioralPatternsTab mock={mock} real={behavioralMetrics} data={data} isPreviewMode={isPreviewMode} translate={translate} />
         )}
       </div>
     </div>
@@ -243,7 +256,7 @@ function SignalDistributionTab({
   pctUse: number
   pctPay: number
   payIntentionRatio: number
-  signalDriftData: { date: string; volatility: number; reversalRate: number; voteChange: number }[]
+  signalDriftData: SignalDriftDay[]
   translate: (k: string, f: string) => string
 }) {
   const barSegments = [
@@ -298,7 +311,11 @@ function SignalDistributionTab({
           <ResponsiveContainer width="100%" height={240}>
             <LineChart data={signalDriftData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-              <XAxis dataKey="date" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }} />
+              <XAxis
+                dataKey="date"
+                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+                interval={2}
+              />
               <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }} />
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
@@ -320,7 +337,7 @@ function SignalDistributionTab({
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <div className="h-48 flex items-center justify-center text-white/40 text-sm">No drift data yet</div>
+          <AnalyticsChartSkeleton height={240} />
         )}
       </motion.section>
     </div>
@@ -329,29 +346,39 @@ function SignalDistributionTab({
 
 function AttentionDepthTab({
   mock,
+  real,
+  isPreviewMode,
   translate,
 }: {
   mock: ReturnType<typeof getGlobalSignalOverviewMock>
+  real?: CreatorAttentionMetrics | null
+  isPreviewMode: boolean
   translate: (k: string, f: string) => string
 }) {
+  const r = isPreviewMode ? (real ?? mock) : real
+  const showBlanks = !isPreviewMode && !real
+  const val = (v: number | undefined, formatter: (n: number) => string) =>
+    showBlanks ? BLANK : (v != null ? formatter(v) : BLANK)
   const exposureRows = [
-    { label: translate('activity.signal_overview.exposure.feed_impressions', 'Total feed impressions'), value: mock.totalFeedImpressions.toLocaleString() },
-    { label: translate('activity.signal_overview.exposure.reimpression_rate', 'Re-impression rate'), value: (mock.reimpressionRate * 100).toFixed(1) + '%' },
-    { label: translate('activity.signal_overview.exposure.unique_viewers', 'Unique viewers'), value: mock.uniqueViewers.toLocaleString() },
-    { label: translate('activity.signal_overview.exposure.avg_feed_dwell', 'Average feed dwell time (ms)'), value: mock.avgFeedDwellTimeMs.toLocaleString() },
-    { label: translate('activity.signal_overview.exposure.hover_duration', 'Hover duration (desktop)'), value: `${(mock.hoverDurationDesktopMs / 1000).toFixed(1)}s` },
+    { label: translate('activity.signal_overview.exposure.feed_impressions', 'Total feed impressions'), value: val(r?.totalFeedImpressions, n => n.toLocaleString()) },
+    { label: translate('activity.signal_overview.exposure.reimpression_rate', 'Re-impression rate'), value: val(r?.reimpressionRate, n => (n * 100).toFixed(1) + '%') },
+    { label: translate('activity.signal_overview.exposure.unique_viewers', 'Unique viewers'), value: val(r?.uniqueViewers, n => n.toLocaleString()) },
+    { label: translate('activity.signal_overview.exposure.avg_feed_dwell', 'Average feed dwell time (ms)'), value: val(r?.avgFeedDwellTimeMs, n => n.toLocaleString()) },
+    { label: translate('activity.signal_overview.exposure.hover_duration', 'Hover duration (desktop)'), value: val(r?.hoverDurationDesktopMs, n => `${(n / 1000).toFixed(1)}s`) },
   ]
   const detailRows = [
-    { label: translate('activity.signal_overview.detail.starts', 'Detail view starts'), value: mock.detailViewStarts.toLocaleString() },
-    { label: translate('activity.signal_overview.detail.avg_dwell', 'Avg detail dwell time'), value: `${(mock.avgDetailDwellTimeMs / 1000).toFixed(1)}s` },
-    { label: translate('activity.signal_overview.detail.median_dwell', 'Median dwell time'), value: `${(mock.medianDwellTimeMs / 1000).toFixed(1)}s` },
-    { label: translate('activity.signal_overview.detail.scroll_depth', 'Scroll depth (avg %)'), value: mock.scrollDepthAvgPct + '%' },
-    { label: translate('activity.signal_overview.detail.return_rate', 'Return to detail view rate'), value: (mock.returnToDetailRate * 100).toFixed(1) + '%' },
-    { label: translate('activity.signal_overview.detail.time_between_returns', 'Time between returns'), value: `${(mock.timeBetweenReturnsSec / 3600).toFixed(1)}h` },
+    { label: translate('activity.signal_overview.detail.starts', 'Detail view starts'), value: val(r?.detailViewStarts, n => n.toLocaleString()) },
+    { label: translate('activity.signal_overview.detail.avg_dwell', 'Avg detail dwell time'), value: val(r?.avgDetailDwellTimeMs, n => `${(n / 1000).toFixed(1)}s`) },
+    { label: translate('activity.signal_overview.detail.median_dwell', 'Median dwell time'), value: val(r?.medianDwellTimeMs, n => `${(n / 1000).toFixed(1)}s`) },
+    { label: translate('activity.signal_overview.detail.scroll_depth', 'Scroll depth (avg %)'), value: val(r?.scrollDepthAvgPct, n => n + '%') },
+    { label: translate('activity.signal_overview.detail.return_rate', 'Return to detail view rate'), value: val(r?.returnToDetailRate, n => (n * 100).toFixed(1) + '%') },
+    { label: translate('activity.signal_overview.detail.time_between_returns', 'Time between returns'), value: val(r?.timeBetweenReturnsSec, n => `${(n / 3600).toFixed(1)}h`) },
   ]
   const bucketLabels = ['0-2s', '2-5s', '5-10s', '10-30s', '30+s']
-  const dwellChartData = mock.dwellTimeDistribution.map((v, i) => ({ name: bucketLabels[i] || `${i}`, count: v }))
-  const scrollChartData = mock.scrollDepthDistribution.map((v, i) => ({ name: `${i * 20}-${(i + 1) * 20}%`, count: v }))
+  const dwellDist = showBlanks ? [] : (isPreviewMode ? (real?.dwellTimeDistribution ?? mock.dwellTimeDistribution) : (real?.dwellTimeDistribution ?? []))
+  const scrollDist = showBlanks ? [] : (isPreviewMode ? (real?.scrollDepthDistribution ?? mock.scrollDepthDistribution) : (real?.scrollDepthDistribution ?? []))
+  const dwellChartData = dwellDist.map((v, i) => ({ name: bucketLabels[i] || `${i}`, count: v }))
+  const scrollChartData = scrollDist.map((v, i) => ({ name: `${i * 20}-${(i + 1) * 20}%`, count: v }))
 
   return (
     <div className="space-y-8">
@@ -404,27 +431,35 @@ function AttentionDepthTab({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div variants={chartContainerVariants} initial="hidden" animate="visible" className="rounded-lg border border-white/10 p-3 transition-colors duration-200 hover:border-white/20">
             <p className="text-white/50 text-xs mb-2">{translate('activity.signal_overview.attention.dwell_histogram', 'Dwell time distribution')}</p>
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={dwellChartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
-                <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-                <Bar dataKey="count" fill="rgba(153,43,255,0.6)" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={400} animationEasing="ease-out" />
-              </BarChart>
-            </ResponsiveContainer>
+            {dwellChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={dwellChartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                  <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
+                  <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+                  <Bar dataKey="count" fill="rgba(153,43,255,0.6)" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={400} animationEasing="ease-out" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <AnalyticsChartSkeleton height={160} />
+            )}
           </motion.div>
           <motion.div variants={chartContainerVariants} initial="hidden" animate="visible" className="rounded-lg border border-white/10 p-3 transition-colors duration-200 hover:border-white/20">
             <p className="text-white/50 text-xs mb-2">{translate('activity.signal_overview.attention.scroll_dist', 'Scroll depth distribution')}</p>
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={scrollChartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
-                <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-                <Bar dataKey="count" fill="rgba(160,123,207,0.6)" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={400} animationEasing="ease-out" />
-              </BarChart>
-            </ResponsiveContainer>
+            {scrollChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={scrollChartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                  <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
+                  <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+                  <Bar dataKey="count" fill="rgba(160,123,207,0.6)" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={400} animationEasing="ease-out" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <AnalyticsChartSkeleton height={160} />
+            )}
           </motion.div>
         </div>
       </section>
@@ -434,41 +469,52 @@ function AttentionDepthTab({
 
 function BehavioralPatternsTab({
   mock,
+  real,
   data,
+  isPreviewMode,
   translate,
 }: {
   mock: ReturnType<typeof getGlobalSignalOverviewMock>
+  real?: CreatorBehavioralMetrics | null
   data: AnalyticsData
+  isPreviewMode: boolean
   translate: (k: string, f: string) => string
 }) {
+  const r = isPreviewMode ? (real ?? mock) : real
+  const showBlanks = !isPreviewMode && !real
+  const val = (v: number | undefined, formatter: (n: number) => string) =>
+    showBlanks ? BLANK : (v != null ? formatter(v) : BLANK)
+  const optVal = (v: number | undefined, formatter: (n: number) => string) =>
+    showBlanks ? BLANK : (v != null ? formatter(v) : BLANK)
   const latencyRows = [
-    { label: translate('activity.signal_overview.behavioral.avg_detail_to_signal', 'Avg time from detail view → signal'), value: `${mock.avgTimeDetailToSignalSec}s` },
-    { label: translate('activity.signal_overview.behavioral.median_vote_latency', 'Median vote latency'), value: `${mock.medianVoteLatencySec}s` },
-    { label: translate('activity.signal_overview.behavioral.pct_votes_under_10s', '% votes under 10 seconds'), value: mock.pctVotesUnder10Sec + '%' },
-    { label: translate('activity.signal_overview.behavioral.pct_votes_after_comment', '% votes after comment'), value: mock.pctVotesAfterComment + '%' },
-    { label: translate('activity.signal_overview.behavioral.pct_votes_after_ai_comment', '% votes after AI comment'), value: mock.pctVotesAfterAIComment + '%' },
+    { label: translate('activity.signal_overview.behavioral.avg_detail_to_signal', 'Avg time from detail view → signal'), value: val(r?.avgTimeDetailToSignalSec, n => `${n}s`) },
+    { label: translate('activity.signal_overview.behavioral.median_vote_latency', 'Median vote latency'), value: val(r?.medianVoteLatencySec, n => `${n}s`) },
+    { label: translate('activity.signal_overview.behavioral.pct_votes_under_10s', '% votes under 10 seconds'), value: val(r?.pctVotesUnder10Sec, n => n + '%') },
+    { label: translate('activity.signal_overview.behavioral.pct_votes_after_comment', '% votes after comment'), value: val(r?.pctVotesAfterComment, n => n + '%') },
+    { label: translate('activity.signal_overview.behavioral.pct_votes_after_ai_comment', '% votes after AI comment'), value: optVal(r?.pctVotesAfterAIComment, n => n + '%') },
   ]
   const commentRows = [
-    { label: translate('activity.signal_overview.behavioral.comments_per_idea', 'Comments per idea'), value: mock.commentsPerIdeaAvg.toFixed(1) },
-    { label: translate('activity.signal_overview.behavioral.avg_comment_length', 'Avg comment length'), value: mock.avgCommentLength },
-    { label: translate('activity.signal_overview.behavioral.reply_depth', 'Reply depth'), value: mock.replyDepthAvg.toFixed(1) },
-    { label: translate('activity.signal_overview.behavioral.thread_participation', 'Thread participation rate'), value: (mock.threadParticipationRate * 100).toFixed(1) + '%' },
-    { label: translate('activity.signal_overview.behavioral.comment_edit_rate', 'Comment edit rate'), value: (mock.commentEditRate * 100).toFixed(1) + '%' },
-    { label: translate('activity.signal_overview.behavioral.comment_upvote_ratio', 'Comment upvote/downvote ratio'), value: mock.commentUpvoteDownvoteRatio.toFixed(1) },
+    { label: translate('activity.signal_overview.behavioral.comments_per_idea', 'Comments per idea'), value: val(r?.commentsPerIdeaAvg, n => n.toFixed(1)) },
+    { label: translate('activity.signal_overview.behavioral.avg_comment_length', 'Avg comment length'), value: val(r?.avgCommentLength, n => String(n)) },
+    { label: translate('activity.signal_overview.behavioral.reply_depth', 'Reply depth'), value: val(r?.replyDepthAvg, n => n.toFixed(1)) },
+    { label: translate('activity.signal_overview.behavioral.thread_participation', 'Thread participation rate'), value: optVal(r?.threadParticipationRate, n => (n * 100).toFixed(1) + '%') },
+    { label: translate('activity.signal_overview.behavioral.comment_edit_rate', 'Comment edit rate'), value: optVal(r?.commentEditRate, n => (n * 100).toFixed(1) + '%') },
+    { label: translate('activity.signal_overview.behavioral.comment_upvote_ratio', 'Comment upvote/downvote ratio'), value: optVal(r?.commentUpvoteDownvoteRatio, n => n.toFixed(1)) },
   ]
   const returnRows = [
-    { label: translate('activity.signal_overview.behavioral.return_session_count', 'Return session count (per user avg)'), value: mock.returnSessionCountPerUser.toFixed(1) },
-    { label: translate('activity.signal_overview.behavioral.engagement_decay', 'Engagement decay rate'), value: (mock.engagementDecayRate * 100).toFixed(1) + '%' },
-    { label: translate('activity.signal_overview.behavioral.pct_return_7d', '% users returning within 7 days'), value: mock.pctUsersReturningWithin7Days + '%' },
+    { label: translate('activity.signal_overview.behavioral.return_session_count', 'Return session count (per user avg)'), value: val(r?.returnSessionCountPerUser, n => n.toFixed(1)) },
+    { label: translate('activity.signal_overview.behavioral.engagement_decay', 'Engagement decay rate'), value: optVal(r?.engagementDecayRate, n => (n * 100).toFixed(1) + '%') },
+    { label: translate('activity.signal_overview.behavioral.pct_return_7d', '% users returning within 7 days'), value: val(r?.pctUsersReturningWithin7Days, n => n + '%') },
   ]
   const riskRows = [
-    { label: translate('activity.signal_overview.behavioral.early_exit', 'Early exit rate (< X sec)'), value: mock.earlyExitRatePct + '%' },
-    { label: translate('activity.signal_overview.behavioral.high_views_low_signals', 'High views / low signals ratio'), value: mock.highViewsLowSignalsRatio.toFixed(2) },
-    { label: translate('activity.signal_overview.behavioral.comments_without_votes', 'Comments without votes %'), value: mock.commentsWithoutVotesPct + '%' },
-    { label: translate('activity.signal_overview.behavioral.votes_without_comments', 'Votes without comments %'), value: mock.votesWithoutCommentsPct + '%' },
-    { label: translate('activity.signal_overview.behavioral.high_dwell_no_vote', 'High dwell, no vote %'), value: mock.highDwellNoVotePct + '%' },
+    { label: translate('activity.signal_overview.behavioral.early_exit', 'Early exit rate (< X sec)'), value: val(r?.earlyExitRatePct, n => n + '%') },
+    { label: translate('activity.signal_overview.behavioral.high_views_low_signals', 'High views / low signals ratio'), value: val(r?.highViewsLowSignalsRatio, n => n.toFixed(2)) },
+    { label: translate('activity.signal_overview.behavioral.comments_without_votes', 'Comments without votes %'), value: val(r?.commentsWithoutVotesPct, n => n + '%') },
+    { label: translate('activity.signal_overview.behavioral.votes_without_comments', 'Votes without comments %'), value: val(r?.votesWithoutCommentsPct, n => n + '%') },
+    { label: translate('activity.signal_overview.behavioral.high_dwell_no_vote', 'High dwell, no vote %'), value: val(r?.highDwellNoVotePct, n => n + '%') },
   ]
-  const replyDepthChartData = mock.replyDepthDistribution.map((v, i) => ({ name: `${i}`, count: v }))
+  const replyDepthDist = showBlanks ? [] : (isPreviewMode ? (real?.replyDepthDistribution ?? mock.replyDepthDistribution) : (real?.replyDepthDistribution ?? []))
+  const replyDepthChartData = replyDepthDist.map((v, i) => ({ name: `${i}`, count: v }))
 
   return (
     <div className="space-y-8">
@@ -520,15 +566,19 @@ function BehavioralPatternsTab({
         </div>
         <p className="text-white/50 text-xs mb-2">{translate('activity.signal_overview.behavioral.reply_depth_dist', 'Reply depth distribution')}</p>
         <motion.div variants={chartContainerVariants} initial="hidden" animate="visible" className="rounded-lg border border-white/10 p-3 transition-colors duration-200 hover:border-white/20">
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={replyDepthChartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-              <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
-              <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-              <Bar dataKey="count" fill="rgba(255,255,255,0.2)" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={400} animationEasing="ease-out" />
-            </BarChart>
-          </ResponsiveContainer>
+          {replyDepthChartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={replyDepthChartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
+                <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+                <Bar dataKey="count" fill="rgba(255,255,255,0.2)" radius={[2, 2, 0, 0]} isAnimationActive animationDuration={400} animationEasing="ease-out" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <AnalyticsChartSkeleton height={160} />
+          )}
         </motion.div>
       </section>
 

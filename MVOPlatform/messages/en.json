@@ -494,7 +494,7 @@
         "signal_mix_explain": "The stacked bar shows how all votes across your ideas are split: Dislike, Like, and I'd pay for it. Total Signals is the sum of all votes; Pay Intention Ratio is the share of votes that are I'd pay for it. This gives you the overall response mix without judging any single idea.",
         "signal_drift": "Signal Drift",
         "signal_drift_desc": "Vote change over time (last 30 days). % signal volatility, % signal reversal events.",
-        "signal_drift_explain": "The line chart shows how vote volume changes day by day over the last 30 days. It reflects signal volatility and reversal patterns—useful to see whether response is steady or shifting over time.",
+        "signal_drift_explain": "The line chart shows how vote volume changes day by day over the last 30 days. It reflects signal volatility and reversal patterns.",
         "exposure": {
           "feed_impressions": "Total feed impressions",
           "reimpression_rate": "Re-impression rate",
@@ -561,7 +561,7 @@
           "id_pay_for_it": "I'd pay for it"
         },
         "signal_composition": "Signal Composition",
-        "signal_composition_explain": "Vote breakdown for this idea only: share of Dislike, Like, and I'd pay for it, total signals, and how the mix changed over time (volatility and time-series). No recommendation—just the composition and trend.",
+        "signal_composition_explain": "Vote breakdown for this idea only and how the mix changed over time (volatility and time-series).",
         "attention_depth": "Attention & Depth",
         "attention_depth_explain": "How this idea is consumed: detail views, average and median dwell time, scroll depth, return rate, and time to first signal or comment. The dwell distribution chart shows how long people stay before leaving or acting.",
         "behavioral_context": "Behavioral Context",
@@ -1100,6 +1100,7 @@
       "layer": "Layer",
       "hypothesis": "Hypothesis",
       "evidence_summary": "Evidence Summary",
+      "next_test": "Next Test",
       "sources": "Supporting Sources",
       "contradicting_signals": "Contradicting Signals",
       "no_hypotheses": "No hypotheses available",
@@ -1214,6 +1215,48 @@
       "suggested_next_steps": "Suggested Next Steps",
       "pivot_guidance": "Pivot Guidance",
       "disclaimer": "This is advisory guidance. Success depends on execution, timing, and factors beyond this analysis."
+    }
+  },
+  "idea_signals_synthesis": {
+    "feature_name": "Idea Signals Synthesis",
+    "title": "Idea Signals Synthesis",
+    "get_synthesis": "Get Idea Signals Synthesis",
+    "view_synthesis": "View Idea Signals Synthesis",
+    "researching": "Running synthesis…",
+    "re_run": "Re-run synthesis",
+    "regenerate": "Regenerate",
+    "clear_all": "Clear All",
+    "clear_confirm": "Delete all synthesis versions for this idea? This cannot be undone.",
+    "previous": "Previous version",
+    "next": "Next version",
+    "previous_short": "← Previous",
+    "next_short": "Next →",
+    "strong_validation_points": "Strong Validation Points",
+    "suggested_next_steps": "Suggested Next Steps",
+    "key_risks_intro": "This section highlights key risks and assumptions that require attention.",
+    "decision_framing_intro": "This frames the decision, what makes it costly to reverse, and current confidence before commitment.",
+    "try_again": "Try again",
+    "disclaimer": "AI-generated synthesis. Advisory only. No decision is locked.",
+    "version_of": "Version {current} of {total}",
+    "no_content": "No content.",
+    "error_default": "Failed to run idea signals synthesis",
+    "tabs": {
+      "decision_framing": "Decision framing",
+      "signal_summary": "Signal summary",
+      "what_signals_say": "What signals say",
+      "key_risks": "Key risks",
+      "hypotheses_status": "Hypotheses status",
+      "recommendation": "Recommendation",
+      "founder_safe_summary": "Summary"
+    },
+    "tabs_short": {
+      "decision_framing": "Framing",
+      "signal_summary": "Signals",
+      "what_signals_say": "Signals say",
+      "key_risks": "Risks",
+      "hypotheses_status": "Hypotheses",
+      "recommendation": "Recommend",
+      "founder_safe_summary": "Summary"
     }
   }
 }

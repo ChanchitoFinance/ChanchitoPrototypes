@@ -34,9 +34,10 @@ import { IdeaAnalytics } from './IdeaAnalytics'
 import { toast } from 'sonner'
 import { AIPersonasEvaluation } from '@/features/ai/components/AIPersonasEvaluation'
 import { AIDeepResearch } from '@/features/ai/components/AIDeepResearch'
+import { AIIdeaSignalsSynthesis } from '@/features/ai/components/AIIdeaSignalsSynthesis'
 import { loadUserCredits } from '@/core/lib/slices/creditsSlice'
 import { TagRenderer } from '@/shared/components/ui/TagRenderer'
-import { useIdeaViewTracking, useAnalytics } from '@/core/hooks/useAnalytics'
+import { useIdeaViewTracking, useDetailViewTracking, useAnalytics } from '@/core/hooks/useAnalytics'
 
 interface IdeaDetailProps {
   ideaId: string
@@ -78,6 +79,9 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
     idea?.versionNumber,
     idea?.ideaGroupId
   )
+
+  // Track detail view session (dwell + scroll) for analytics
+  useDetailViewTracking(ideaId, containerRef)
 
   const handleBack = () => {
     // Get the previous path from sessionStorage (set when navigating to idea)
@@ -379,7 +383,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
   }
 
   return (
-    <div className="bg-background relative">
+    <div className="bg-background relative min-w-0 overflow-x-hidden">
       {/* Back Button - Top Left, next to sidebar - fixed on scroll - Hidden on mobile */}
       <div className="fixed top-4 left-4 md:left-[272px] z-50 hidden md:block">
         <button
@@ -589,7 +593,7 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
       </div>
 
       {/* Article Content */}
-      <article className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-12">
+      <article className="w-full max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-12">
         {/* Decision Making Question */}
         {idea.decision_making && (
           <motion.div
@@ -598,14 +602,14 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mb-8"
           >
-            <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 md:p-6">
-              <h3 className="text-lg md:text-xl font-bold text-text-primary mb-2">
-                {t('ideas.decision_making_question')}
-              </h3>
-              <p className="text-text-primary text-base md:text-lg leading-relaxed">
-                {idea.decision_making}
-              </p>
-            </div>
+        <div className="min-w-0 bg-accent/10 border border-accent/20 rounded-lg p-4 md:p-6">
+          <h3 className="text-lg md:text-xl font-bold text-text-primary mb-2">
+            {t('ideas.decision_making_question')}
+          </h3>
+          <p className="break-words text-text-primary text-base md:text-lg leading-relaxed">
+            {idea.decision_making}
+          </p>
+        </div>
           </motion.div>
         )}
 
@@ -699,6 +703,22 @@ export function IdeaDetail({ ideaId }: IdeaDetailProps) {
               content={ideaData.content || []}
               tags={ideaData.tags}
               onRequestResearch={undefined}
+            />
+          </motion.div>
+        )}
+
+        {isOwner && ideaData && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.55 }}
+          >
+            <AIIdeaSignalsSynthesis
+              ideaId={ideaId}
+              ideaVersionNumber={ideaData.versionNumber}
+              title={ideaData.title}
+              decision_making={idea.decision_making ?? ''}
+              content={ideaData.content || []}
             />
           </motion.div>
         )}
