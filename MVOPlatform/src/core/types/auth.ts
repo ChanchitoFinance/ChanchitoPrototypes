@@ -11,6 +11,7 @@ export interface UserProfile {
     url: string
   }
   terms_and_conditions_accepted: boolean
+  nda_accepted?: boolean
   onboarding_questions?: Record<string, any> | null
   created_at: string
   updated_at: string

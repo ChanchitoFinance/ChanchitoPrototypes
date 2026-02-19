@@ -1333,7 +1333,7 @@ export function IdeaForm({
                     </button>
                   </div>
                   {urlValidationError && (
-                    <p className="text-red-300 text-sm mt-2 text-center">
+                    <p className="text-error text-sm mt-2 text-center">
                       {urlValidationError}
                     </p>
                   )}
@@ -1386,7 +1386,7 @@ export function IdeaForm({
                     </button>
                   </div>
                   {urlValidationError && (
-                    <p className="text-red-300 text-sm mt-2 text-center">
+                    <p className="text-error text-sm mt-2 text-center">
                       {urlValidationError}
                     </p>
                   )}
@@ -1499,7 +1499,7 @@ export function IdeaForm({
               }}
             />
             {errors.title && (
-              <p className="text-red-300 text-sm mt-1 md:mt-2">
+              <p className="text-error text-sm mt-1 md:mt-2">
                 {errors.title.message}
               </p>
             )}
@@ -1611,7 +1611,7 @@ export function IdeaForm({
                         <button
                           type="button"
                           onClick={() => removeTag(tag)}
-                          className="hover:text-red-500"
+                          className="hover:text-error"
                         >
                           <X className="w-3 h-3" />
                         </button>

@@ -14,6 +14,8 @@ module.exports = {
         'accent-alt': 'var(--accent-alt)',
         'hover-accent': 'var(--hover-accent)',
         error: 'var(--error)',
+        success: 'var(--success)',
+        warning: 'var(--warning)',
         white: 'var(--white)',
         black: 'var(--black)',
         'border-color': 'var(--border-color)',

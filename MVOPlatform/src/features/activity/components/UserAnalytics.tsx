@@ -138,7 +138,7 @@ export function UserAnalytics() {
   if (error) {
     return (
       <div className="text-center py-12 bg-black rounded-lg border border-white/10">
-        <p className="text-white/80 mb-4">{error}</p>
+        <p className="text-text-secondary mb-4">{error}</p>
         <Button onClick={loadAnalytics} variant="outline" className="inline-flex items-center gap-2 border-white/20 text-white">
           <RefreshCw className="w-4 h-4" />
           {t('actions.try_again') || 'Try Again'}

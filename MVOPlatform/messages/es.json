@@ -36,6 +36,7 @@
     "up": "Me gusta",
     "down": "No me gusta",
     "like": "Me gusta",
+    "dislike": "No me gusta",
     "id_pay": "Pagar",
     "comments": "Comentarios",
     "share": "Compartir",
@@ -114,6 +115,8 @@
     "sign_in_to_upload": "Por favor inicia sesión con tu cuenta para subir una idea.",
     "sign_in_to_vote": "Por favor inicia sesión para votar",
     "sign_in_to_comment": "Por favor inicia sesión para comentar",
+    "sign_in_to_view_idea": "Inicia sesión para ver los detalles de la idea",
+    "sign_in_to_view_idea_description": "Las ideas solo son visibles para usuarios registrados. Los artículos siguen siendo públicos.",
     "sign_in_required_alert": "Necesitas iniciar sesión para enviar tu idea. Tu idea ha sido guardada como borrador y estará disponible después de iniciar sesión.",
     "welcome_subtitle": "Inicia sesión con Google para continuar",
     "continue_with_google": "Continuar con Google"
@@ -154,6 +157,9 @@
     "accept_checkbox": "He leído y acepto los Términos y Condiciones",
     "continue_button": "Continuar",
     "must_accept": "Debes aceptar los Términos y Condiciones para continuar",
+    "read_nda": "Leer el Acuerdo de Confidencialidad y No Divulgación (NDA)",
+    "accept_nda_checkbox": "He leído y acepto el NDA",
+    "must_accept_nda": "Debes aceptar los Términos y el NDA para continuar",
     "page_title": "Términos, Reglas de la Comunidad y Política de Reportes",
     "last_updated": "Última Actualización: 31 de enero de 2026",
     "general_provisions": {

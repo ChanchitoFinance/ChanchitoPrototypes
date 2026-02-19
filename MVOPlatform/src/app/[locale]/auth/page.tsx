@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/core/lib/hooks'
 import {
   clearError,
@@ -33,6 +33,7 @@ export default function AuthPage() {
   const router = useRouter()
   const { locale } = useLocale()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
   const dispatch = useAppDispatch()
   const { loading, error, isAuthenticated, profile, initialized, user } =
     useAppSelector(state => state.auth)
@@ -52,12 +53,14 @@ export default function AuthPage() {
     ) {
       // Check database field instead of localStorage
       const hasAcceptedTerms = profile.terms_and_conditions_accepted
+      const hasAcceptedNda = profile.nda_accepted === true
       const hasCompletedOnboarding =
         profile.onboarding_questions !== null &&
         profile.onboarding_questions !== undefined
 
       console.log('🔍 Auth Flow Debug:', {
         hasAcceptedTerms,
+        hasAcceptedNda,
         hasCompletedOnboarding,
         onboarding_questions: profile.onboarding_questions,
         isProcessing,
@@ -65,7 +68,7 @@ export default function AuthPage() {
         showOnboardingModal,
       })
 
-      if (!hasAcceptedTerms) {
+      if (!hasAcceptedTerms || !hasAcceptedNda) {
         console.log('→ Showing terms modal')
         setShowTermsModal(true)
         setShowOnboardingModal(false)
@@ -169,8 +172,13 @@ export default function AuthPage() {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center bg-background px-6">
-        <div className="max-w-md w-full bg-background border border-border-color rounded-lg shadow-lg p-8">
+      {/* Blur overlay + modal (same pattern as Terms of Service) */}
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+        aria-hidden
+      />
+      <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+        <div className="bg-background border border-border-color rounded-lg shadow-xl w-full max-w-md p-8">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-semibold text-text-primary mb-2">
               {t('auth.welcome_title')}
@@ -179,8 +187,8 @@ export default function AuthPage() {
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-600 text-sm">{error}</p>
+            <div className="mb-4 p-3 rounded-md border border-error/30 bg-error/10">
+              <p className="text-error text-sm">{error}</p>
             </div>
           )}
 
@@ -196,7 +204,7 @@ export default function AuthPage() {
       </div>
 
       <TermsAcceptanceModal
-        isOpen={showTermsModal && !isProcessing}
+        isOpen={showTermsModal && !isProcessing && !pathname?.includes('/terms') && !pathname?.includes('/nda')}
         onAccept={handleTermsAccepted}
         userEmail={user?.email}
       />

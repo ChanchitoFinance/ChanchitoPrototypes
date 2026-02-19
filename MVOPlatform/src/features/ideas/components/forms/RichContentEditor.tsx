@@ -629,7 +629,7 @@ function BlockEditor({
                 e.stopPropagation()
                 onDelete()
               }}
-              className="p-2 hover:bg-red-100 text-red-600 rounded"
+              className="p-2 hover:bg-error/10 text-error rounded"
               title="Delete"
             >
               <Trash2 className="w-4 h-4" />
@@ -807,7 +807,7 @@ function BlockEditor({
               }}
             />
             {urlValidationError && (
-              <p className="text-red-500 text-sm mb-4">{urlValidationError}</p>
+              <p className="text-error text-sm mb-4">{urlValidationError}</p>
             )}
             <div className="flex gap-2 justify-end">
               <button
@@ -1787,7 +1787,7 @@ function CarouselEditor({
             {block.slides.length > 1 && (
               <button
                 onClick={() => deleteSlide(index)}
-                className="text-red-600 hover:text-red-700 text-sm"
+                className="text-error hover:opacity-90 text-sm"
               >
                 <Trash2 className="w-4 h-4" />
               </button>

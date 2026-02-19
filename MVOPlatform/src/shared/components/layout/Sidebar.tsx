@@ -75,11 +75,12 @@ export function Sidebar({
   useEffect(() => {
     if (isAuthenticated && profile) {
       const hasAcceptedTerms = profile.terms_and_conditions_accepted
+      const hasAcceptedNda = profile.nda_accepted === true
       const hasCompletedOnboarding =
         profile.onboarding_questions !== null &&
         profile.onboarding_questions !== undefined
 
-      if (!hasAcceptedTerms) {
+      if (!hasAcceptedTerms || !hasAcceptedNda) {
         setShowTermsModal(true)
         setShowOnboardingModal(false)
       } else if (!hasCompletedOnboarding) {
@@ -286,7 +287,7 @@ export function Sidebar({
   return (
     <>
       <TermsAcceptanceModal
-        isOpen={showTermsModal}
+        isOpen={showTermsModal && !pathname?.includes('/terms') && !pathname?.includes('/nda')}
         onAccept={handleTermsAccepted}
         userEmail={user?.email}
       />

@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { useTranslations, useLocale } from '@/shared/components/providers/I18nProvider'
 import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
 import { loadUserCredits } from '@/core/lib/slices/creditsSlice'
+import { signInWithGoogle } from '@/core/lib/slices/authSlice'
 import { supabase } from '@/core/lib/supabase'
 import { Crown, Check, Zap, Star, Users, ArrowRight, Sparkles } from 'lucide-react'
 
@@ -89,10 +90,11 @@ export function PremiumPage() {
       return
     }
 
-    // OPTIONAL returnUrl support:
-    // send them to auth and then back to checkout after login
-    const returnUrl = encodeURIComponent(checkoutPath)
-    router.push(`/${locale}/auth?returnUrl=${returnUrl}`)
+    // Go straight to Google sign-in; callback will send them back to auth then to checkout
+    if (typeof sessionStorage !== 'undefined' && isSafeReturnUrl(checkoutPath)) {
+      sessionStorage.setItem('authReturnUrl', checkoutPath)
+    }
+    dispatch(signInWithGoogle())
   }
 
   return (

@@ -6,33 +6,32 @@ import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import { toast } from 'sonner'
 import { supabase } from '@/core/lib/supabase'
 
-// Extend window type for PayPal
 declare global {
   interface Window {
     paypal?: any
   }
 }
 
-interface PayPalCheckoutButtonProps {
+const SUBSCRIPTION_PLAN_IDS: Record<'starter' | 'builder' | 'operator', string> = {
+  starter: 'P-6MR938737P245712BNGLFJQQ',
+  builder: 'P-5WP65855RR580562SNGLFK5Y',
+  operator: 'P-0XJ13672DG2780817NGLFLFY',
+}
+
+interface PayPalSubscriptionButtonProps {
   plan: 'starter' | 'builder' | 'operator'
   userId: string
   onSuccess?: () => void
 }
 
-const planPrices = {
-  starter: 19,
-  builder: 49,
-  operator: 89,
-}
-
-export function PayPalCheckoutButton({
+export function PayPalSubscriptionButton({
   plan,
   userId,
   onSuccess,
-}: PayPalCheckoutButtonProps) {
+}: PayPalSubscriptionButtonProps) {
   const t = useTranslations()
   const containerRef = useRef<HTMLDivElement>(null)
-  const containerId = useRef(`paypal-button-${Date.now()}`).current
+  const containerId = useRef(`paypal-subscription-${plan}-${Date.now()}`).current
   const hasRendered = useRef(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -48,13 +47,13 @@ export function PayPalCheckoutButton({
       setError(null)
 
       try {
-        // Check if PayPal buttons already exist in this container
         const container = document.getElementById(containerId)
         if (container && container.innerHTML.trim() !== '') {
-          console.log('PayPal buttons already rendered, skipping')
           setIsLoading(false)
           return
         }
+
+        const planId = SUBSCRIPTION_PLAN_IDS[plan]
 
         const buttons = window.paypal.Buttons({
           style: {
@@ -63,24 +62,13 @@ export function PayPalCheckoutButton({
             layout: 'vertical',
             label: 'paypal',
           },
-          createOrder: (data, actions) => {
-            return actions.order.create({
-              purchase_units: [
-                {
-                  amount: {
-                    value: planPrices[plan].toFixed(2),
-                    currency_code: 'USD',
-                  },
-                  description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} – coin package`,
-                },
-              ],
+          createSubscription: (data: unknown, actions: { subscription: { create: (opts: { plan_id: string }) => Promise<{ id: string }> } }) => {
+            return actions.subscription.create({
+              plan_id: planId,
             })
           },
-          onApprove: async (data, actions) => {
+          onApprove: async (data: { subscriptionID?: string }) => {
             try {
-              const order = await actions.order.capture()
-
-              // Get the current session
               const {
                 data: { session },
               } = await supabase.auth.getSession()
@@ -88,7 +76,6 @@ export function PayPalCheckoutButton({
                 throw new Error('No authentication session')
               }
 
-              // Now update the database with the successful payment
               const response = await fetch('/api/paypal/capture-order', {
                 method: 'POST',
                 headers: {
@@ -96,10 +83,9 @@ export function PayPalCheckoutButton({
                   Authorization: `Bearer ${session.access_token}`,
                 },
                 body: JSON.stringify({
-                  orderId: data.orderID,
+                  subscriptionID: data.subscriptionID,
                   plan,
                   userId,
-                  orderData: order,
                 }),
               })
 
@@ -109,32 +95,31 @@ export function PayPalCheckoutButton({
 
               toast.success(t('payment.success'))
               onSuccess?.()
-            } catch (error) {
-              console.error('Error capturing PayPal order:', error)
+            } catch (err) {
+              console.error('Error after subscription approval:', err)
               toast.error(t('payment.error_capturing'))
             }
           },
-          onError: error => {
-            console.error('PayPal error:', error)
+          onError: (err: unknown) => {
+            console.error('PayPal subscription error:', err)
             if (isMounted) {
               setError('PayPal payment error')
               toast.error(t('payment.paypal_error'))
             }
           },
-          onCancel: data => {
-            console.log('PayPal payment cancelled:', data)
+          onCancel: () => {
+            // User cancelled
           },
         })
 
-        // Check if component is still mounted before rendering
         if (isMounted) {
           await buttons.render(`#${containerId}`)
           if (isMounted) {
             setIsLoading(false)
           }
         }
-      } catch (error) {
-        console.error('Error initializing PayPal:', error)
+      } catch (err) {
+        console.error('Error initializing PayPal subscription:', err)
         if (isMounted) {
           setError('Failed to load PayPal')
           setIsLoading(false)
@@ -143,11 +128,13 @@ export function PayPalCheckoutButton({
       }
     }
 
-    // Load PayPal SDK if not already loaded
+    const scriptUrl = `https://www.paypal.com/sdk/js?client-id=${clientEnv.paypalClientId}&vault=true&intent=subscription&currency=${clientEnv.paypalCurrency || 'USD'}&locale=${clientEnv.paypalLocale || 'en_US'}`
+
     if (!window.paypal) {
       setIsLoading(true)
       const script = document.createElement('script')
-      script.src = `https://www.paypal.com/sdk/js?client-id=${clientEnv.paypalClientId}&currency=${clientEnv.paypalCurrency}&intent=${clientEnv.paypalIntent}&locale=${clientEnv.paypalLocale}`
+      script.src = scriptUrl
+      script.setAttribute('data-sdk-integration-source', 'button-factory')
       script.onload = () => {
         if (isMounted) {
           initializePayPal()
@@ -164,18 +151,15 @@ export function PayPalCheckoutButton({
       initializePayPal()
     }
 
-    // Cleanup function
     return () => {
       isMounted = false
-      // Clear the container when component unmounts
       const container = document.getElementById(containerId)
       if (container) {
         container.innerHTML = ''
       }
     }
-  }, [plan, userId, onSuccess, t])
+  }, [plan, userId, onSuccess, t, containerId])
 
-  // Reset render flag when plan changes
   useEffect(() => {
     hasRendered.current = false
   }, [plan])
@@ -205,7 +189,7 @@ export function PayPalCheckoutButton({
         ref={containerRef}
         id={containerId}
         className={isLoading || error ? 'hidden' : ''}
-      ></div>
+      />
     </div>
   )
 }

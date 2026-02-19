@@ -279,8 +279,8 @@ export function IdeaFilterPanel({
                       onClick={() => removeFilter(index)}
                       className={`p-2 transition-colors mb-2 ${
                         isDark
-                          ? 'text-white/60 hover:text-red-500'
-                          : 'text-text-secondary hover:text-red-500'
+                          ? 'text-white/60 hover:text-error'
+                          : 'text-text-secondary hover:text-error'
                       }`}
                       title="Remove filter"
                     >

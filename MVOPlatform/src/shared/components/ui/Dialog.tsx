@@ -119,7 +119,7 @@ export function Dialog({
                     size="sm"
                     className={`w-full sm:w-auto ${
                       type === 'confirm'
-                        ? '!bg-red-500 hover:!bg-red-600 !text-white !border-red-500 hover:!border-red-600'
+                        ? '!bg-error hover:!opacity-90 !text-white !border-error'
                         : ''
                     }`}
                   >

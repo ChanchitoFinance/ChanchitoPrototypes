@@ -23,11 +23,11 @@ export default function NotificationItem({
   const getIcon = () => {
     switch (notification.type) {
       case 'vote_up':
-        return <ThumbsUp className="w-5 h-5 text-green-500" />
+        return <ThumbsUp className="w-5 h-5 text-success" />
       case 'vote_down':
-        return <ThumbsDown className="w-5 h-5 text-red-500" />
+        return <ThumbsDown className="w-5 h-5 text-error" />
       case 'vote_pay':
-        return <DollarSign className="w-5 h-5 text-yellow-500" />
+        return <DollarSign className="w-5 h-5 text-warning" />
       case 'comment':
         return <MessageSquare className="w-5 h-5 text-blue-500" />
       case 'idea_created':

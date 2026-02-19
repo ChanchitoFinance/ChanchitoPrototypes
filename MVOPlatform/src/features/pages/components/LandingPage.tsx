@@ -28,7 +28,7 @@ export function LandingPage() {
   // Check if terms are accepted after user is authenticated
   useEffect(() => {
     if (isAuthenticated && profile) {
-      if (!profile.terms_and_conditions_accepted) {
+      if (!profile.terms_and_conditions_accepted || !(profile.nda_accepted === true)) {
         setShowTermsModal(true)
       } else {
         router.push(`/${currentLocale}/home`)
@@ -89,7 +89,7 @@ export function LandingPage() {
         <CTA />
       </div>
       <TermsAcceptanceModal
-        isOpen={showTermsModal}
+        isOpen={showTermsModal && !pathname?.includes('/terms') && !pathname?.includes('/nda')}
         onClose={() => setShowTermsModal(false)}
         onAccept={handleTermsAccepted}
         userEmail={user?.email}

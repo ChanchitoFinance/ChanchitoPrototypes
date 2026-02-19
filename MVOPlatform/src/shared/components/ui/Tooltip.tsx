@@ -90,7 +90,7 @@ export function MetricCard({ title, value, icon, tooltip, trend }: MetricCardPro
         {trend && (
           <div
             className={`flex items-center gap-1 text-xs font-medium ${
-              trend.isPositive ? 'text-green-500' : 'text-red-500'
+              trend.isPositive ? 'text-success' : 'text-error'
             }`}
           >
             {trend.isPositive ? (

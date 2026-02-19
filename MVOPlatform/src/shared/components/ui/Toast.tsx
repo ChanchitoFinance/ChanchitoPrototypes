@@ -33,7 +33,7 @@ export function Toast({ isOpen, message, onClose, duration = 3000 }: ToastProps)
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="fixed top-4 right-4 z-50 bg-background border border-border-color rounded-lg shadow-xl p-4 min-w-[300px] max-w-md flex items-center gap-3"
         >
-          <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+          <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
           <p className="text-text-primary flex-1 text-sm">{message}</p>
           <button
             onClick={onClose}

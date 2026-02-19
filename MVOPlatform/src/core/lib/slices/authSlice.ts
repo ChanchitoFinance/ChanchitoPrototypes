@@ -126,14 +126,17 @@ export const checkAuth = createAsyncThunk(
   }
 )
 
-// Update user's terms and conditions acceptance
+// Update user's terms and conditions and NDA acceptance
 export const acceptTermsAndConditions = createAsyncThunk(
   'auth/acceptTermsAndConditions',
   async (userId: string, { rejectWithValue }) => {
     try {
       const { data, error } = await supabase
         .from('users')
-        .update({ terms_and_conditions_accepted: true })
+        .update({
+          terms_and_conditions_accepted: true,
+          nda_accepted: true,
+        })
         .eq('id', userId)
         .select()
         .single()

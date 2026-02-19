@@ -37,7 +37,7 @@ export function VersionIndicator({
         ${sizeClasses[size]}
         ${
           isActiveVersion
-            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+            ? 'bg-success/10 text-success'
             : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
         }
         ${onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}
@@ -64,7 +64,7 @@ export function VersionIndicator({
         )}
       </span>
       {isActiveVersion && (
-        <span className="ml-1 text-green-600 dark:text-green-400">
+        <span className="ml-1 text-success">
           ({t('versioning.active_version').split(' ')[0]})
         </span>
       )}

@@ -354,8 +354,8 @@ export function CommentTree({
                   disabled={isVoting === comment.id}
                   className={`flex items-center gap-1 transition-colors ${actionSize} ${
                     comment.downvoted
-                      ? 'text-red-500'
-                      : `${isDark ? 'text-white/60 hover:text-red-500' : 'text-text-secondary hover:text-red-500'}`
+                      ? 'text-error'
+                      : `${isDark ? 'text-white/60 hover:text-error' : 'text-text-secondary hover:text-error'}`
                   } ${isVoting === comment.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                   title="Downvote"
                 >

@@ -804,7 +804,7 @@ export function CommentsBlock({ ideaId, versionNumber, ideaGroupId }: CommentsBl
             <span
               className={`text-xs ${
                 newComment.length > MAX_COMMENT_LENGTH * 0.9
-                  ? 'text-red-500'
+                  ? 'text-error'
                   : 'text-text-secondary'
               }`}
             >

@@ -369,15 +369,15 @@ export function HeroCarousel({ ideas: initialIdeas }: HeroCarouselProps) {
                       </span>
                       <span className="hidden md:inline">•</span>
                       <div className="hidden md:flex items-center gap-3">
-                        <span className="flex items-center gap-1 text-red-400">
+                        <span className="flex items-center gap-1 text-error">
                           <ThumbsDown className="w-3 h-3" />
                           {idea.votesByType.dislike}
                         </span>
-                        <span className="flex items-center gap-1 text-green-400">
+                        <span className="flex items-center gap-1 text-success">
                           <CheckCircle className="w-3 h-3" />
                           {idea.votesByType.use}
                         </span>
-                        <span className="flex items-center gap-1 text-yellow-400">
+                        <span className="flex items-center gap-1 text-warning">
                           <DollarSign className="w-3 h-3" />
                           {idea.votesByType.pay}
                         </span>

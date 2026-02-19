@@ -172,7 +172,7 @@ export function IdeaAnalytics({ ideaId, idea, isOwner }: IdeaAnalyticsProps) {
               </div>
             ) : error ? (
               <div className="p-6 border border-white/10 rounded-lg bg-white/5">
-                <p className="text-white/80">{error}</p>
+                <p className="text-text-secondary">{error}</p>
               </div>
             ) : (
               <div className="p-6 space-y-8">

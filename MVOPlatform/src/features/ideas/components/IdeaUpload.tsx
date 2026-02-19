@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from '@/shared/components/providers/I18nProvider'
 import { useAppDispatch, useAppSelector } from '@/core/lib/hooks'
 import { IdeaForm } from '@/features/ideas/components/forms/IdeaForm'
@@ -18,6 +18,7 @@ interface IdeaUploadProps {
 
 export function IdeaUpload({ mode }: IdeaUploadProps = {}) {
   const t = useTranslations()
+  const pathname = usePathname()
   const dispatch = useAppDispatch()
   const { isAuthenticated, loading, initialized, user, profile } =
     useAppSelector(state => state.auth)
@@ -27,7 +28,7 @@ export function IdeaUpload({ mode }: IdeaUploadProps = {}) {
   // Check if terms are accepted after user is authenticated
   useEffect(() => {
     if (isAuthenticated && profile) {
-      if (!profile.terms_and_conditions_accepted) {
+      if (!profile.terms_and_conditions_accepted || !(profile.nda_accepted === true)) {
         setShowTermsModal(true)
       }
     }
@@ -69,7 +70,7 @@ export function IdeaUpload({ mode }: IdeaUploadProps = {}) {
         isArticle={isArticleMode}
       />
       <TermsAcceptanceModal
-        isOpen={showTermsModal}
+        isOpen={showTermsModal && !pathname?.includes('/terms') && !pathname?.includes('/nda')}
         onClose={() => setShowTermsModal(false)}
         onAccept={handleTermsAccepted}
         userEmail={user?.email}

@@ -324,7 +324,7 @@ export function IdeaActions({
               ? BUTTON_COLORS.backgroundDislike
               : BUTTON_COLORS.background,
           }}
-          title={t('actions.down')}
+          title={t('actions.dislike')}
         >
           <AnimatePresence>
             {dislikePulseKey > 0 && (
@@ -478,7 +478,6 @@ export function IdeaActions({
               }}
             />
           </motion.div>
-          <span className="text-sm hidden md:inline">{t('actions.up')}</span>
         </motion.button>
 
         <motion.button
@@ -493,7 +492,7 @@ export function IdeaActions({
               ? BUTTON_COLORS.backgroundDislike
               : BUTTON_COLORS.background,
           }}
-          title={t('actions.down')}
+          title={t('actions.dislike')}
         >
           <AnimatePresence>
             {dislikePulseKey > 0 && (
@@ -525,7 +524,6 @@ export function IdeaActions({
               }}
             />
           </motion.div>
-          <span className="text-sm hidden md:inline">{t('actions.down')}</span>
         </motion.button>
 
         {/* Comments Button */}

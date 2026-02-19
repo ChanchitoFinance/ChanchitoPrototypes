@@ -15,6 +15,8 @@
   --accent-alt: #c4a3e0;
   --hover-accent: #b0a7b8;
   --error: #ff944c;
+  --success: #22c55e;
+  --warning: #eab308;
   --border-color: #1f1f1f;
   --white: #ffffff;
   --black: #000000;
@@ -118,6 +120,9 @@ html.light {
   --gray-50: var(--light-gray-50);
   --gray-100: var(--light-gray-100);
   --gray-200: var(--light-gray-200);
+  --success: #16a34a;
+  --warning: #ca8a04;
+  --error: #ea580c;
 }
 
 a {

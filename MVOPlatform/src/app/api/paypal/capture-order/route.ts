@@ -16,14 +16,27 @@ const planCoins = {
 
 export async function POST(request: NextRequest) {
   try {
-    const { orderId, plan, userId, orderData } = await request.json()
+    const body = await request.json()
+    const { orderId, subscriptionID, plan, userId, orderData } = body
 
-    if (!orderId || !plan || !userId || !orderData) {
+    const isSubscription = !!subscriptionID
+    const isOneTime = !!(orderId && orderData)
+
+    if ((!isSubscription && !isOneTime) || !plan || !userId) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields (orderId+orderData or subscriptionID, plan, userId)' },
         { status: 400 }
       )
     }
+
+    if (isOneTime && orderData.status !== 'COMPLETED') {
+      return NextResponse.json(
+        { error: 'Payment not completed' },
+        { status: 400 }
+      )
+    }
+
+    const transactionId = isSubscription ? subscriptionID : orderId
 
     // Get the access token from headers
     const authHeader = request.headers.get('authorization')
@@ -56,14 +69,6 @@ export async function POST(request: NextRequest) {
 
     if (!planPrices[plan as keyof typeof planPrices]) {
       return NextResponse.json({ error: 'Invalid product' }, { status: 400 })
-    }
-
-    // Validate that the order was completed
-    if (orderData.status !== 'COMPLETED') {
-      return NextResponse.json(
-        { error: 'Payment not completed' },
-        { status: 400 }
-      )
     }
 
     const amount = planPrices[plan as keyof typeof planPrices]
@@ -102,7 +107,7 @@ export async function POST(request: NextRequest) {
         amount,
         currency: 'USD',
         payment_method: 'paypal',
-        transaction_id: orderId,
+        transaction_id: transactionId,
         status: 'completed',
       })
 

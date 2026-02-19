@@ -92,7 +92,7 @@ export function UserIdeasList() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600 mb-4">{error}</p>
+        <p className="text-error mb-4">{error}</p>
         <Button onClick={loadUserIdeas} variant="outline">
           Try Again
         </Button>

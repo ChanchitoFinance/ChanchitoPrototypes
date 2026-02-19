@@ -26,6 +26,7 @@ export function TermsAcceptanceModal({
   const t = useTranslations()
   const { locale } = useLocale()
   const [isAccepted, setIsAccepted] = useState(false)
+  const [ndaAccepted, setNdaAccepted] = useState(false)
   const [showError, setShowError] = useState(false)
 
   // Prevent closing with ESC key
@@ -52,26 +53,29 @@ export function TermsAcceptanceModal({
   useEffect(() => {
     if (isOpen) {
       setIsAccepted(false)
+      setNdaAccepted(false)
       setShowError(false)
     }
   }, [isOpen])
 
+  const bothAccepted = isAccepted && ndaAccepted
+
   const handleContinue = () => {
-    console.log('🔘 Continue button clicked in TermsAcceptanceModal')
-    if (!isAccepted) {
-      console.log('❌ Checkbox not accepted')
+    if (!bothAccepted) {
       setShowError(true)
       return
     }
-    console.log('✅ Calling onAccept callback')
     onAccept()
   }
 
-  const handleCheckboxChange = () => {
-    setIsAccepted(!isAccepted)
-    if (showError) {
-      setShowError(false)
-    }
+  const handleTermsCheckboxChange = () => {
+    setIsAccepted(prev => !prev)
+    if (showError) setShowError(false)
+  }
+
+  const handleNdaCheckboxChange = () => {
+    setNdaAccepted(prev => !prev)
+    if (showError) setShowError(false)
   }
 
   return (
@@ -126,25 +130,35 @@ export function TermsAcceptanceModal({
                       ))}
                   </ul>
 
-                  {/* Link to full terms */}
-                  <Link
-                    href={`/${locale}/terms`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary-accent hover:text-accent-alt underline text-sm transition-colors"
-                  >
-                    {t('terms.read_full_terms')}
-                  </Link>
+                  {/* Links to full terms and NDA */}
+                  <div className="flex flex-col gap-2 mb-4">
+                    <Link
+                      href={`/${locale}/terms`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-accent hover:text-accent-alt underline text-sm transition-colors"
+                    >
+                      {t('terms.read_full_terms')}
+                    </Link>
+                    <Link
+                      href={`/${locale}/nda`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-accent hover:text-accent-alt underline text-sm transition-colors"
+                    >
+                      {t('terms.read_nda')}
+                    </Link>
+                  </div>
                 </div>
 
-                {/* Checkbox */}
-                <div className="mb-6">
+                {/* Terms checkbox */}
+                <div className="mb-4">
                   <label className="flex items-start gap-3 cursor-pointer group">
                     <div className="relative flex items-center justify-center mt-1">
                       <input
                         type="checkbox"
                         checked={isAccepted}
-                        onChange={handleCheckboxChange}
+                        onChange={handleTermsCheckboxChange}
                         className="w-5 h-5 rounded border-2 border-border-color bg-transparent checked:bg-premium-cta checked:border-premium-cta focus:outline-none focus:ring-2 focus:ring-premium-cta focus:ring-offset-2 focus:ring-offset-background transition-all cursor-pointer appearance-none"
                       />
                       {isAccepted && (
@@ -167,6 +181,38 @@ export function TermsAcceptanceModal({
                       {t('terms.accept_checkbox')}
                     </span>
                   </label>
+                </div>
+
+                {/* NDA checkbox */}
+                <div className="mb-6">
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center mt-1">
+                      <input
+                        type="checkbox"
+                        checked={ndaAccepted}
+                        onChange={handleNdaCheckboxChange}
+                        className="w-5 h-5 rounded border-2 border-border-color bg-transparent checked:bg-premium-cta checked:border-premium-cta focus:outline-none focus:ring-2 focus:ring-premium-cta focus:ring-offset-2 focus:ring-offset-background transition-all cursor-pointer appearance-none"
+                      />
+                      {ndaAccepted && (
+                        <svg
+                          className="absolute w-3 h-3 text-white pointer-events-none"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-text-primary text-sm group-hover:text-primary-accent transition-colors">
+                      {t('terms.accept_nda_checkbox')}
+                    </span>
+                  </label>
 
                   {/* Error message */}
                   {showError && (
@@ -175,7 +221,7 @@ export function TermsAcceptanceModal({
                       animate={{ opacity: 1, y: 0 }}
                       className="text-error text-sm mt-2 ml-8"
                     >
-                      {t('terms.must_accept')}
+                      {t('terms.must_accept_nda')}
                     </motion.p>
                   )}
                 </div>
@@ -187,9 +233,9 @@ export function TermsAcceptanceModal({
                   <Button
                     onClick={handleContinue}
                     variant="primary"
-                    disabled={!isAccepted}
+                    disabled={!bothAccepted}
                     size="sm"
-                    className={`w-full sm:w-auto ${!isAccepted ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full sm:w-auto ${!bothAccepted ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {t('terms.continue_button')}
                   </Button>

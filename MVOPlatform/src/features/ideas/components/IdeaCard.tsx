@@ -459,7 +459,7 @@ export function IdeaCard({
             e.stopPropagation()
             onDelete()
           }}
-          className="absolute top-3 right-3 z-50 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+          className="absolute top-3 right-3 z-50 bg-error hover:opacity-90 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
           title={t('admin.dashboard.delete_idea')}
         >
           <Trash2 className="w-4 h-4" />

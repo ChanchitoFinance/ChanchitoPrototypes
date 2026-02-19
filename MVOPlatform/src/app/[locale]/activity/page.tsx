@@ -139,19 +139,19 @@ export default function ActivityPage() {
 
                   <div className="space-y-4">
                     <div className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-1" />
+                      <Check className="w-5 h-5 text-success flex-shrink-0 mt-1" />
                       <span className="text-text-secondary">
                         {t('activity.example.feature_1')}
                       </span>
                     </div>
                     <div className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-1" />
+                      <Check className="w-5 h-5 text-success flex-shrink-0 mt-1" />
                       <span className="text-text-secondary">
                         {t('activity.example.feature_2')}
                       </span>
                     </div>
                     <div className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-1" />
+                      <Check className="w-5 h-5 text-success flex-shrink-0 mt-1" />
                       <span className="text-text-secondary">
                         {t('activity.example.feature_3')}
                       </span>
@@ -216,13 +216,13 @@ export default function ActivityPage() {
                       <div className="flex items-center gap-3 mb-2 min-h-[32px] overflow-hidden">
                         {/* Upvote Metric */}
                         <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-                          <ArrowUp className="w-3.5 h-3.5 text-green-500" />
+                          <ArrowUp className="w-3.5 h-3.5 text-success" />
                           <span className="text-sm font-medium">32</span>
                         </div>
 
                         {/* Downvote Metric */}
                         <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-                          <ArrowDown className="w-3.5 h-3.5 text-red-500" />
+                          <ArrowDown className="w-3.5 h-3.5 text-error" />
                           <span className="text-sm font-medium">8</span>
                         </div>
 
@@ -262,7 +262,7 @@ export default function ActivityPage() {
                     <article className="p-4 flex flex-col h-full">
                       {/* Media Section */}
                       <div className="relative w-full aspect-video mb-3 rounded-md overflow-hidden">
-                        <div className="w-full h-full bg-gradient-to-br from-green-400 to-accent flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-success/80 to-accent flex items-center justify-center">
                           <div className="text-center px-4">
                             <h3 className="text-lg font-bold text-text-primary line-clamp-2">
                               {t('activity.example.idea_title_2')}
@@ -295,13 +295,13 @@ export default function ActivityPage() {
                       <div className="flex items-center gap-3 mb-2 min-h-[32px] overflow-hidden">
                         {/* Upvote Metric */}
                         <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-                          <ArrowUp className="w-3.5 h-3.5 text-green-500" />
+                          <ArrowUp className="w-3.5 h-3.5 text-success" />
                           <span className="text-sm font-medium">25</span>
                         </div>
 
                         {/* Downvote Metric */}
                         <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-                          <ArrowDown className="w-3.5 h-3.5 text-red-500" />
+                          <ArrowDown className="w-3.5 h-3.5 text-error" />
                           <span className="text-sm font-medium">5</span>
                         </div>
 
@@ -374,13 +374,13 @@ export default function ActivityPage() {
                       <div className="flex items-center gap-3 mb-2 min-h-[32px] overflow-hidden">
                         {/* Upvote Metric */}
                         <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-                          <ArrowUp className="w-3.5 h-3.5 text-green-500" />
+                          <ArrowUp className="w-3.5 h-3.5 text-success" />
                           <span className="text-sm font-medium">28</span>
                         </div>
 
                         {/* Downvote Metric */}
                         <div className="flex items-center gap-1.5 text-text-secondary whitespace-nowrap flex-shrink-0">
-                          <ArrowDown className="w-3.5 h-3.5 text-red-500" />
+                          <ArrowDown className="w-3.5 h-3.5 text-error" />
                           <span className="text-sm font-medium">6</span>
                         </div>
 

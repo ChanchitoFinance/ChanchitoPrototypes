@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { useAppSelector, useAppDispatch } from '@/core/lib/hooks'
 import { loadUserCredits } from '@/core/lib/slices/creditsSlice'
-import { PayPalCheckoutButton } from '@/features/payment/components/PayPalCheckoutButton'
+import { PayPalSubscriptionButton } from '@/features/payment/components/PayPalSubscriptionButton'
 import { Crown, ArrowLeft } from 'lucide-react'
 import {
   useTranslations,
@@ -149,7 +149,7 @@ function CheckoutContent() {
               <p className="text-text-secondary">
                 {t('checkout.pay_with_paypal')}
               </p>
-              <PayPalCheckoutButton
+              <PayPalSubscriptionButton
                 plan={plan}
                 userId={user.id}
                 onSuccess={handlePaymentSuccess}

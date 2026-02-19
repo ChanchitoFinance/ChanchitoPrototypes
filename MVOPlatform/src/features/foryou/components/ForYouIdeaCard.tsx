@@ -368,7 +368,7 @@ export function ForYouIdeaCard({
                 disabled={isVoting}
                 className={`flex flex-col items-center gap-1 p-2.5 rounded-full transition-colors ${
                   downvoted
-                    ? 'bg-red-500 text-white'
+                    ? 'bg-error text-white'
                     : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
                 } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 title="Downvote"
@@ -490,7 +490,7 @@ export function ForYouIdeaCard({
                 disabled={isVoting}
                 className={`flex flex-col items-center gap-1 p-3 rounded-full transition-colors ${
                   downvoted
-                    ? 'bg-red-500 text-white'
+                    ? 'bg-error text-white'
                     : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'
                 } ${isVoting ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
