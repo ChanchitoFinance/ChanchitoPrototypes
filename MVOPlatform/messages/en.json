@@ -288,34 +288,34 @@
     "status_validated": "Validated",
     "landing": {
       "slide0": {
-        "headline": "You don’t have to decide ",
-        "accent_word": "yet",
-        "subheadline": "Waiting for external signal is rational. We help you reduce uncertainty before committing.",
+        "headline": "This might be a good  ",
+        "accent_word": "idea",
+        "subheadline": "We help you validate before committing.",
         "cta": "Decide before building"
       },
       "slide1": {
-        "headline": "Identify the ",
-        "subheadline": "Surface liability, trust, and clarity risks to understand what makes this decision costly to reverse.",
-        "accent_word": "risk",
+        "headline": "Get feedback that actually  ",
+        "subheadline": "Track pay vs use as you iterate.",
+        "accent_word": "helps",
         "cta": "Assess risk"
       },
       "slide2": {
-        "headline": "Challenge your ",
-        "subheadline": "Independent perspectives and evidence question assumptions and expose tradeoffs before you move forward.",
-        "accent_word": "assumptions",
-        "cta": "Get external signal"
+        "headline": "Understand market  ",
+        "accent_word": "response",
+        "subheadline": "See how external users engage before you commit resources.",
+        "cta": "Compare signals"
       },
       "slide3": {
-        "headline": "Turn signal into a ",
-        "subheadline": "See what’s solid, what’s still uncertain, and what needs more evidence before you commit.",
-        "accent_word": "decision",
-        "cta": "Reduce uncertainty"
+        "headline": "Assumptions  ",
+        "subheadline": "See the risks before you commit.",
+        "accent_word": "first",
+        "cta": "Get external signal"
       },
       "slide4": {
-        "headline": "Track decision ",
-        "subheadline": "Follow signal and evidence patterns to understand whether confidence is increasing or still insufficient.",
-        "accent_word": "confidence",
-        "cta": "View decision state"
+        "headline": "One source of  ",
+        "subheadline": "Evidence, feedback, and decisions—together.",
+        "accent_word": "truth",
+        "cta": "Reduce uncertainty"
       }
     }
   },

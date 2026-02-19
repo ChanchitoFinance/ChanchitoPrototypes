@@ -288,34 +288,34 @@
     "status_validated": "Validadas",
     "landing": {
       "slide0": {
-        "headline": "No tienes que decidir ",
-        "accent_word": "todavía",
-        "subheadline": "Esperar señal externa es racional. Te ayudamos a reducir incertidumbre antes de comprometerte.",
-        "cta": "Decidir antes de construir"
+        "headline": "Esta podría ser una buena  ",
+        "accent_word": "idea",
+        "subheadline": "Te ayudamos a validar antes de comprometerte.",
+        "cta": "Decide antes de construir"
       },
       "slide1": {
-        "headline": "Identifica el ",
-        "subheadline": "Detecta riesgos de responsabilidad, confianza y claridad para entender qué hace esta decisión costosa de revertir.",
-        "accent_word": "riesgo",
-        "cta": "Evaluar riesgos"
+        "headline": "Obtén feedback que realmente  ",
+        "subheadline": "Rastrea el pago vs el uso mientras iteras.",
+        "accent_word": "ayuda",
+        "cta": "Evalúa el riesgo"
       },
       "slide2": {
-        "headline": "Contrasta tus ",
-        "subheadline": "Perspectivas independientes y evidencia cuestionan supuestos y exponen tradeoffs antes de avanzar.",
-        "accent_word": "supuestos",
-        "cta": "Obtener señal externa"
+        "headline": "Entiende la respuesta del ",
+        "accent_word": "mercado",
+        "subheadline": "Ve cómo los usuarios externos interactúan antes de comprometerte.",
+        "cta": "Compara señales"
       },
       "slide3": {
-        "headline": "Convierte la señal en una ",
-        "subheadline": "Ve qué es sólido, qué sigue siendo incierto y qué requiere más evidencia antes de comprometerte.",
-        "accent_word": "decisión",
-        "cta": "Reducir incertidumbre"
+        "headline": "Hipótesis  ",
+        "subheadline": "Ve los riesgos antes de comprometerte.",
+        "accent_word": "primero",
+        "cta": "Obtén señal externa"
       },
       "slide4": {
-        "headline": "Mide el nivel de ",
-        "subheadline": "Sigue patrones de señal y evidencia para entender si la confianza está aumentando o sigue siendo insuficiente.",
-        "accent_word": "confianza",
-        "cta": "Ver estado de decisión"
+        "headline": "Una fuente de  ",
+        "subheadline": "Evidencia, feedback y decisiones—juntos.",
+        "accent_word": "verdad",
+        "cta": "Reduce la incertidumbre"
       }
     }
   },

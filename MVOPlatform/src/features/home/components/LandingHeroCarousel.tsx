@@ -120,18 +120,19 @@ export function LandingHeroCarousel({ slides }: { slides: HeroSlide[] }) {
     >
       {/* Full-background: darkened image behind everything */}
       {fullBgUrl && (
-        <>
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-opacity duration-300 ease-out"
-            style={{
-              backgroundImage: `url(${fullBgUrl})`,
-              opacity: imageOpacity,
-            }}
-            aria-hidden
-          />
-          <div className="absolute inset-0 bg-black/55" aria-hidden />
-        </>
-      )}
+  <>
+    <img
+      key={fullBgUrl}
+      src={fullBgUrl}
+      alt=""
+      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
+      style={{ opacity: imageOpacity }}
+      draggable={false}
+    />
+    <div className="absolute inset-0 bg-black/55" aria-hidden />
+  </>
+)}
+
 
       {total > 1 && (
         <>

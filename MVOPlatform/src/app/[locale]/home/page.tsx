@@ -28,7 +28,7 @@ export default function Home() {
       subheadline: t('home.landing.slide1.subheadline'),
       accentColor: 'var(--error)', 
       cta: t('home.landing.slide1.cta'),
-      background: 'url(/hero/hero1.png)',
+      background: 'url(/hero/hero1.gif)',
     },
     {
       headline: t('home.landing.slide2.headline'),
@@ -50,7 +50,7 @@ export default function Home() {
       accentWord: t('home.landing.slide4.accent_word'),
       subheadline: t('home.landing.slide4.subheadline'),
       cta: t('home.landing.slide4.cta'),
-      background: 'url(/hero/hero4.png)',
+      background: 'url(/hero/hero4.gif)',
     },
   ]
   // Scroll on mount: first time = top; coming back = restore last position
